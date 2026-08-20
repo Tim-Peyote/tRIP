@@ -23,9 +23,12 @@ signal distraction_count_changed(remaining: int)
 @export_category("Camera Feel")
 @export_range(0.0, 0.08, 0.001) var head_bob_amount: float = 0.018
 @export_range(0.0, 16.0, 0.1) var head_bob_frequency: float = 8.5
+@export_range(0.0, 0.08, 0.001) var viewmodel_bob_amount: float = 0.028
+@export_range(0.0, 0.01, 0.0005) var viewmodel_look_inertia: float = 0.0035
 
 @onready var camera_rig: Node3D = %CameraRig
 @onready var camera: Camera3D = %Camera3D
+@onready var viewmodel: Node3D = %ViewModel
 @onready var collision_shape: CollisionShape3D = %CollisionShape3D
 @onready var crouch_clearance: RayCast3D = %CrouchClearance
 @onready var interactor: InteractionOrchestrator = %InteractionOrchestrator
@@ -42,6 +45,8 @@ var _bob_time: float = 0.0
 var _step_distance: float = 0.0
 var _last_position: Vector3
 var _is_crouched: bool = false
+var _viewmodel_rest_position: Vector3
+var _viewmodel_look_offset: Vector2 = Vector2.ZERO
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -62,6 +67,7 @@ func _ready() -> void:
 	distraction_thrower.projectile_created.connect(distraction_created.emit)
 	distraction_thrower.count_changed.connect(distraction_count_changed.emit)
 	_last_position = global_position
+	_viewmodel_rest_position = viewmodel.position
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -82,6 +88,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var motion := event as InputEventMouseMotion
+		_viewmodel_look_offset += Vector2(motion.relative.x, motion.relative.y) * viewmodel_look_inertia
+		_viewmodel_look_offset = _viewmodel_look_offset.limit_length(0.075)
 		rotate_y(deg_to_rad(-motion.relative.x * mouse_sensitivity))
 		_look_pitch = clampf(
 			_look_pitch - deg_to_rad(motion.relative.y * mouse_sensitivity),
@@ -99,6 +107,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, ground_acceleration * delta)
 		_apply_gravity(delta)
 		move_and_slide()
+		_update_viewmodel(delta, 0.0)
 		return
 
 	var input_vector := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
@@ -111,6 +120,7 @@ func _physics_process(delta: float) -> void:
 	_apply_gravity(delta)
 	move_and_slide()
 	_update_camera_feel(delta, input_vector.length())
+	_update_viewmodel(delta, input_vector.length())
 	_update_steps()
 
 
@@ -186,6 +196,25 @@ func _update_camera_feel(delta: float, input_strength: float) -> void:
 		0.0
 	) * bob_scale
 	camera.position = camera.position.lerp(bob, clampf(delta * 12.0, 0.0, 1.0))
+
+
+func _update_viewmodel(delta: float, input_strength: float) -> void:
+	_viewmodel_look_offset = _viewmodel_look_offset.lerp(Vector2.ZERO, clampf(delta * 9.0, 0.0, 1.0))
+	var movement_weight := clampf(input_strength, 0.0, 1.0) if is_on_floor() else 0.0
+	var gait := Vector3(
+		cos(_bob_time * 0.5) * viewmodel_bob_amount,
+		absf(sin(_bob_time)) * viewmodel_bob_amount * 0.7,
+		0.0
+	) * movement_weight
+	var inertia := Vector3(-_viewmodel_look_offset.x, _viewmodel_look_offset.y, 0.0)
+	var target_position := _viewmodel_rest_position + gait + inertia
+	viewmodel.position = viewmodel.position.lerp(target_position, clampf(delta * 11.0, 0.0, 1.0))
+	var target_rotation := Vector3(
+		_viewmodel_look_offset.y * 0.8,
+		_viewmodel_look_offset.x * 0.65,
+		-cos(_bob_time * 0.5) * movement_weight * 0.018 - _viewmodel_look_offset.x * 0.45
+	)
+	viewmodel.rotation = viewmodel.rotation.lerp(target_rotation, clampf(delta * 9.0, 0.0, 1.0))
 
 
 func _update_steps() -> void:

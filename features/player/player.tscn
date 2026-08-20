@@ -115,6 +115,7 @@ collide_with_areas = true
 script = ExtResource("2_interactor")
 
 [node name="ViewModel" type="Node3D" parent="CameraRig/Camera3D"]
+unique_name_in_owner = true
 position = Vector3(0, -0.12, -0.45)
 scale = Vector3(0.8, 0.8, 0.8)
 
