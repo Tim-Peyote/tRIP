@@ -16,6 +16,7 @@ extends Node3D
 @onready var session_persistence: SessionPersistenceOrchestrator = %SessionPersistenceOrchestrator
 @onready var deep_grove_gate: SimplePortal = $ForestClearing/DeepGroveGate
 @onready var biome_visual_controller: BiomeVisualController = %BiomeVisualController
+@onready var forest_trail: Node3D = $ForestTrail
 
 
 func _ready() -> void:
@@ -39,6 +40,10 @@ func _ready() -> void:
 	return_portal.traversed.connect(objective_orchestrator.record_return)
 	return_portal.traversed.connect(biome_visual_controller.show_shelter)
 	($ForestDoor as SimplePortal).traversed.connect(biome_visual_controller.show_forest)
+	(forest_trail.get_node("ReturnPortal") as SimplePortal).traversed.connect(biome_visual_controller.show_forest)
+	for clue: Node in forest_trail.get_clues():
+		clue.discovered.connect(game_loop_orchestrator.record_trail_clue)
+	forest_trail.set_spore_vision_active(false)
 	expedition_clock.phase_changed.connect(forest_clearing.apply_phase)
 	stealth_orchestrator.setup(player, [forest_clearing.listener])
 	player.distraction_created.connect(_on_distraction_created)
@@ -93,4 +98,8 @@ func _on_route_unlock_changed(is_unlocked: bool) -> void:
 
 
 func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
-	hidden_mycelium.visible = float(channels.get(&"spore_vision", 0.0)) > 0.1
+	var spore_vision_active := float(channels.get(&"spore_vision", 0.0)) > 0.1
+	hidden_mycelium.visible = spore_vision_active
+	player.set_spore_vision_active(spore_vision_active)
+	forest_trail.set_spore_vision_active(spore_vision_active)
+	game_loop_orchestrator.set_spore_vision_active(spore_vision_active)

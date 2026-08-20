@@ -300,6 +300,8 @@ Harvestable использует стабильный `spawn_id`; после з�
 
 `GameLoopOrchestrator` координирует макроэтапы `EXPEDITION → BREW → REWARD → DEEP_GROVE`. Он слушает завершённые события objective/cooking, формирует summary и unlock, но не рисует экран и не пишет файл самостоятельно. HUD и persistence подписываются на его typed signals.
 
+Поиск миколога расширяет тот же макроцикл stable clue IDs. `NarrativeClue` сообщает только факт обнаружения, `GameLoopOrchestrator` хранит прогресс и формирует следующую цель, а chunk управляет видимостью своей геометрии. Эффект спорозрения передаёт semantic gameplay channel: он одновременно проявляет маршрут, меняет stealth exposure и создаёт presentation snapshot, но shader сам не открывает проход.
+
 ## 10. UI architecture
 
 - Каждый экран — самостоятельная сцена `Control` с typed input/output signals.

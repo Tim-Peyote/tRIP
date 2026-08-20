@@ -6,9 +6,22 @@ extends Node3D
 @onready var steam: Node3D = %Steam
 @onready var fire_glow: OmniLight3D = %FireGlow
 @onready var fire_mesh: MeshInstance3D = %FireMesh
+@onready var pestle: Node3D = %Pestle
+@onready var water_jug: Node3D = %WaterJug
+@onready var ladle: Node3D = %Ladle
 
 var _time: float = 0.0
 var _result_latched: bool = false
+var _tool_tween: Tween
+var _pestle_rest: Transform3D
+var _jug_rest: Transform3D
+var _ladle_rest: Transform3D
+
+
+func _ready() -> void:
+	_pestle_rest = pestle.transform
+	_jug_rest = water_jug.transform
+	_ladle_rest = ladle.transform
 
 
 func setup(orchestrator: CookingOrchestrator) -> void:
@@ -67,5 +80,25 @@ func _on_vessel_state_changed(state: ThermalVesselState) -> void:
 			material.albedo_color = Color(0.12, 0.22, 0.16).lerp(Color(0.44, 0.34, 0.09), heat_t)
 
 
-func _on_physical_action_recorded(_action: StringName) -> void:
+func _on_physical_action_recorded(action: StringName) -> void:
 	_result_latched = false
+	_animate_tool(action)
+
+
+func _animate_tool(action: StringName) -> void:
+	if _tool_tween != null and _tool_tween.is_valid():
+		_tool_tween.kill()
+	_tool_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	match action:
+		&"add_water":
+			_tool_tween.tween_property(water_jug, "rotation:z", -0.9, 0.22)
+			_tool_tween.tween_property(water_jug, "rotation:z", _jug_rest.basis.get_euler().z, 0.3)
+		&"stir":
+			_tool_tween.tween_property(ladle, "rotation:y", _ladle_rest.basis.get_euler().y + 1.7, 0.28)
+			_tool_tween.tween_property(ladle, "rotation:y", _ladle_rest.basis.get_euler().y, 0.26)
+		&"transfer":
+			_tool_tween.tween_property(pestle, "position:y", _pestle_rest.origin.y + 0.18, 0.18)
+			_tool_tween.tween_property(pestle, "position:y", _pestle_rest.origin.y, 0.24)
+		_:
+			_tool_tween.tween_property(pestle, "rotation:z", -1.05, 0.16)
+			_tool_tween.tween_property(pestle, "rotation:z", _pestle_rest.basis.get_euler().z, 0.24)

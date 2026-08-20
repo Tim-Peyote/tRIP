@@ -63,6 +63,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	elif not persistence.load():
 		persistence.initialize_new()
 	_active_player.inventory.consumable_used.connect(effect_orchestrator.apply_effects)
+	_active_player.inventory.consumable_used.connect(_active_player.play_consumption_animation)
 	effect_orchestrator.gameplay_channels_changed.connect(_active_level.apply_gameplay_channels)
 	audio_director.set_snapshot(&"default")
 

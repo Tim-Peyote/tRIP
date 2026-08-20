@@ -298,12 +298,12 @@ portal_description = "Тёплый свет под дверью ещё виде�
 
 [node name="DeepGroveGate" parent="." instance=ExtResource("2_portal")]
 position = Vector3(7.1, 0.12, 0)
-target_position = Vector3(20.5, 0.12, 15)
-target_yaw = -1.5708
-portal_name = "Тропа в глубокую рощу"
-portal_description = "За переплетением корней чувствуется более древняя грибница."
+target_position = Vector3(0, 0.12, 24.8)
+target_yaw = 0.0
+portal_name = "Северная тропа"
+portal_description = "За переплетением корней начинается путь, которым пользовался пропавший миколог."
 locked = true
-locked_prompt = "Мицелий не отзывается. Нужен состав, меняющий восприятие"
+locked_prompt = "Корни не расходятся. Сначала нужно замкнуть первую цепь исследования"
 
 [node name="ForestLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true

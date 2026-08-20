@@ -102,6 +102,7 @@ func setup_game_loop(game_loop: GameLoopOrchestrator) -> void:
 	_game_loop = game_loop
 	game_loop.stage_changed.connect(_on_loop_stage_changed)
 	game_loop.result_ready.connect(_on_cycle_result_ready)
+	game_loop.narrative_notice_requested.connect(_on_narrative_notice_requested)
 	_on_loop_stage_changed(game_loop.stage, game_loop.get_objective_text())
 
 
@@ -231,6 +232,10 @@ func _on_objective_updated(text: String) -> void:
 
 func _on_loop_stage_changed(_stage: int, objective_text: String) -> void:
 	%ObjectiveLabel.text = objective_text
+
+
+func _on_narrative_notice_requested(title: String, text: String) -> void:
+	show_notice("%s · %s" % [title, text])
 
 
 func _on_cycle_result_ready(summary: Dictionary) -> void:

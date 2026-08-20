@@ -47,6 +47,8 @@ var _last_position: Vector3
 var _is_crouched: bool = false
 var _viewmodel_rest_position: Vector3
 var _viewmodel_look_offset: Vector2 = Vector2.ZERO
+var _spore_vision_active: bool = false
+var _consumption_tween: Tween
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -136,7 +138,35 @@ func get_stealth_exposure() -> float:
 	var planar_speed := Vector2(velocity.x, velocity.z).length()
 	var movement_exposure := remap(clampf(planar_speed, 0.0, sprint_speed), 0.0, sprint_speed, 0.72, 1.35)
 	var stance_exposure := 0.48 if _is_crouched else 1.0
-	return clampf(movement_exposure * stance_exposure, 0.3, 1.35)
+	var perception_price := 1.28 if _spore_vision_active else 1.0
+	return clampf(movement_exposure * stance_exposure * perception_price, 0.3, 1.55)
+
+
+func set_spore_vision_active(value: bool) -> void:
+	_spore_vision_active = value
+
+
+func play_consumption_animation(_effect_ids: Array[StringName], _display_name: String) -> void:
+	if _consumption_tween != null and _consumption_tween.is_valid():
+		_consumption_tween.kill()
+	var resting_position := vial_viewmodel.position
+	var resting_rotation := vial_viewmodel.rotation
+	vial_viewmodel.visible = true
+	_consumption_tween = create_tween()
+	_consumption_tween.set_trans(Tween.TRANS_SINE)
+	_consumption_tween.set_ease(Tween.EASE_IN_OUT)
+	_consumption_tween.set_parallel(true)
+	_consumption_tween.tween_property(vial_viewmodel, "position", Vector3(0.11, -0.035, -0.34), 0.38)
+	_consumption_tween.tween_property(vial_viewmodel, "rotation", Vector3(-1.42, 0.18, -0.18), 0.38)
+	_consumption_tween.set_parallel(false)
+	_consumption_tween.tween_interval(0.18)
+	_consumption_tween.set_parallel(true)
+	_consumption_tween.tween_property(vial_viewmodel, "position", resting_position, 0.32)
+	_consumption_tween.tween_property(vial_viewmodel, "rotation", resting_rotation, 0.32)
+	_consumption_tween.set_parallel(false)
+	_consumption_tween.tween_callback(func() -> void:
+		vial_viewmodel.visible = toolbelt.is_equipped and toolbelt.active_tool_id == &"tool.spore_vial"
+	)
 
 
 func _update_gamepad_look(delta: float) -> void:
