@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ingredient.emberberry"
+display_name = "Тлеющая ягода"
+description = "Тёмная ягода с горячей сердцевиной. Приглушает споровый пик, но оставляет металлический привкус."
+tags = Array[StringName]([&"berry", &"warming", &"counteragent"])
+harvest_parts = Array[int]([5, 4, 3])
+unit_mass = 0.04
+unit_volume = 0.06
+freshness_hours = 36.0
+biome_tags = Array[StringName]([&"deep_grove", &"mycelial_heat"])
+allowed_operations = Array[StringName]([&"crush", &"steep", &"dry"])
+trait_channels = {&"spore_damping": 0.7, &"warming": 0.45}
+

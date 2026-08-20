@@ -1,49 +1,138 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=32 format=3]
 
-[ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="1_portal"]
+[ext_resource type="Script" path="res://world/levels/deep_grove/deep_grove_chunk.gd" id="1"]
+[ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://world/props/forest/gnarled_tree.tscn" id="3"]
+[ext_resource type="Script" path="res://world/props/forest/vegetation_scatter.gd" id="4"]
+[ext_resource type="PackedScene" path="res://features/narrative/narrative_clue.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://features/ingredients/emberberry_world.tscn" id="6"]
+[ext_resource type="Script" path="res://presentation/audio/spatial_forest_emitter.gd" id="7"]
+[ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="8"]
 
 [sub_resource type="StandardMaterial3D" id="GroundMat"]
-albedo_color = Color(0.018, 0.045, 0.032, 1)
+albedo_color = Color(0.29, 0.38, 0.28, 1)
+albedo_texture = ExtResource("8")
 roughness = 1.0
+texture_filter = 0
+uv1_scale = Vector3(5, 5, 5)
 
 [sub_resource type="BoxMesh" id="GroundMesh"]
-size = Vector3(12, 0.24, 12)
+size = Vector3(30, 0.3, 30)
 
 [sub_resource type="BoxShape3D" id="GroundShape"]
-size = Vector3(12, 0.24, 12)
+size = Vector3(30, 0.3, 30)
+
+[sub_resource type="StandardMaterial3D" id="TerraceMat"]
+albedo_color = Color(0.055, 0.12, 0.06, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="TerraceMesh"]
+size = Vector3(11, 1.7, 11)
+
+[sub_resource type="BoxShape3D" id="TerraceShape"]
+size = Vector3(11, 1.7, 11)
+
+[sub_resource type="BoxMesh" id="RampMesh"]
+size = Vector3(7.2, 0.35, 3.2)
+
+[sub_resource type="BoxShape3D" id="RampShape"]
+size = Vector3(7.2, 0.35, 3.2)
 
 [sub_resource type="StandardMaterial3D" id="MyceliumMat"]
-albedo_color = Color(0.21, 0.42, 0.18, 1)
+albedo_color = Color(0.16, 0.48, 0.2, 1)
 emission_enabled = true
-emission = Color(0.12, 0.5, 0.2, 1)
-emission_energy_multiplier = 2.6
+emission = Color(0.08, 0.7, 0.2, 1)
+emission_energy_multiplier = 3.2
 
 [sub_resource type="TorusMesh" id="RingMesh"]
-inner_radius = 1.3
-outer_radius = 1.42
-rings = 18
+inner_radius = 2.4
+outer_radius = 2.55
+rings = 22
 ring_segments = 7
 
-[sub_resource type="SphereMesh" id="NodeMesh"]
-radius = 0.16
-height = 0.25
+[sub_resource type="CylinderMesh" id="GiantStemMesh"]
+top_radius = 0.65
+bottom_radius = 1.15
+height = 5.5
 radial_segments = 8
-rings = 4
 
-[sub_resource type="StandardMaterial3D" id="StoneMat"]
-albedo_color = Color(0.07, 0.105, 0.09, 1)
-roughness = 0.96
-
-[sub_resource type="SphereMesh" id="StoneMesh"]
-radius = 1.0
+[sub_resource type="SphereMesh" id="GiantCapMesh"]
+radius = 2.5
 height = 1.4
+radial_segments = 10
+rings = 5
+
+[sub_resource type="StandardMaterial3D" id="GiantStemMat"]
+albedo_color = Color(0.22, 0.24, 0.14, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="GiantCapMat"]
+albedo_color = Color(0.18, 0.42, 0.16, 1)
+emission_enabled = true
+emission = Color(0.05, 0.32, 0.08, 1)
+emission_energy_multiplier = 1.7
+
+[sub_resource type="StandardMaterial3D" id="CampWoodMat"]
+albedo_color = Color(0.19, 0.095, 0.035, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="CanvasMat"]
+albedo_color = Color(0.24, 0.18, 0.095, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="BedMat"]
+albedo_color = Color(0.16, 0.08, 0.055, 1)
+roughness = 1.0
+
+[sub_resource type="PrismMesh" id="TentMesh"]
+size = Vector3(3.4, 2.0, 3.0)
+
+[sub_resource type="BoxMesh" id="BedMesh"]
+size = Vector3(0.9, 0.12, 2.0)
+
+[sub_resource type="BoxMesh" id="CrateMesh"]
+size = Vector3(0.75, 0.75, 0.75)
+
+[sub_resource type="CylinderMesh" id="PoleMesh"]
+top_radius = 0.045
+bottom_radius = 0.06
+height = 2.4
+radial_segments = 6
+
+[sub_resource type="StandardMaterial3D" id="SporeMat"]
+transparency = 1
+shading_mode = 0
+billboard_mode = 1
+albedo_color = Color(0.38, 0.92, 0.28, 0.85)
+emission_enabled = true
+emission = Color(0.12, 0.8, 0.22, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="QuadMesh" id="SporeMesh"]
+material = SubResource("SporeMat")
+size = Vector2(0.07, 0.07)
+
+[sub_resource type="ParticleProcessMaterial" id="SporeProcess"]
+emission_shape = 3
+emission_box_extents = Vector3(13, 2.5, 13)
+direction = Vector3(0.08, 1, 0.02)
+spread = 80.0
+initial_velocity_min = 0.03
+initial_velocity_max = 0.18
+gravity = Vector3(0, 0.012, 0)
+
+[sub_resource type="SphereMesh" id="BeaconMesh"]
+radius = 0.12
+height = 0.18
 radial_segments = 7
-rings = 4
+rings = 3
 
 [node name="DeepGroveChunk" type="Node3D"]
+script = ExtResource("1")
 
 [node name="Ground" type="StaticBody3D" parent="."]
 collision_layer = 1
+collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="Ground"]
 mesh = SubResource("GroundMesh")
@@ -52,43 +141,219 @@ material_override = SubResource("GroundMat")
 [node name="Collision" type="CollisionShape3D" parent="Ground"]
 shape = SubResource("GroundShape")
 
+[node name="UpperTerrace" type="StaticBody3D" parent="."]
+position = Vector3(6.7, 0.78, 5.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="UpperTerrace"]
+mesh = SubResource("TerraceMesh")
+material_override = SubResource("TerraceMat")
+
+[node name="Collision" type="CollisionShape3D" parent="UpperTerrace"]
+shape = SubResource("TerraceShape")
+
+[node name="TerraceRamp" type="StaticBody3D" parent="."]
+position = Vector3(0.9, 0.68, 5.3)
+rotation = Vector3(0, 0, -0.235)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="TerraceRamp"]
+mesh = SubResource("RampMesh")
+material_override = SubResource("TerraceMat")
+
+[node name="Collision" type="CollisionShape3D" parent="TerraceRamp"]
+shape = SubResource("RampShape")
+
+[node name="RampBeaconA" type="MeshInstance3D" parent="."]
+position = Vector3(-1.5, 0.35, 4.2)
+mesh = SubResource("BeaconMesh")
+material_override = SubResource("MyceliumMat")
+
+[node name="RampBeaconB" type="MeshInstance3D" parent="."]
+position = Vector3(0.8, 0.9, 4.6)
+mesh = SubResource("BeaconMesh")
+material_override = SubResource("MyceliumMat")
+
+[node name="RampBeaconC" type="MeshInstance3D" parent="."]
+position = Vector3(3.1, 1.42, 5.0)
+mesh = SubResource("BeaconMesh")
+material_override = SubResource("MyceliumMat")
+
+[node name="RampLight" type="OmniLight3D" parent="."]
+position = Vector3(0.8, 1.25, 4.6)
+light_color = Color(0.2, 0.76, 0.25, 1)
+light_energy = 2.8
+omni_range = 8.5
+shadow_enabled = false
+
+[node name="LowerMound" type="MeshInstance3D" parent="."]
+position = Vector3(-7, 0.15, 8)
+scale = Vector3(4.5, 0.8, 3.2)
+mesh = SubResource("GiantCapMesh")
+material_override = SubResource("TerraceMat")
+
+[node name="VegetationScatter" type="Node3D" parent="."]
+script = ExtResource("4")
+area_size = Vector2(28, 28)
+grass_count = 650
+fern_count = 145
+random_seed = 73301
+trail_half_width = 1.6
+
+[node name="TreeA" parent="." instance=ExtResource("3")]
+position = Vector3(-11.5, 0.15, -10.5)
+scale = Vector3(1.5, 1.45, 1.5)
+
+[node name="TreeB" parent="." instance=ExtResource("3")]
+position = Vector3(-11.8, 0.15, 0.5)
+rotation = Vector3(0, 1.2, 0)
+scale = Vector3(1.25, 1.35, 1.25)
+
+[node name="TreeC" parent="." instance=ExtResource("3")]
+position = Vector3(-10.5, 0.15, 12)
+rotation = Vector3(0, -0.8, 0)
+scale = Vector3(1.45, 1.5, 1.45)
+
+[node name="TreeD" parent="." instance=ExtResource("3")]
+position = Vector3(12, 0.15, -9.5)
+rotation = Vector3(0, 2.2, 0)
+scale = Vector3(1.4, 1.5, 1.4)
+
+[node name="TreeE" parent="." instance=ExtResource("3")]
+position = Vector3(12.2, 1.7, 4.5)
+rotation = Vector3(0, -1.7, 0)
+scale = Vector3(1.25, 1.32, 1.25)
+
+[node name="TreeF" parent="." instance=ExtResource("3")]
+position = Vector3(7.5, 1.7, 11.5)
+rotation = Vector3(0, 0.6, 0)
+scale = Vector3(1.35, 1.4, 1.35)
+
+[node name="GiantFungusA" type="Node3D" parent="."]
+position = Vector3(-3.7, 0.15, 10.8)
+
+[node name="Stem" type="MeshInstance3D" parent="GiantFungusA"]
+position = Vector3(0, 2.75, 0)
+rotation = Vector3(0.04, 0, -0.08)
+mesh = SubResource("GiantStemMesh")
+material_override = SubResource("GiantStemMat")
+
+[node name="Cap" type="MeshInstance3D" parent="GiantFungusA"]
+position = Vector3(-0.25, 5.45, 0)
+scale = Vector3(1.5, 0.7, 1.15)
+mesh = SubResource("GiantCapMesh")
+material_override = SubResource("GiantCapMat")
+
+[node name="GiantFungusB" type="Node3D" parent="."]
+position = Vector3(10.2, 1.7, -1.5)
+scale = Vector3(0.75, 0.85, 0.75)
+
+[node name="Stem" type="MeshInstance3D" parent="GiantFungusB"]
+position = Vector3(0, 2.75, 0)
+mesh = SubResource("GiantStemMesh")
+material_override = SubResource("GiantStemMat")
+
+[node name="Cap" type="MeshInstance3D" parent="GiantFungusB"]
+position = Vector3(0, 5.4, 0)
+scale = Vector3(1.4, 0.65, 1.05)
+mesh = SubResource("GiantCapMesh")
+material_override = SubResource("GiantCapMat")
+
 [node name="AncientRing" type="MeshInstance3D" parent="."]
-position = Vector3(1.2, 0.16, 0)
+position = Vector3(-2.5, 0.19, -3.2)
 rotation = Vector3(1.5708, 0, 0)
 mesh = SubResource("RingMesh")
 material_override = SubResource("MyceliumMat")
 
-[node name="NodeA" type="MeshInstance3D" parent="."]
-position = Vector3(0.1, 0.2, -1.0)
-mesh = SubResource("NodeMesh")
-material_override = SubResource("MyceliumMat")
+[node name="EmberberryA" parent="." instance=ExtResource("6")]
+position = Vector3(-7.2, 0.15, 7.0)
+spawn_id = &"deep_grove.emberberry.a"
 
-[node name="NodeB" type="MeshInstance3D" parent="."]
-position = Vector3(2.35, 0.2, 0.9)
-mesh = SubResource("NodeMesh")
-material_override = SubResource("MyceliumMat")
+[node name="EmberberryB" parent="." instance=ExtResource("6")]
+position = Vector3(9.2, 1.78, 9.0)
+scale = Vector3(0.82, 0.82, 0.82)
+spawn_id = &"deep_grove.emberberry.b"
 
-[node name="StoneA" type="MeshInstance3D" parent="."]
-position = Vector3(2.8, 0.55, -2.5)
-scale = Vector3(1.2, 0.6, 0.85)
-mesh = SubResource("StoneMesh")
-material_override = SubResource("StoneMat")
+[node name="MycologistCamp" type="Node3D" parent="."]
+position = Vector3(6.5, 1.78, 5.5)
 
-[node name="StoneB" type="MeshInstance3D" parent="."]
-position = Vector3(-1.8, 0.45, 2.6)
-scale = Vector3(0.8, 0.45, 1.15)
-mesh = SubResource("StoneMesh")
-material_override = SubResource("StoneMat")
+[node name="Tent" type="MeshInstance3D" parent="MycologistCamp"]
+position = Vector3(1.1, 1.0, 0.6)
+rotation = Vector3(0, -0.25, 0)
+mesh = SubResource("TentMesh")
+material_override = SubResource("CanvasMat")
 
-[node name="ReturnPortal" parent="." instance=ExtResource("1_portal")]
-position = Vector3(-5.4, 0.12, 0)
-target_position = Vector3(5.5, 0.12, 15)
-target_yaw = 1.5708
-portal_name = "Вернуться на поляну"
+[node name="PoleA" type="MeshInstance3D" parent="MycologistCamp"]
+position = Vector3(-0.3, 1.2, -0.9)
+mesh = SubResource("PoleMesh")
+material_override = SubResource("CampWoodMat")
+
+[node name="Bedroll" type="MeshInstance3D" parent="MycologistCamp"]
+position = Vector3(1.25, 0.16, 0.5)
+rotation = Vector3(0, -0.25, 0)
+mesh = SubResource("BedMesh")
+material_override = SubResource("BedMat")
+
+[node name="CrateA" type="MeshInstance3D" parent="MycologistCamp"]
+position = Vector3(-0.65, 0.38, 0.25)
+mesh = SubResource("CrateMesh")
+material_override = SubResource("CampWoodMat")
+
+[node name="CrateB" type="MeshInstance3D" parent="MycologistCamp"]
+position = Vector3(-0.25, 0.38, 0.85)
+rotation = Vector3(0, 0.4, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+mesh = SubResource("CrateMesh")
+material_override = SubResource("CampWoodMat")
+
+[node name="CampClue" parent="MycologistCamp" instance=ExtResource("5")]
+position = Vector3(-0.8, 0, -0.6)
+clue_id = &"mycologist.camp.abandoned"
+title = "Брошенный лагерь"
+text = "Очаг холодный, но чернила свежие. Миколог оставил схему красных ягод и стрелку к кольцу грибницы. Он ушёл сам — его не утащили."
+
+[node name="CampGlow" type="OmniLight3D" parent="MycologistCamp"]
+position = Vector3(-0.4, 1.1, 0)
+light_color = Color(0.95, 0.28, 0.08, 1)
+light_energy = 1.7
+omni_range = 5.0
+shadow_enabled = true
+
+[node name="ReturnPortal" parent="." instance=ExtResource("2")]
+position = Vector3(-13.5, 0.15, 0)
+target_position = Vector3(0, 0.12, 44.5)
+target_yaw = 3.14159
+portal_name = "Вернуться на северную тропу"
+portal_description = "Споровый проход ведёт обратно к зарубкам миколога."
+
+[node name="Spores" type="GPUParticles3D" parent="."]
+position = Vector3(0, 2.0, 0)
+amount = 210
+lifetime = 11.0
+randomness = 0.9
+visibility_aabb = AABB(-15, -3, -15, 30, 10, 30)
+process_material = SubResource("SporeProcess")
+draw_pass_1 = SubResource("SporeMesh")
+
+[node name="PulseEmitter" type="AudioStreamPlayer3D" parent="."]
+position = Vector3(-2.5, 0.7, -3.2)
+script = ExtResource("7")
+voice = "pulse"
+intensity = 0.42
+seed = 431
+
+[node name="CampWhisper" type="AudioStreamPlayer3D" parent="."]
+position = Vector3(6.5, 2.2, 5.5)
+script = ExtResource("7")
+voice = "whisper"
+intensity = 0.3
+seed = 809
 
 [node name="GroveGlow" type="OmniLight3D" parent="."]
-position = Vector3(1.2, 1.4, 0)
-light_color = Color(0.18, 0.72, 0.32, 1)
-light_energy = 2.4
-omni_range = 7.0
+position = Vector3(-2.5, 2.4, -3.2)
+light_color = Color(0.16, 0.82, 0.3, 1)
+light_energy = 2.8
+omni_range = 10.0
 shadow_enabled = true

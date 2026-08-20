@@ -17,6 +17,8 @@ extends Node3D
 @onready var deep_grove_gate: SimplePortal = $ForestClearing/DeepGroveGate
 @onready var biome_visual_controller: BiomeVisualController = %BiomeVisualController
 @onready var forest_trail: Node3D = $ForestTrail
+@onready var deep_grove: Node3D = $DeepGrove
+@onready var shelter_progression_visuals: ShelterProgressionVisuals = %ShelterProgressionVisuals
 
 
 func _ready() -> void:
@@ -29,6 +31,7 @@ func _ready() -> void:
 	hypothesis_orchestrator.setup(knowledge_orchestrator)
 	game_loop_orchestrator.setup(objective_orchestrator, cooking_orchestrator, expedition_clock, knowledge_orchestrator)
 	game_loop_orchestrator.route_unlock_changed.connect(_on_route_unlock_changed)
+	shelter_progression_visuals.setup(game_loop_orchestrator)
 	_on_route_unlock_changed(game_loop_orchestrator.route_unlocked)
 	for node: Node in find_children("*", "HarvestableIngredient", true, false):
 		var ingredient := node as HarvestableIngredient
@@ -36,13 +39,19 @@ func _ready() -> void:
 		ingredient.harvested.connect(knowledge_orchestrator.record_harvest)
 		if forest_clearing.is_ancestor_of(ingredient):
 			ingredient.harvested.connect(objective_orchestrator.record_harvest)
+		if deep_grove.is_ancestor_of(ingredient):
+			ingredient.harvested.connect(game_loop_orchestrator.record_grove_harvest)
 	var return_portal := forest_clearing.get_node("ReturnPortal") as SimplePortal
 	return_portal.traversed.connect(objective_orchestrator.record_return)
+	return_portal.traversed.connect(game_loop_orchestrator.record_second_return)
 	return_portal.traversed.connect(biome_visual_controller.show_shelter)
 	($ForestDoor as SimplePortal).traversed.connect(biome_visual_controller.show_forest)
 	(forest_trail.get_node("ReturnPortal") as SimplePortal).traversed.connect(biome_visual_controller.show_forest)
 	for clue: Node in forest_trail.get_clues():
 		clue.discovered.connect(game_loop_orchestrator.record_trail_clue)
+	for clue: Node in deep_grove.get_narrative_clues():
+		clue.discovered.connect(game_loop_orchestrator.record_trail_clue)
+	(forest_trail.get_node("SporeRoute/VisionGate") as SimplePortal).traversed.connect(game_loop_orchestrator.record_grove_entered)
 	forest_trail.set_spore_vision_active(false)
 	expedition_clock.phase_changed.connect(forest_clearing.apply_phase)
 	stealth_orchestrator.setup(player, [forest_clearing.listener])

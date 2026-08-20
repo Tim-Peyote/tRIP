@@ -16,6 +16,9 @@ const PART_LABELS: Dictionary = {
 	&"stem": "ножка",
 	&"whole": "целиком",
 	&"spores": "споры",
+	&"berry": "ягоды",
+	&"leaf": "листья",
+	&"root": "корень",
 }
 
 const PART_CAPABILITIES: Dictionary = {
@@ -23,6 +26,9 @@ const PART_CAPABILITIES: Dictionary = {
 	&"stem": &"separate_stem",
 	&"whole": &"",
 	&"spores": &"collect_spores",
+	&"berry": &"",
+	&"leaf": &"cut",
+	&"root": &"cut",
 }
 
 

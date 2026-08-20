@@ -14,6 +14,9 @@ var route_unlocked: bool = false
 var completed_cycles: int = 0
 var mycologist_clues: Dictionary[StringName, bool] = {}
 var spore_vision_active: bool = false
+var deep_grove_entered: bool = false
+var emberberry_collected: bool = false
+var second_expedition_complete: bool = false
 var _objective: ExpeditionObjectiveOrchestrator
 var _cooking: CookingOrchestrator
 var _clock: ExpeditionClock
@@ -48,6 +51,14 @@ func get_objective_text() -> String:
 		Stage.REWARD:
 			return "ЦИКЛ ЗАВЕРШЁН · разобрать результаты"
 		_:
+			if second_expedition_complete:
+				return "УБЕЖИЩЕ · исследовать тлеющую ягоду и карту миколога"
+			if emberberry_collected:
+				return "ОБРАЗЕЦ И СЛЕД ПОЛУЧЕНЫ · вернуться в убежище"
+			if mycologist_clues.has(&"mycologist.camp.abandoned"):
+				return "ЛАГЕРЬ МИКОЛОГА · найти тлеющую ягоду по его схеме"
+			if deep_grove_entered:
+				return "ГЛУБОКАЯ РОЩА · подняться к лагерю миколога"
 			if mycologist_clues.has(&"mycologist.trail.spore_message"):
 				return "СЛЕД МИКОЛОГА · войти в дышащую тропу"
 			if spore_vision_active:
@@ -81,12 +92,41 @@ func set_spore_vision_active(value: bool) -> void:
 	_emit_state()
 
 
+func record_grove_entered(_actor: Node = null) -> void:
+	if stage != Stage.DEEP_GROVE:
+		return
+	deep_grove_entered = true
+	_emit_state()
+	autosave_requested.emit(&"deep_grove_entered")
+
+
+func record_grove_harvest(item: ItemInstance) -> void:
+	if stage != Stage.DEEP_GROVE or item == null:
+		return
+	if item.definition_id == &"ingredient.emberberry" and item.processing_state.get(&"part", &"") == &"berry":
+		emberberry_collected = true
+		_emit_state()
+		autosave_requested.emit(&"emberberry_collected")
+
+
+func record_second_return(_actor: Node = null) -> void:
+	if stage != Stage.DEEP_GROVE or not deep_grove_entered or not emberberry_collected:
+		return
+	second_expedition_complete = true
+	narrative_notice_requested.emit("ВТОРАЯ ВЫЛАЗКА ЗАВЕРШЕНА", "Карта из лагеря указывает: миколог искал сердце грибницы, а тлеющие ягоды использовал как защиту от её голоса.")
+	_emit_state()
+	autosave_requested.emit(&"second_expedition_complete")
+
+
 func to_save_data() -> Dictionary:
 	return {
 		"stage": int(stage),
 		"route_unlocked": route_unlocked,
 		"completed_cycles": completed_cycles,
 		"mycologist_clues": mycologist_clues.keys().map(func(value: Variant) -> String: return String(value)),
+		"deep_grove_entered": deep_grove_entered,
+		"emberberry_collected": emberberry_collected,
+		"second_expedition_complete": second_expedition_complete,
 	}
 
 
@@ -97,6 +137,9 @@ func apply_save_data(data: Dictionary) -> void:
 	mycologist_clues.clear()
 	for raw_id: Variant in data.get("mycologist_clues", []):
 		mycologist_clues[StringName(raw_id)] = true
+	deep_grove_entered = bool(data.get("deep_grove_entered", false))
+	emberberry_collected = bool(data.get("emberberry_collected", false))
+	second_expedition_complete = bool(data.get("second_expedition_complete", false))
 	route_unlock_changed.emit(route_unlocked)
 	_emit_state()
 

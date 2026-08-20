@@ -1,0 +1,158 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://world/props/shelter/shelter_progression_visuals.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="WoodMat"]
+albedo_color = Color(0.17, 0.085, 0.035, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="ClothMat"]
+albedo_color = Color(0.13, 0.16, 0.095, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="MapMat"]
+albedo_color = Color(0.42, 0.32, 0.16, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="InkMat"]
+albedo_color = Color(0.08, 0.16, 0.08, 1)
+emission_enabled = true
+emission = Color(0.08, 0.4, 0.1, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="StandardMaterial3D" id="BerryMat"]
+albedo_color = Color(0.55, 0.06, 0.018, 1)
+emission_enabled = true
+emission = Color(0.85, 0.06, 0.01, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="BoxMesh" id="BedFrameMesh"]
+size = Vector3(2.3, 0.28, 1.15)
+
+[sub_resource type="BoxMesh" id="MattressMesh"]
+size = Vector3(2.05, 0.22, 0.95)
+
+[sub_resource type="BoxMesh" id="CrateMesh"]
+size = Vector3(0.8, 0.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoardMesh"]
+size = Vector3(2.8, 1.65, 0.09)
+
+[sub_resource type="BoxMesh" id="RouteMesh"]
+size = Vector3(0.035, 1.15, 0.035)
+
+[sub_resource type="CylinderMesh" id="JarMesh"]
+top_radius = 0.1
+bottom_radius = 0.14
+height = 0.38
+radial_segments = 8
+
+[sub_resource type="SphereMesh" id="BerryMesh"]
+radius = 0.07
+height = 0.12
+radial_segments = 6
+rings = 3
+
+[node name="ShelterProgressionVisuals" type="Node3D"]
+script = ExtResource("1")
+
+[node name="SleepingCorner" type="Node3D" parent="."]
+
+[node name="BedFrame" type="MeshInstance3D" parent="SleepingCorner"]
+position = Vector3(3.65, 0.28, 1.8)
+rotation = Vector3(0, 1.5708, 0)
+mesh = SubResource("BedFrameMesh")
+material_override = SubResource("WoodMat")
+
+[node name="Mattress" type="MeshInstance3D" parent="SleepingCorner"]
+position = Vector3(3.65, 0.52, 1.8)
+rotation = Vector3(0, 1.5708, 0)
+mesh = SubResource("MattressMesh")
+material_override = SubResource("ClothMat")
+
+[node name="SleepingLamp" type="OmniLight3D" parent="SleepingCorner"]
+position = Vector3(3.1, 1.65, 1.25)
+light_color = Color(0.92, 0.38, 0.13, 1)
+light_energy = 1.8
+omni_range = 4.5
+shadow_enabled = true
+
+[node name="StorageCrateA" type="MeshInstance3D" parent="."]
+position = Vector3(-4.15, 0.5, 2.6)
+rotation = Vector3(0, 0.18, 0)
+mesh = SubResource("CrateMesh")
+material_override = SubResource("WoodMat")
+
+[node name="StorageCrateB" type="MeshInstance3D" parent="."]
+position = Vector3(-3.45, 0.42, 2.75)
+rotation = Vector3(0, -0.24, 0)
+scale = Vector3(0.82, 0.82, 0.82)
+mesh = SubResource("CrateMesh")
+material_override = SubResource("WoodMat")
+
+[node name="ResearchWall" type="Node3D" parent="."]
+unique_name_in_owner = true
+visible = false
+
+[node name="MapBoard" type="MeshInstance3D" parent="ResearchWall"]
+position = Vector3(4.82, 1.75, -1.4)
+rotation = Vector3(0, 1.5708, 0)
+mesh = SubResource("BoardMesh")
+material_override = SubResource("MapMat")
+
+[node name="RouteA" type="MeshInstance3D" parent="ResearchWall"]
+position = Vector3(4.75, 1.72, -1.8)
+rotation = Vector3(0, 0, -0.75)
+mesh = SubResource("RouteMesh")
+material_override = SubResource("InkMat")
+
+[node name="RouteB" type="MeshInstance3D" parent="ResearchWall"]
+position = Vector3(4.75, 1.67, -1.05)
+rotation = Vector3(0, 0, 0.58)
+scale = Vector3(1, 0.75, 1)
+mesh = SubResource("RouteMesh")
+material_override = SubResource("InkMat")
+
+[node name="ResearchLight" type="OmniLight3D" parent="ResearchWall"]
+position = Vector3(4.0, 1.8, -1.35)
+light_color = Color(0.34, 0.72, 0.27, 1)
+light_energy = 1.4
+omni_range = 3.8
+shadow_enabled = false
+
+[node name="GroveSamples" type="Node3D" parent="."]
+unique_name_in_owner = true
+visible = false
+
+[node name="SampleShelf" type="MeshInstance3D" parent="GroveSamples"]
+position = Vector3(3.8, 1.08, -3.7)
+scale = Vector3(1.15, 0.2, 0.65)
+mesh = SubResource("CrateMesh")
+material_override = SubResource("WoodMat")
+
+[node name="JarA" type="MeshInstance3D" parent="GroveSamples"]
+position = Vector3(3.5, 1.42, -3.68)
+mesh = SubResource("JarMesh")
+material_override = SubResource("MapMat")
+
+[node name="JarB" type="MeshInstance3D" parent="GroveSamples"]
+position = Vector3(4.05, 1.42, -3.68)
+mesh = SubResource("JarMesh")
+material_override = SubResource("MapMat")
+
+[node name="BerryA" type="MeshInstance3D" parent="GroveSamples"]
+position = Vector3(3.5, 1.43, -3.74)
+mesh = SubResource("BerryMesh")
+material_override = SubResource("BerryMat")
+
+[node name="BerryB" type="MeshInstance3D" parent="GroveSamples"]
+position = Vector3(4.05, 1.43, -3.74)
+mesh = SubResource("BerryMesh")
+material_override = SubResource("BerryMat")
+
+[node name="SampleGlow" type="OmniLight3D" parent="GroveSamples"]
+position = Vector3(3.8, 1.5, -3.1)
+light_color = Color(0.9, 0.12, 0.035, 1)
+light_energy = 1.0
+omni_range = 2.7
+shadow_enabled = false

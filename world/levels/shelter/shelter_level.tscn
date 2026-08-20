@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=3]
+[gd_scene load_steps=65 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -26,6 +26,7 @@
 [ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/shelter_visual_profile.tres" id="24_shelter_profile"]
 [ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/forest_visual_profile.tres" id="25_forest_profile"]
 [ext_resource type="PackedScene" path="res://world/levels/forest_trail/forest_trail_chunk.tscn" id="26_forest_trail"]
+[ext_resource type="PackedScene" path="res://world/props/shelter/shelter_progression_visuals.tscn" id="27_shelter_progression"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -230,6 +231,9 @@ shelter_profile = ExtResource("24_shelter_profile")
 forest_profile = ExtResource("25_forest_profile")
 
 [node name="ShelterDressing" parent="." instance=ExtResource("22_dressing")]
+
+[node name="ShelterProgressionVisuals" parent="." instance=ExtResource("27_shelter_progression")]
+unique_name_in_owner = true
 
 [node name="CookingOrchestrator" type="Node" parent="."]
 unique_name_in_owner = true
