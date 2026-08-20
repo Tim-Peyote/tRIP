@@ -68,6 +68,7 @@ unique_name_in_owner = true
 script = ExtResource("5_audio")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Presentation"]
+unique_name_in_owner = true
 environment = SubResource("Environment_trip")
 
 [node name="ScreenEffects" type="CanvasLayer" parent="Presentation"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="PackedScene" path="res://features/ingredients/mooncap_world.tscn" id="1_mooncap"]
 [ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="2_portal"]
@@ -6,10 +6,16 @@
 [ext_resource type="Script" path="res://world/levels/forest_clearing/forest_clearing_chunk.gd" id="4_chunk"]
 [ext_resource type="Script" path="res://features/creatures/listener.gd" id="5_listener"]
 [ext_resource type="Script" path="res://features/stealth/perception_sensor_component.gd" id="6_sensor"]
+[ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="7_ground_texture"]
+[ext_resource type="PackedScene" path="res://world/props/forest/gnarled_tree.tscn" id="8_tree"]
+[ext_resource type="Script" path="res://world/props/forest/vegetation_scatter.gd" id="9_scatter"]
 
 [sub_resource type="StandardMaterial3D" id="Material_ground"]
-albedo_color = Color(0.035, 0.07, 0.038, 1)
+albedo_color = Color(0.52, 0.58, 0.48, 1)
+albedo_texture = ExtResource("7_ground_texture")
 roughness = 1.0
+texture_filter = 0
+uv1_scale = Vector3(3.5, 3.5, 3.5)
 
 [sub_resource type="BoxMesh" id="Mesh_ground"]
 size = Vector3(18, 0.24, 18)
@@ -61,6 +67,18 @@ height = 1.1
 radial_segments = 7
 rings = 3
 
+[sub_resource type="SphereMesh" id="Mesh_listener_head"]
+radius = 0.3
+height = 0.5
+radial_segments = 7
+rings = 4
+
+[sub_resource type="CylinderMesh" id="Mesh_listener_leg"]
+top_radius = 0.055
+bottom_radius = 0.085
+height = 0.58
+radial_segments = 6
+
 [sub_resource type="CapsuleShape3D" id="Shape_listener"]
 radius = 0.32
 height = 1.1
@@ -80,6 +98,64 @@ height = 0.08
 radial_segments = 6
 rings = 3
 
+[sub_resource type="StandardMaterial3D" id="Material_path"]
+albedo_color = Color(0.095, 0.058, 0.032, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_path"]
+size = Vector3(2.15, 0.035, 5.2)
+
+[sub_resource type="CylinderMesh" id="Mesh_fallen_log"]
+top_radius = 0.38
+bottom_radius = 0.52
+height = 5.2
+radial_segments = 7
+
+[sub_resource type="CylinderMesh" id="Mesh_log_branch"]
+top_radius = 0.05
+bottom_radius = 0.16
+height = 1.45
+radial_segments = 6
+
+[sub_resource type="SphereMesh" id="Mesh_log_moss"]
+radius = 0.48
+height = 0.28
+radial_segments = 7
+rings = 3
+
+[sub_resource type="StandardMaterial3D" id="Material_moss_mound"]
+albedo_color = Color(0.045, 0.105, 0.048, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_mound"]
+radius = 1.5
+height = 0.75
+radial_segments = 9
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Material_spore"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.48, 0.78, 0.3, 0.7)
+emission_enabled = true
+emission = Color(0.22, 0.62, 0.18, 1)
+emission_energy_multiplier = 1.8
+
+[sub_resource type="QuadMesh" id="Mesh_spore"]
+material = SubResource("Material_spore")
+size = Vector2(0.035, 0.035)
+
+[sub_resource type="ParticleProcessMaterial" id="Particles_spore"]
+emission_shape = 3
+emission_box_extents = Vector3(7.5, 1.4, 7.5)
+direction = Vector3(0.12, 1, 0.08)
+spread = 55.0
+initial_velocity_min = 0.05
+initial_velocity_max = 0.22
+gravity = Vector3(0, 0.015, 0)
+scale_min = 0.35
+scale_max = 1.0
+
 [node name="ForestClearingChunk" type="Node3D"]
 script = ExtResource("4_chunk")
 
@@ -94,85 +170,81 @@ material_override = SubResource("Material_ground")
 [node name="Collision" type="CollisionShape3D" parent="Ground"]
 shape = SubResource("Shape_ground")
 
-[node name="TreeA" type="StaticBody3D" parent="."]
-position = Vector3(-5.8, 2.65, -4.8)
-collision_layer = 1
+[node name="Trail" type="MeshInstance3D" parent="."]
+position = Vector3(-0.35, 0.145, 2.65)
+rotation = Vector3(0, -0.11, 0)
+mesh = SubResource("Mesh_path")
+material_override = SubResource("Material_path")
 
-[node name="Trunk" type="MeshInstance3D" parent="TreeA"]
-mesh = SubResource("Mesh_trunk")
-material_override = SubResource("Material_trunk")
+[node name="TrailMiddle" type="MeshInstance3D" parent="."]
+position = Vector3(0.25, 0.146, -1.9)
+rotation = Vector3(0, 0.16, 0)
+mesh = SubResource("Mesh_path")
+material_override = SubResource("Material_path")
 
-[node name="Canopy" type="MeshInstance3D" parent="TreeA"]
-position = Vector3(0, 2.75, 0)
-mesh = SubResource("Mesh_canopy")
-material_override = SubResource("Material_canopy")
+[node name="TrailFar" type="MeshInstance3D" parent="."]
+position = Vector3(-0.2, 0.147, -6.15)
+rotation = Vector3(0, -0.09, 0)
+mesh = SubResource("Mesh_path")
+material_override = SubResource("Material_path")
 
-[node name="Collision" type="CollisionShape3D" parent="TreeA"]
-shape = SubResource("Shape_trunk")
+[node name="MoundA" type="MeshInstance3D" parent="."]
+position = Vector3(-3.2, 0.12, -1.2)
+scale = Vector3(1.35, 0.5, 0.9)
+mesh = SubResource("Mesh_mound")
+material_override = SubResource("Material_moss_mound")
 
-[node name="TreeB" type="StaticBody3D" parent="."]
-position = Vector3(5.4, 2.65, -5.6)
-collision_layer = 1
+[node name="MoundB" type="MeshInstance3D" parent="."]
+position = Vector3(3.5, 0.08, 3.2)
+scale = Vector3(1.1, 0.42, 1.5)
+mesh = SubResource("Mesh_mound")
+material_override = SubResource("Material_moss_mound")
 
-[node name="Trunk" type="MeshInstance3D" parent="TreeB"]
-mesh = SubResource("Mesh_trunk")
-material_override = SubResource("Material_trunk")
+[node name="MoundC" type="MeshInstance3D" parent="."]
+position = Vector3(-5.1, 0.05, 5.8)
+scale = Vector3(1.6, 0.35, 1.0)
+mesh = SubResource("Mesh_mound")
+material_override = SubResource("Material_moss_mound")
 
-[node name="Canopy" type="MeshInstance3D" parent="TreeB"]
-position = Vector3(0, 2.75, 0)
-mesh = SubResource("Mesh_canopy")
-material_override = SubResource("Material_canopy")
+[node name="TreeA" parent="." instance=ExtResource("8_tree")]
+position = Vector3(-5.8, 0.12, -4.8)
+rotation = Vector3(0, 0.35, 0)
+scale = Vector3(1.15, 1.08, 1.15)
 
-[node name="Collision" type="CollisionShape3D" parent="TreeB"]
-shape = SubResource("Shape_trunk")
+[node name="TreeB" parent="." instance=ExtResource("8_tree")]
+position = Vector3(5.4, 0.12, -5.6)
+rotation = Vector3(0, -0.8, 0)
+scale = Vector3(0.92, 1.18, 0.92)
 
-[node name="TreeC" type="StaticBody3D" parent="."]
-position = Vector3(-6.5, 2.65, 3.3)
-collision_layer = 1
+[node name="TreeC" parent="." instance=ExtResource("8_tree")]
+position = Vector3(-6.5, 0.12, 3.3)
+rotation = Vector3(0, 1.3, 0)
+scale = Vector3(1.25, 1.2, 1.25)
 
-[node name="Trunk" type="MeshInstance3D" parent="TreeC"]
-mesh = SubResource("Mesh_trunk")
-material_override = SubResource("Material_trunk")
+[node name="TreeD" parent="." instance=ExtResource("8_tree")]
+position = Vector3(6.7, 0.12, 4.2)
+rotation = Vector3(0, -1.6, 0)
+scale = Vector3(1.05, 1.12, 1.05)
 
-[node name="Canopy" type="MeshInstance3D" parent="TreeC"]
-position = Vector3(0, 2.75, 0)
-mesh = SubResource("Mesh_canopy")
-material_override = SubResource("Material_canopy")
+[node name="TreeE" parent="." instance=ExtResource("8_tree")]
+position = Vector3(-2.6, 0.12, 7.0)
+rotation = Vector3(0, 2.4, 0)
+scale = Vector3(0.86, 1.05, 0.86)
 
-[node name="Collision" type="CollisionShape3D" parent="TreeC"]
-shape = SubResource("Shape_trunk")
+[node name="TreeF" parent="." instance=ExtResource("8_tree")]
+position = Vector3(2.9, 0.12, 7.4)
+rotation = Vector3(0, -2.1, 0)
+scale = Vector3(1.2, 1.25, 1.2)
 
-[node name="TreeD" type="StaticBody3D" parent="."]
-position = Vector3(6.7, 2.65, 4.2)
-collision_layer = 1
+[node name="TreeG" parent="." instance=ExtResource("8_tree")]
+position = Vector3(-8.2, 0.12, -0.8)
+rotation = Vector3(0, 0.85, 0)
+scale = Vector3(0.9, 1.05, 0.9)
 
-[node name="Trunk" type="MeshInstance3D" parent="TreeD"]
-mesh = SubResource("Mesh_trunk")
-material_override = SubResource("Material_trunk")
-
-[node name="Canopy" type="MeshInstance3D" parent="TreeD"]
-position = Vector3(0, 2.75, 0)
-mesh = SubResource("Mesh_canopy")
-material_override = SubResource("Material_canopy")
-
-[node name="Collision" type="CollisionShape3D" parent="TreeD"]
-shape = SubResource("Shape_trunk")
-
-[node name="TreeE" type="StaticBody3D" parent="."]
-position = Vector3(-2.6, 2.65, 7.0)
-collision_layer = 1
-
-[node name="Trunk" type="MeshInstance3D" parent="TreeE"]
-mesh = SubResource("Mesh_trunk")
-material_override = SubResource("Material_trunk")
-
-[node name="Canopy" type="MeshInstance3D" parent="TreeE"]
-position = Vector3(0, 2.75, 0)
-mesh = SubResource("Mesh_canopy")
-material_override = SubResource("Material_canopy")
-
-[node name="Collision" type="CollisionShape3D" parent="TreeE"]
-shape = SubResource("Shape_trunk")
+[node name="VegetationScatter" type="Node3D" parent="."]
+script = ExtResource("9_scatter")
+grass_count = 280
+fern_count = 64
 
 [node name="StoneA" type="MeshInstance3D" parent="."]
 position = Vector3(-2.4, 0.34, 1.0)
@@ -185,6 +257,30 @@ position = Vector3(3.7, 0.25, -1.2)
 scale = Vector3(0.7, 0.42, 1.1)
 mesh = SubResource("Mesh_stone")
 material_override = SubResource("Material_stone")
+
+[node name="FallenLog" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.52, 0.3)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Mesh_fallen_log")
+material_override = SubResource("Material_trunk")
+
+[node name="BrokenBranch" type="MeshInstance3D" parent="."]
+position = Vector3(-2.3, 0.86, 0.15)
+rotation = Vector3(-0.4, 0.2, -0.72)
+mesh = SubResource("Mesh_log_branch")
+material_override = SubResource("Material_trunk")
+
+[node name="LogMossA" type="MeshInstance3D" parent="."]
+position = Vector3(-3.2, 0.94, 0.28)
+scale = Vector3(1.4, 0.7, 0.7)
+mesh = SubResource("Mesh_log_moss")
+material_override = SubResource("Material_moss_mound")
+
+[node name="LogMossB" type="MeshInstance3D" parent="."]
+position = Vector3(-4.25, 0.91, 0.25)
+scale = Vector3(0.85, 0.55, 0.65)
+mesh = SubResource("Mesh_log_moss")
+material_override = SubResource("Material_moss_mound")
 
 [node name="Mooncap" parent="." instance=ExtResource("1_mooncap")]
 position = Vector3(2.0, 0.14, 2.1)
@@ -213,7 +309,7 @@ locked_prompt = "Мицелий не отзывается. Нужен соста
 unique_name_in_owner = true
 rotation = Vector3(-0.82, 0.38, 0)
 light_color = Color(0.27, 0.48, 0.32, 1)
-light_energy = 0.85
+light_energy = 1.25
 shadow_enabled = true
 
 [node name="SporeGlow" type="OmniLight3D" parent="."]
@@ -224,6 +320,15 @@ light_energy = 1.1
 omni_range = 4.0
 shadow_enabled = false
 
+[node name="AmbientSpores" type="GPUParticles3D" parent="."]
+position = Vector3(0, 1.2, 0)
+amount = 72
+lifetime = 9.0
+randomness = 0.8
+visibility_aabb = AABB(-9, -2, -9, 18, 6, 18)
+process_material = SubResource("Particles_spore")
+draw_pass_1 = SubResource("Mesh_spore")
+
 [node name="Listener" type="CharacterBody3D" parent="."]
 unique_name_in_owner = true
 position = Vector3(-4.6, 0.67, 4.7)
@@ -232,7 +337,16 @@ collision_mask = 1
 script = ExtResource("5_listener")
 
 [node name="Body" type="MeshInstance3D" parent="Listener"]
+position = Vector3(0, 0.08, 0.06)
+rotation = Vector3(1.5708, 0, 0)
+scale = Vector3(1, 1, 1.35)
 mesh = SubResource("Mesh_listener")
+material_override = SubResource("Material_listener")
+
+[node name="Head" type="MeshInstance3D" parent="Listener"]
+position = Vector3(0, 0.22, -0.52)
+scale = Vector3(0.8, 1.05, 1.15)
+mesh = SubResource("Mesh_listener_head")
 material_override = SubResource("Material_listener")
 
 [node name="EarLeft" type="MeshInstance3D" parent="Listener"]
@@ -248,9 +362,33 @@ mesh = SubResource("Mesh_ear")
 material_override = SubResource("Material_listener")
 
 [node name="Eye" type="MeshInstance3D" parent="Listener"]
-position = Vector3(0, 0.18, -0.32)
+position = Vector3(0, 0.23, -0.81)
 mesh = SubResource("Mesh_eye")
 material_override = SubResource("Material_eye")
+
+[node name="LegFrontLeft" type="MeshInstance3D" parent="Listener"]
+position = Vector3(-0.19, -0.37, -0.28)
+rotation = Vector3(0.1, 0, -0.08)
+mesh = SubResource("Mesh_listener_leg")
+material_override = SubResource("Material_listener")
+
+[node name="LegFrontRight" type="MeshInstance3D" parent="Listener"]
+position = Vector3(0.19, -0.37, -0.28)
+rotation = Vector3(-0.1, 0, 0.08)
+mesh = SubResource("Mesh_listener_leg")
+material_override = SubResource("Material_listener")
+
+[node name="LegBackLeft" type="MeshInstance3D" parent="Listener"]
+position = Vector3(-0.2, -0.37, 0.34)
+rotation = Vector3(-0.16, 0, -0.1)
+mesh = SubResource("Mesh_listener_leg")
+material_override = SubResource("Material_listener")
+
+[node name="LegBackRight" type="MeshInstance3D" parent="Listener"]
+position = Vector3(0.2, -0.37, 0.34)
+rotation = Vector3(0.16, 0, 0.1)
+mesh = SubResource("Mesh_listener_leg")
+material_override = SubResource("Material_listener")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Listener"]
 shape = SubResource("Shape_listener")

@@ -8,6 +8,7 @@ extends Node
 @onready var audio_director: AudioDirector = %AudioDirector
 @onready var world_root: Node3D = %WorldRoot
 @onready var effect_orchestrator: EffectOrchestrator = %EffectOrchestrator
+@onready var world_environment: WorldEnvironment = %WorldEnvironment
 
 const SHELTER_SCENE: PackedScene = preload("res://world/levels/shelter/shelter_level.tscn")
 
@@ -43,6 +44,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	main_menu.visible = false
 	_active_level = SHELTER_SCENE.instantiate() as ShelterLevel
 	world_root.add_child(_active_level)
+	_active_level.setup_visual_environment(world_environment)
 	_active_player = _active_level.get_player()
 	gameplay_hud.setup(_active_player)
 	gameplay_hud.setup_cooking(_active_level.get_cooking_orchestrator())

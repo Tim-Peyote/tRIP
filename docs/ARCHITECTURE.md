@@ -341,10 +341,12 @@ World state + Effect snapshot + Accessibility settings
 ```
 
 - `VisualProfile` хранит авторские значения окружения и lens-эффектов для состояния мира.
+- `BiomeVisualProfile` хранит фон, ambient и fog конкретной зоны; `BiomeVisualController` смешивает их при переходе через portal.
 - Director смешивает профили по кривым; отдельные эффекты не перезаписывают shader parameters друг друга.
 - World-space изменения (геометрия, видимость, коллизия) принадлежат `WorldStateDirector`.
 - Shader Global Parameters используются для небольшого стабильного набора общих каналов восприятия.
 - Массовая растительность строится кластерами/MultiMesh; уникальные интерактивные растения остаются сценами.
+- `VegetationScatter` создаёт детерминированные MultiMesh-слои по seed, а деревья и крупные ориентиры остаются переиспользуемыми PackedScene.
 - Presentation имеет scalable quality tiers и не определяет gameplay truth.
 
 ## 12. Audio pipeline

@@ -15,6 +15,7 @@ extends Node3D
 @onready var game_loop_orchestrator: GameLoopOrchestrator = %GameLoopOrchestrator
 @onready var session_persistence: SessionPersistenceOrchestrator = %SessionPersistenceOrchestrator
 @onready var deep_grove_gate: SimplePortal = $ForestClearing/DeepGroveGate
+@onready var biome_visual_controller: BiomeVisualController = %BiomeVisualController
 
 
 func _ready() -> void:
@@ -36,6 +37,8 @@ func _ready() -> void:
 			ingredient.harvested.connect(objective_orchestrator.record_harvest)
 	var return_portal := forest_clearing.get_node("ReturnPortal") as SimplePortal
 	return_portal.traversed.connect(objective_orchestrator.record_return)
+	return_portal.traversed.connect(biome_visual_controller.show_shelter)
+	($ForestDoor as SimplePortal).traversed.connect(biome_visual_controller.show_forest)
 	expedition_clock.phase_changed.connect(forest_clearing.apply_phase)
 	stealth_orchestrator.setup(player, [forest_clearing.listener])
 	player.distraction_created.connect(_on_distraction_created)
@@ -75,6 +78,10 @@ func get_game_loop_orchestrator() -> GameLoopOrchestrator:
 
 func get_session_persistence() -> SessionPersistenceOrchestrator:
 	return session_persistence
+
+
+func setup_visual_environment(world_environment: WorldEnvironment) -> void:
+	biome_visual_controller.setup(world_environment)
 
 
 func _on_distraction_created(projectile: DistractionProjectile) -> void:

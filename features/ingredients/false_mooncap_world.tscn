@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://features/ingredients/harvestable_ingredient.gd" id="1"]
 [ext_resource type="Script" path="res://core/components/interactable_component.gd" id="2"]
@@ -23,6 +23,16 @@ bottom_radius = 0.12
 height = 0.4
 radial_segments = 7
 
+[sub_resource type="StandardMaterial3D" id="Material_wart"]
+albedo_color = Color(0.52, 0.38, 0.09, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_wart"]
+radius = 0.055
+height = 0.04
+radial_segments = 5
+rings = 2
+
 [sub_resource type="CapsuleShape3D" id="Shape"]
 radius = 0.29
 height = 0.62
@@ -44,6 +54,23 @@ position = Vector3(0, 0.46, 0)
 scale = Vector3(1, 0.5, 1)
 mesh = SubResource("Mesh_cap")
 material_override = SubResource("Material_cap")
+
+[node name="WartA" type="MeshInstance3D" parent="."]
+position = Vector3(-0.14, 0.57, -0.1)
+mesh = SubResource("Mesh_wart")
+material_override = SubResource("Material_wart")
+
+[node name="WartB" type="MeshInstance3D" parent="."]
+position = Vector3(0.12, 0.56, -0.09)
+scale = Vector3(0.75, 0.75, 0.75)
+mesh = SubResource("Mesh_wart")
+material_override = SubResource("Material_wart")
+
+[node name="WartC" type="MeshInstance3D" parent="."]
+position = Vector3(0.04, 0.56, 0.14)
+scale = Vector3(0.55, 0.55, 0.55)
+mesh = SubResource("Mesh_wart")
+material_override = SubResource("Material_wart")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.3, 0)

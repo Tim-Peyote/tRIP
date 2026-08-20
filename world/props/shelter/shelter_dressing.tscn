@@ -1,0 +1,208 @@
+[gd_scene load_steps=17 format=3]
+
+[sub_resource type="StandardMaterial3D" id="DarkWood"]
+albedo_color = Color(0.105, 0.052, 0.024, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="WarmWood"]
+albedo_color = Color(0.19, 0.095, 0.038, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="HerbMat"]
+albedo_color = Color(0.18, 0.25, 0.095, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="GlassGreen"]
+transparency = 1
+albedo_color = Color(0.12, 0.31, 0.22, 0.72)
+roughness = 0.24
+
+[sub_resource type="StandardMaterial3D" id="GlassAmber"]
+transparency = 1
+albedo_color = Color(0.38, 0.17, 0.045, 0.78)
+roughness = 0.22
+
+[sub_resource type="BoxMesh" id="BeamMesh"]
+size = Vector3(0.24, 0.24, 7.8)
+
+[sub_resource type="BoxMesh" id="ShelfMesh"]
+size = Vector3(2.8, 0.1, 0.42)
+
+[sub_resource type="CylinderMesh" id="BottleMesh"]
+top_radius = 0.055
+bottom_radius = 0.1
+height = 0.34
+radial_segments = 7
+
+[sub_resource type="PrismMesh" id="HerbMesh"]
+size = Vector3(0.18, 0.6, 0.08)
+
+[sub_resource type="CylinderMesh" id="RopeMesh"]
+top_radius = 0.012
+bottom_radius = 0.012
+height = 2.6
+radial_segments = 5
+
+[sub_resource type="StandardMaterial3D" id="RopeMat"]
+albedo_color = Color(0.35, 0.24, 0.11, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="WallBattenMesh"]
+size = Vector3(0.13, 2.75, 0.09)
+
+[sub_resource type="BoxMesh" id="FloorSeamMesh"]
+size = Vector3(0.025, 0.018, 7.65)
+
+[sub_resource type="CylinderMesh" id="LanternMesh"]
+top_radius = 0.15
+bottom_radius = 0.18
+height = 0.34
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="LanternMat"]
+albedo_color = Color(0.19, 0.085, 0.025, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="LanternGlowMat"]
+albedo_color = Color(0.95, 0.42, 0.08, 1)
+emission_enabled = true
+emission = Color(1, 0.24, 0.025, 1)
+emission_energy_multiplier = 3.2
+
+[node name="ShelterDressing" type="Node3D"]
+
+[node name="CeilingBeamA" type="MeshInstance3D" parent="."]
+position = Vector3(-3.0, 2.88, 0)
+mesh = SubResource("BeamMesh")
+material_override = SubResource("DarkWood")
+
+[node name="CeilingBeamB" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.88, 0)
+mesh = SubResource("BeamMesh")
+material_override = SubResource("DarkWood")
+
+[node name="CeilingBeamC" type="MeshInstance3D" parent="."]
+position = Vector3(3.0, 2.88, 0)
+mesh = SubResource("BeamMesh")
+material_override = SubResource("DarkWood")
+
+[node name="BackBattenA" type="MeshInstance3D" parent="."]
+position = Vector3(-4.45, 1.5, -3.86)
+mesh = SubResource("WallBattenMesh")
+material_override = SubResource("DarkWood")
+
+[node name="BackBattenB" type="MeshInstance3D" parent="."]
+position = Vector3(-1.5, 1.5, -3.86)
+mesh = SubResource("WallBattenMesh")
+material_override = SubResource("DarkWood")
+
+[node name="BackBattenC" type="MeshInstance3D" parent="."]
+position = Vector3(1.5, 1.5, -3.86)
+mesh = SubResource("WallBattenMesh")
+material_override = SubResource("DarkWood")
+
+[node name="BackBattenD" type="MeshInstance3D" parent="."]
+position = Vector3(4.45, 1.5, -3.86)
+mesh = SubResource("WallBattenMesh")
+material_override = SubResource("DarkWood")
+
+[node name="FloorSeamA" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.112, 0)
+mesh = SubResource("FloorSeamMesh")
+material_override = SubResource("DarkWood")
+
+[node name="FloorSeamB" type="MeshInstance3D" parent="."]
+position = Vector3(-2.2, 0.112, 0)
+mesh = SubResource("FloorSeamMesh")
+material_override = SubResource("DarkWood")
+
+[node name="FloorSeamC" type="MeshInstance3D" parent="."]
+position = Vector3(2.2, 0.112, 0)
+mesh = SubResource("FloorSeamMesh")
+material_override = SubResource("DarkWood")
+
+[node name="FloorSeamD" type="MeshInstance3D" parent="."]
+position = Vector3(3.7, 0.112, 0)
+mesh = SubResource("FloorSeamMesh")
+material_override = SubResource("DarkWood")
+
+[node name="HangingLantern" type="MeshInstance3D" parent="."]
+position = Vector3(-1.65, 2.18, -1.8)
+mesh = SubResource("LanternMesh")
+material_override = SubResource("LanternMat")
+
+[node name="LanternGlow" type="MeshInstance3D" parent="."]
+position = Vector3(-1.65, 2.15, -1.8)
+scale = Vector3(0.55, 0.62, 0.55)
+mesh = SubResource("LanternMesh")
+material_override = SubResource("LanternGlowMat")
+
+[node name="BackShelfA" type="MeshInstance3D" parent="."]
+position = Vector3(-2.9, 1.75, -3.78)
+mesh = SubResource("ShelfMesh")
+material_override = SubResource("WarmWood")
+
+[node name="BackShelfB" type="MeshInstance3D" parent="."]
+position = Vector3(-2.9, 1.1, -3.78)
+mesh = SubResource("ShelfMesh")
+material_override = SubResource("WarmWood")
+
+[node name="BottleA" type="MeshInstance3D" parent="."]
+position = Vector3(-3.8, 1.98, -3.7)
+mesh = SubResource("BottleMesh")
+material_override = SubResource("GlassGreen")
+
+[node name="BottleB" type="MeshInstance3D" parent="."]
+position = Vector3(-3.45, 1.95, -3.7)
+scale = Vector3(0.8, 0.8, 0.8)
+mesh = SubResource("BottleMesh")
+material_override = SubResource("GlassAmber")
+
+[node name="BottleC" type="MeshInstance3D" parent="."]
+position = Vector3(-2.95, 1.95, -3.7)
+scale = Vector3(1.15, 1.15, 1.15)
+mesh = SubResource("BottleMesh")
+material_override = SubResource("GlassGreen")
+
+[node name="BottleD" type="MeshInstance3D" parent="."]
+position = Vector3(-2.35, 1.32, -3.7)
+mesh = SubResource("BottleMesh")
+material_override = SubResource("GlassAmber")
+
+[node name="BottleE" type="MeshInstance3D" parent="."]
+position = Vector3(-3.2, 1.31, -3.7)
+scale = Vector3(0.72, 0.72, 0.72)
+mesh = SubResource("BottleMesh")
+material_override = SubResource("GlassGreen")
+
+[node name="DryingRope" type="MeshInstance3D" parent="."]
+position = Vector3(2.7, 2.35, -3.66)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("RopeMesh")
+material_override = SubResource("RopeMat")
+
+[node name="HerbA" type="MeshInstance3D" parent="."]
+position = Vector3(1.8, 2.0, -3.62)
+rotation = Vector3(0, 0.15, 3.14159)
+mesh = SubResource("HerbMesh")
+material_override = SubResource("HerbMat")
+
+[node name="HerbB" type="MeshInstance3D" parent="."]
+position = Vector3(2.35, 1.96, -3.62)
+rotation = Vector3(0, -0.22, 3.14159)
+scale = Vector3(1.2, 1.1, 1)
+mesh = SubResource("HerbMesh")
+material_override = SubResource("HerbMat")
+
+[node name="HerbC" type="MeshInstance3D" parent="."]
+position = Vector3(3.0, 2.02, -3.62)
+rotation = Vector3(0, 0.35, 3.14159)
+scale = Vector3(0.85, 0.9, 1)
+mesh = SubResource("HerbMesh")
+material_override = SubResource("HerbMat")
+
+[node name="HerbD" type="MeshInstance3D" parent="."]
+position = Vector3(3.58, 1.94, -3.62)
+rotation = Vector3(0, -0.12, 3.14159)
+mesh = SubResource("HerbMesh")
+material_override = SubResource("HerbMat")

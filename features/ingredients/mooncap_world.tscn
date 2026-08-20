@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://features/ingredients/harvestable_ingredient.gd" id="1_collectible"]
 [ext_resource type="Script" path="res://core/components/interactable_component.gd" id="2_interactable"]
@@ -26,6 +26,31 @@ bottom_radius = 0.1
 height = 0.42
 radial_segments = 8
 
+[sub_resource type="StandardMaterial3D" id="Material_gills"]
+albedo_color = Color(0.72, 0.68, 0.49, 1)
+roughness = 0.98
+emission_enabled = true
+emission = Color(0.2, 0.27, 0.1, 1)
+emission_energy_multiplier = 0.35
+
+[sub_resource type="CylinderMesh" id="Mesh_gills"]
+top_radius = 0.28
+bottom_radius = 0.08
+height = 0.035
+radial_segments = 12
+
+[sub_resource type="TorusMesh" id="Mesh_ring"]
+inner_radius = 0.07
+outer_radius = 0.12
+rings = 8
+ring_segments = 5
+
+[sub_resource type="SphereMesh" id="Mesh_spot"]
+radius = 0.035
+height = 0.025
+radial_segments = 6
+rings = 3
+
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_mooncap"]
 radius = 0.28
 height = 0.62
@@ -47,6 +72,33 @@ position = Vector3(0, 0.48, 0)
 scale = Vector3(1.0, 0.52, 1.0)
 mesh = SubResource("SphereMesh_cap")
 material_override = SubResource("Material_cap")
+
+[node name="Gills" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.405, 0)
+mesh = SubResource("Mesh_gills")
+material_override = SubResource("Material_gills")
+
+[node name="StemRing" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.32, 0)
+mesh = SubResource("Mesh_ring")
+material_override = SubResource("Material_gills")
+
+[node name="CapSpotA" type="MeshInstance3D" parent="."]
+position = Vector3(-0.13, 0.595, -0.08)
+mesh = SubResource("Mesh_spot")
+material_override = SubResource("Material_gills")
+
+[node name="CapSpotB" type="MeshInstance3D" parent="."]
+position = Vector3(0.14, 0.59, -0.04)
+scale = Vector3(0.75, 0.75, 0.75)
+mesh = SubResource("Mesh_spot")
+material_override = SubResource("Material_gills")
+
+[node name="CapSpotC" type="MeshInstance3D" parent="."]
+position = Vector3(0.03, 0.6, 0.13)
+scale = Vector3(0.6, 0.6, 0.6)
+mesh = SubResource("Mesh_spot")
+material_override = SubResource("Material_gills")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.3, 0)

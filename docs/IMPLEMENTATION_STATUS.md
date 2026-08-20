@@ -1,8 +1,10 @@
 # TRip — implementation status
 
-Последнее обновление: 2026-08-20  
-Движок: Godot 4.7.2 stable  
-Renderer: Forward+ / Metal 4.0 на Apple M1  
+Последнее обновление: 2026-08-21
+
+Движок: Godot 4.7.2 stable
+
+Renderer: Forward+ / Metal 4.0 на Apple M1
 
 ## Milestone 0 — implemented
 
@@ -187,7 +189,7 @@ ingredient.mooncap
 - За физической дверью доступна отдельная low-poly поляна.
 - Chunk содержит землю, коллизии деревьев, камни, свет и второй harvestable mooncap.
 - Обратный portal возвращает игрока в убежище.
-- Это пока blockout пространства, а не финальный environment art.
+- Геометрический blockout заменён первым визуальным benchmark-проходом; это художественная база, а не финальный environment art.
 
 ### Verification
 
@@ -279,8 +281,22 @@ ingredient.mooncap
 
 ## Next vertical thread
 
-1. Полноценный визуальный benchmark `убежище → тропа → поляна`: геометрия, рельеф, dressing, растительность, VFX, свет и композиция.
-2. Rigged first-person hands, анимации инструментов и physical interaction feedback.
-3. Surface audio и выразительные animation/audio cues состояний существа.
-4. Вторая содержательная экспедиция в глубокую рощу вместо текущего structural blockout.
-5. Полевая доска гипотез с выбором активной исследовательской цели.
+## Visual benchmark foundation — implemented
+
+- Лес получил отдельный `BiomeVisualProfile`: зелёный ambient, туман, фон и плавный переход из тёплого профиля убежища.
+- Поляна собрана из переиспользуемых `GnarledTree`, рельефных моховых масс, ломаной тропы, упавшего дерева, камней и пространственных ориентиров.
+- `VegetationScatter` детерминированно создаёт траву и папоротник через два `MultiMeshInstance3D`, без сотен отдельных Nodes.
+- Напольная поверхность использует собственную low-resolution forest-floor texture с nearest filtering; геометрия, свет и VFX остаются отдельными слоями.
+- Добавлены GPU-споры, локальное грибное свечение и более читаемый многосоставной силуэт Listener.
+- Убежище получило балки, рейки, доски пола, полки, бутылки, сушёные травы и физический фонарь.
+- Лунная шляпка получила жабры, кольцо и пятна; ложный вид — отличимые наросты.
+- Временный viewmodel заменён на низкополигональные рукава, округлые кисти и пальцы. Полноценный rig и анимации остаются следующим art-pass.
+- Обе сцены проверены GPU capture в Forward+/Metal, все девять headless-тестов проходят.
+
+## Next vertical thread
+
+1. Rigged first-person hands, анимации инструментов и physical interaction feedback.
+2. Surface audio и выразительные animation/audio cues состояний существа.
+3. Вторая содержательная экспедиция в глубокую рощу вместо текущего structural blockout.
+4. Полевая доска гипотез с выбором активной исследовательской цели.
+5. Terrain authoring/LOD pass после профилирования целевой лесной сцены.

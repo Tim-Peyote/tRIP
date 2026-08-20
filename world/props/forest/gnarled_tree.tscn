@@ -1,0 +1,113 @@
+[gd_scene load_steps=12 format=3]
+
+[sub_resource type="StandardMaterial3D" id="BarkMat"]
+albedo_color = Color(0.115, 0.068, 0.035, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="BarkLightMat"]
+albedo_color = Color(0.17, 0.105, 0.052, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="CanopyMat"]
+albedo_color = Color(0.028, 0.115, 0.052, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="CanopyTipMat"]
+albedo_color = Color(0.052, 0.165, 0.072, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="TrunkMesh"]
+top_radius = 0.23
+bottom_radius = 0.5
+height = 5.4
+radial_segments = 7
+
+[sub_resource type="CylinderMesh" id="BranchMesh"]
+top_radius = 0.06
+bottom_radius = 0.17
+height = 2.5
+radial_segments = 6
+
+[sub_resource type="PrismMesh" id="RootMesh"]
+size = Vector3(0.3, 0.22, 2.1)
+
+[sub_resource type="SphereMesh" id="CrownMesh"]
+radius = 1.55
+height = 2.1
+radial_segments = 7
+rings = 4
+
+[sub_resource type="SphereMesh" id="CrownSmallMesh"]
+radius = 1.05
+height = 1.45
+radial_segments = 7
+rings = 4
+
+[sub_resource type="CylinderShape3D" id="TrunkShape"]
+radius = 0.43
+height = 5.3
+
+[sub_resource type="SphereShape3D" id="RootShape"]
+radius = 0.75
+
+[node name="GnarledTree" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Trunk" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.65, 0)
+rotation = Vector3(0.025, 0, -0.045)
+mesh = SubResource("TrunkMesh")
+material_override = SubResource("BarkMat")
+
+[node name="BranchLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-0.55, 4.55, 0.05)
+rotation = Vector3(0.1, 0.35, -0.86)
+mesh = SubResource("BranchMesh")
+material_override = SubResource("BarkLightMat")
+
+[node name="BranchRight" type="MeshInstance3D" parent="."]
+position = Vector3(0.5, 4.15, -0.08)
+rotation = Vector3(-0.1, -0.5, 0.95)
+scale = Vector3(0.82, 0.82, 0.82)
+mesh = SubResource("BranchMesh")
+material_override = SubResource("BarkMat")
+
+[node name="RootA" type="MeshInstance3D" parent="."]
+position = Vector3(0.48, 0.15, 0.55)
+rotation = Vector3(0, 0.55, 0.08)
+mesh = SubResource("RootMesh")
+material_override = SubResource("BarkMat")
+
+[node name="RootB" type="MeshInstance3D" parent="."]
+position = Vector3(-0.52, 0.13, -0.35)
+rotation = Vector3(0, -0.9, -0.06)
+scale = Vector3(0.8, 0.8, 0.8)
+mesh = SubResource("RootMesh")
+material_override = SubResource("BarkLightMat")
+
+[node name="CrownMain" type="MeshInstance3D" parent="."]
+position = Vector3(-0.25, 5.3, 0)
+scale = Vector3(1.15, 0.72, 0.95)
+mesh = SubResource("CrownMesh")
+material_override = SubResource("CanopyMat")
+
+[node name="CrownLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-1.35, 4.95, 0.1)
+scale = Vector3(1.05, 0.7, 0.92)
+mesh = SubResource("CrownSmallMesh")
+material_override = SubResource("CanopyTipMat")
+
+[node name="CrownRight" type="MeshInstance3D" parent="."]
+position = Vector3(1.05, 4.7, -0.2)
+scale = Vector3(1.12, 0.68, 0.9)
+mesh = SubResource("CrownSmallMesh")
+material_override = SubResource("CanopyMat")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 2.65, 0)
+shape = SubResource("TrunkShape")
+
+[node name="RootCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.35, 0)
+shape = SubResource("RootShape")

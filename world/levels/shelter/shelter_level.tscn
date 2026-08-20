@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=3]
+[gd_scene load_steps=63 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -21,6 +21,10 @@
 [ext_resource type="Script" path="res://features/game_loop/game_loop_orchestrator.gd" id="19_game_loop"]
 [ext_resource type="Script" path="res://features/persistence/session_persistence_orchestrator.gd" id="20_persistence"]
 [ext_resource type="PackedScene" path="res://world/levels/deep_grove/deep_grove_chunk.tscn" id="21_deep_grove"]
+[ext_resource type="PackedScene" path="res://world/props/shelter/shelter_dressing.tscn" id="22_dressing"]
+[ext_resource type="Script" path="res://features/environment/biome_visual_controller.gd" id="23_biome_controller"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/shelter_visual_profile.tres" id="24_shelter_profile"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/forest_visual_profile.tres" id="25_forest_profile"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -217,6 +221,14 @@ script = ExtResource("19_game_loop")
 [node name="SessionPersistenceOrchestrator" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("20_persistence")
+
+[node name="BiomeVisualController" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("23_biome_controller")
+shelter_profile = ExtResource("24_shelter_profile")
+forest_profile = ExtResource("25_forest_profile")
+
+[node name="ShelterDressing" parent="." instance=ExtResource("22_dressing")]
 
 [node name="CookingOrchestrator" type="Node" parent="."]
 unique_name_in_owner = true
