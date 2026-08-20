@@ -7,7 +7,7 @@ func _ready() -> void:
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame
-	main.call("_on_game_requested", 0, true)
+	main.call("_on_game_requested", 95, true)
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
 	var vessel := level.cooking_orchestrator.vessel

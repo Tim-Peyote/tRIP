@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3]
+[gd_scene load_steps=58 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -18,6 +18,9 @@
 [ext_resource type="Script" path="res://features/cooking/physical_cooking_station_component.gd" id="16_physical_cooking"]
 [ext_resource type="Script" path="res://presentation/audio/cooking_station_audio.gd" id="17_cooking_audio"]
 [ext_resource type="Script" path="res://features/hypotheses/hypothesis_orchestrator.gd" id="18_hypothesis"]
+[ext_resource type="Script" path="res://features/game_loop/game_loop_orchestrator.gd" id="19_game_loop"]
+[ext_resource type="Script" path="res://features/persistence/session_persistence_orchestrator.gd" id="20_persistence"]
+[ext_resource type="PackedScene" path="res://world/levels/deep_grove/deep_grove_chunk.tscn" id="21_deep_grove"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -206,6 +209,14 @@ script = ExtResource("15_stealth")
 [node name="HypothesisOrchestrator" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("18_hypothesis")
+
+[node name="GameLoopOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("19_game_loop")
+
+[node name="SessionPersistenceOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("20_persistence")
 
 [node name="CookingOrchestrator" type="Node" parent="."]
 unique_name_in_owner = true
@@ -628,3 +639,6 @@ target_yaw = 3.14159
 
 [node name="ForestClearing" parent="." instance=ExtResource("11_forest")]
 position = Vector3(0, 0, 15)
+
+[node name="DeepGrove" parent="." instance=ExtResource("21_deep_grove")]
+position = Vector3(25, 0, 15)

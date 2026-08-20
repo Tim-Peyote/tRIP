@@ -28,3 +28,37 @@ func _init(
 	temperature = p_temperature
 	duration = p_duration
 	timestamp = p_timestamp
+
+
+func to_save_data() -> Dictionary:
+	return {
+		"operation": String(operation),
+		"ingredient_id": String(ingredient_id),
+		"ingredient_tags": ingredient_tags.map(func(value: StringName) -> String: return String(value)),
+		"amount": amount,
+		"temperature": temperature,
+		"duration": duration,
+		"timestamp": timestamp,
+		"source_quality": source_quality,
+		"stir_count": stir_count,
+		"homogeneity": homogeneity,
+		"overheat_duration": overheat_duration,
+	}
+
+
+static func from_save_data(data: Dictionary) -> CookingProcessEvent:
+	var event := CookingProcessEvent.new(
+		StringName(data.get("operation", "")),
+		StringName(data.get("ingredient_id", "")),
+		float(data.get("amount", 0.0)),
+		float(data.get("temperature", 20.0)),
+		float(data.get("duration", 0.0)),
+		float(data.get("timestamp", 0.0))
+	)
+	for tag: Variant in data.get("ingredient_tags", []):
+		event.ingredient_tags.append(StringName(tag))
+	event.source_quality = float(data.get("source_quality", 1.0))
+	event.stir_count = int(data.get("stir_count", -1))
+	event.homogeneity = float(data.get("homogeneity", -1.0))
+	event.overheat_duration = float(data.get("overheat_duration", -1.0))
+	return event

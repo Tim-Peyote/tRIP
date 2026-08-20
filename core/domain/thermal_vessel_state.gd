@@ -109,3 +109,35 @@ func reset() -> void:
 	stir_count = 0
 	homogeneity = 0.0
 	peak_temperature = 20.0
+
+
+func to_save_data() -> Dictionary:
+	return {
+		"water_amount": water_amount,
+		"temperature": temperature,
+		"heat_level": int(heat_level),
+		"ingredient_loaded": ingredient_loaded,
+		"ingredient_id": String(ingredient_id),
+		"source_quality": source_quality,
+		"process_elapsed": process_elapsed,
+		"effective_target_duration": effective_target_duration,
+		"overheat_duration": overheat_duration,
+		"stir_count": stir_count,
+		"homogeneity": homogeneity,
+		"peak_temperature": peak_temperature,
+	}
+
+
+func apply_save_data(data: Dictionary) -> void:
+	water_amount = clampf(float(data.get("water_amount", 0.0)), 0.0, 1.5)
+	temperature = clampf(float(data.get("temperature", 20.0)), -20.0, 150.0)
+	heat_level = clampi(int(data.get("heat_level", HeatLevel.OFF)), HeatLevel.OFF, HeatLevel.HIGH) as HeatLevel
+	ingredient_loaded = bool(data.get("ingredient_loaded", false))
+	ingredient_id = StringName(data.get("ingredient_id", ""))
+	source_quality = clampf(float(data.get("source_quality", 1.0)), 0.0, 1.0)
+	process_elapsed = maxf(0.0, float(data.get("process_elapsed", 0.0)))
+	effective_target_duration = maxf(0.0, float(data.get("effective_target_duration", 0.0)))
+	overheat_duration = maxf(0.0, float(data.get("overheat_duration", 0.0)))
+	stir_count = maxi(0, int(data.get("stir_count", 0)))
+	homogeneity = clampf(float(data.get("homogeneity", 0.0)), 0.0, 1.0)
+	peak_temperature = maxf(temperature, float(data.get("peak_temperature", temperature)))

@@ -24,3 +24,15 @@ func to_save_data() -> Dictionary:
 		"freshness": freshness,
 		"processing_state": processing_state,
 	}
+
+
+static func from_save_data(data: Dictionary) -> ItemInstance:
+	var item := ItemInstance.new(StringName(data.get("definition_id", "")), float(data.get("quantity", 1.0)))
+	item.instance_id = StringName(data.get("instance_id", String(item.instance_id)))
+	item.quality = clampf(float(data.get("quality", 1.0)), 0.0, 1.0)
+	item.freshness = clampf(float(data.get("freshness", 1.0)), 0.0, 1.0)
+	var saved_state: Dictionary = data.get("processing_state", {}) as Dictionary
+	item.processing_state.clear()
+	for key: Variant in saved_state:
+		item.processing_state[StringName(key)] = saved_state[key]
+	return item

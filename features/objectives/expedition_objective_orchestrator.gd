@@ -37,3 +37,12 @@ func record_return(_actor: Node) -> void:
 	stage = Stage.COMPLETE
 	objective_updated.emit(get_objective_text())
 	completed.emit()
+
+
+func to_save_data() -> Dictionary:
+	return {"stage": int(stage)}
+
+
+func apply_save_data(data: Dictionary) -> void:
+	stage = clampi(int(data.get("stage", Stage.SEEK_MOONCAP)), Stage.SEEK_MOONCAP, Stage.COMPLETE) as Stage
+	objective_updated.emit(get_objective_text())

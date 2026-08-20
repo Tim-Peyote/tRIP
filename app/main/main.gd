@@ -37,7 +37,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _on_game_requested(_slot_id: int, _is_new_game: bool) -> void:
+func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	if _active_level != null:
 		return
 	main_menu.visible = false
@@ -51,6 +51,15 @@ func _on_game_requested(_slot_id: int, _is_new_game: bool) -> void:
 	gameplay_hud.setup_clock(_active_level.get_expedition_clock())
 	gameplay_hud.setup_stealth(_active_level.get_stealth_orchestrator())
 	gameplay_hud.setup_hypotheses(_active_level.get_hypothesis_orchestrator())
+	gameplay_hud.setup_game_loop(_active_level.get_game_loop_orchestrator())
+	var persistence := _active_level.get_session_persistence()
+	persistence.setup(_active_level, _active_level.get_game_loop_orchestrator(), slot_id)
+	gameplay_hud.setup_persistence(persistence)
+	if is_new_game:
+		SaveService.delete_slot(slot_id)
+		persistence.initialize_new()
+	elif not persistence.load():
+		persistence.initialize_new()
 	_active_player.inventory.consumable_used.connect(effect_orchestrator.apply_effects)
 	effect_orchestrator.gameplay_channels_changed.connect(_active_level.apply_gameplay_channels)
 	audio_director.set_snapshot(&"default")
@@ -77,12 +86,14 @@ func _resume_game() -> void:
 func _return_to_main_menu() -> void:
 	get_tree().paused = false
 	if _active_level != null:
+		_active_level.get_session_persistence().save_now(&"return_to_menu")
 		_active_level.queue_free()
 	effect_orchestrator.clear()
 	_active_level = null
 	_active_player = null
 	gameplay_hud.clear()
 	main_menu.visible = true
+	main_menu.set_continue_available(SaveService.has_save(0))
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	audio_director.set_snapshot(&"default")
 

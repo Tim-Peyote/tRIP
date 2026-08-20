@@ -82,6 +82,15 @@ Interactive inspection test:
   res://core/tests/inspection_test.tscn
 ```
 
+Full cycle and persistence test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot \
+  --headless \
+  --path /Users/shaman/Desktop/Projects/Godot/TRIP \
+  res://core/tests/full_cycle_persistence_test.tscn
+```
+
 ## Current controls
 
 - `WASD` — movement
@@ -103,6 +112,8 @@ During inspection: hold left mouse and drag to rotate, use the wheel to zoom, or
 Gamepad defaults are installed through InputMap at boot: left/right sticks, A interact, X inspect, stick buttons for sprint/crouch, Start pause.
 
 Physical cooking order: grind a clean cap, add water, transfer the mash, light a low fire, stir at least twice while warm, watch for silver steam, then bottle the result. High heat can ruin the mixture.
+
+Current playable loop: inspect and harvest the correct forest cap, return to the shelter, prepare a clean spore-sight brew, review the expedition report, then enter the newly unlocked deep-grove route. Slot `0` autosaves and is available through Continue.
 
 ## Design documents
 

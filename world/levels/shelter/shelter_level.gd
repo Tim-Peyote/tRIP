@@ -12,6 +12,9 @@ extends Node3D
 @onready var stealth_orchestrator: StealthOrchestrator = %StealthOrchestrator
 @onready var cooking_station_audio: CookingStationAudio = %CookingStationAudio
 @onready var hypothesis_orchestrator: HypothesisOrchestrator = %HypothesisOrchestrator
+@onready var game_loop_orchestrator: GameLoopOrchestrator = %GameLoopOrchestrator
+@onready var session_persistence: SessionPersistenceOrchestrator = %SessionPersistenceOrchestrator
+@onready var deep_grove_gate: SimplePortal = $ForestClearing/DeepGroveGate
 
 
 func _ready() -> void:
@@ -22,6 +25,9 @@ func _ready() -> void:
 	cooking_station_visuals.setup(cooking_orchestrator)
 	cooking_station_audio.setup(cooking_orchestrator)
 	hypothesis_orchestrator.setup(knowledge_orchestrator)
+	game_loop_orchestrator.setup(objective_orchestrator, cooking_orchestrator, expedition_clock, knowledge_orchestrator)
+	game_loop_orchestrator.route_unlock_changed.connect(_on_route_unlock_changed)
+	_on_route_unlock_changed(game_loop_orchestrator.route_unlocked)
 	for node: Node in find_children("*", "HarvestableIngredient", true, false):
 		var ingredient := node as HarvestableIngredient
 		ingredient.observed.connect(knowledge_orchestrator.observe)
@@ -63,8 +69,20 @@ func get_hypothesis_orchestrator() -> HypothesisOrchestrator:
 	return hypothesis_orchestrator
 
 
+func get_game_loop_orchestrator() -> GameLoopOrchestrator:
+	return game_loop_orchestrator
+
+
+func get_session_persistence() -> SessionPersistenceOrchestrator:
+	return session_persistence
+
+
 func _on_distraction_created(projectile: DistractionProjectile) -> void:
 	stealth_orchestrator.connect_noise_emitter(projectile.noise_emitter)
+
+
+func _on_route_unlock_changed(is_unlocked: bool) -> void:
+	deep_grove_gate.set_locked(not is_unlocked)
 
 
 func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:

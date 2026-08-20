@@ -61,6 +61,20 @@ func get_display_name() -> String:
 	return definition.display_name if definition != null else String(active_tool_id)
 
 
+func to_save_data() -> Dictionary:
+	return {"active_tool_id": String(active_tool_id), "is_equipped": is_equipped}
+
+
+func apply_save_data(data: Dictionary) -> void:
+	var saved_id := StringName(data.get("active_tool_id", String(active_tool_id)))
+	if saved_id in starter_tool_ids:
+		active_tool_id = saved_id
+		_active_index = starter_tool_ids.find(saved_id)
+	is_equipped = bool(data.get("is_equipped", true))
+	_sync_visual()
+	tool_changed.emit(active_tool_id, is_equipped)
+
+
 func _sync_visual() -> void:
 	for tool_id: StringName in _viewmodels:
 		var viewmodel: Node3D = _viewmodels[tool_id]

@@ -150,6 +150,16 @@ func reset_process() -> void:
 	process_reset.emit()
 
 
+func to_save_data() -> Dictionary:
+	return {"process": process.to_save_data(), "vessel": vessel.to_save_data()}
+
+
+func apply_save_data(data: Dictionary) -> void:
+	process.apply_save_data(data.get("process", []) as Array)
+	vessel.apply_save_data(data.get("vessel", {}) as Dictionary)
+	vessel_state_changed.emit(vessel)
+
+
 func _resolve(inventory: InventoryComponent) -> void:
 	var resolution := RecipeResolver.new().resolve(process, recipe)
 	var result_definition := ContentDB.get_definition(resolution.result_item_id)

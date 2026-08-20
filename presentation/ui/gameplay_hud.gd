@@ -21,12 +21,15 @@ var _objective: ExpeditionObjectiveOrchestrator
 var _clock: ExpeditionClock
 var _stealth: StealthOrchestrator
 var _hypotheses: HypothesisOrchestrator
+var _game_loop: GameLoopOrchestrator
+var _persistence: SessionPersistenceOrchestrator
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	%ResumeButton.pressed.connect(func() -> void: resume_requested.emit())
 	%MainMenuButton.pressed.connect(func() -> void: main_menu_requested.emit())
+	%ContinueCycleButton.pressed.connect(_acknowledge_cycle_result)
 	notice_timer.timeout.connect(func() -> void: notice_label.visible = false)
 
 
@@ -95,6 +98,18 @@ func setup_hypotheses(hypotheses: HypothesisOrchestrator) -> void:
 	_update_journal()
 
 
+func setup_game_loop(game_loop: GameLoopOrchestrator) -> void:
+	_game_loop = game_loop
+	game_loop.stage_changed.connect(_on_loop_stage_changed)
+	game_loop.result_ready.connect(_on_cycle_result_ready)
+	_on_loop_stage_changed(game_loop.stage, game_loop.get_objective_text())
+
+
+func setup_persistence(persistence: SessionPersistenceOrchestrator) -> void:
+	_persistence = persistence
+	persistence.saved.connect(_on_session_saved)
+
+
 func clear() -> void:
 	_player = null
 	_cooking = null
@@ -103,6 +118,8 @@ func clear() -> void:
 	_clock = null
 	_stealth = null
 	_hypotheses = null
+	_game_loop = null
+	_persistence = null
 	prompt_label.text = ""
 	hold_progress.visible = false
 	notice_label.visible = false
@@ -110,6 +127,7 @@ func clear() -> void:
 	inspection_view.visible = false
 	inventory_panel.visible = false
 	%JournalPanel.visible = false
+	%CycleResultPanel.visible = false
 	visible = false
 
 
@@ -209,6 +227,38 @@ func _on_hypothesis_updated(_hypothesis_id: StringName, is_verified: bool) -> vo
 
 func _on_objective_updated(text: String) -> void:
 	%ObjectiveLabel.text = text
+
+
+func _on_loop_stage_changed(_stage: int, objective_text: String) -> void:
+	%ObjectiveLabel.text = objective_text
+
+
+func _on_cycle_result_ready(summary: Dictionary) -> void:
+	%CycleResultTitle.text = String(summary.get("title", "ЦИКЛ ЗАВЕРШЁН"))
+	%CycleResultBody.text = "Качество состава: %s\nТочность процесса: %d%%\nВремя вылазки: %02d:%02d\nИзучено признаков: %d\n\nНАГРАДА\n%s" % [
+		String(summary.get("quality", "—")),
+		int(summary.get("score", 0)),
+		int(summary.get("expedition_seconds", 0)) / 60,
+		int(summary.get("expedition_seconds", 0)) % 60,
+		int(summary.get("knowledge", 0)),
+		String(summary.get("reward", "—")),
+	]
+	%CycleResultPanel.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	%ContinueCycleButton.grab_focus()
+
+
+func _acknowledge_cycle_result() -> void:
+	%CycleResultPanel.visible = false
+	if _game_loop != null:
+		_game_loop.acknowledge_reward()
+	if _player != null:
+		_player.capture_mouse()
+
+
+func _on_session_saved(_slot_id: int, _reason: StringName) -> void:
+	%SaveIndicator.visible = true
+	%SaveIndicatorTimer.start()
 
 
 func _on_clock_changed(_progress: float) -> void:

@@ -80,6 +80,23 @@ func get_display_lines() -> PackedStringArray:
 	return lines
 
 
+func to_save_data() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for item: ItemInstance in items:
+		result.append(item.to_save_data())
+	return result
+
+
+func apply_save_data(data: Array) -> void:
+	items.clear()
+	for raw_item: Variant in data:
+		if raw_item is Dictionary:
+			var item := ItemInstance.from_save_data(raw_item as Dictionary)
+			if ContentDB.get_definition(item.definition_id) != null:
+				items.append(item)
+	changed.emit()
+
+
 func current_mass() -> float:
 	var result := 0.0
 	for item: ItemInstance in items:

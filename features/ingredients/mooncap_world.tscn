@@ -35,6 +35,7 @@ collision_layer = 4
 collision_mask = 0
 script = ExtResource("1_collectible")
 definition_id = &"ingredient.mooncap"
+spawn_id = &"sample.shelter.mooncap"
 
 [node name="Stem" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.21, 0)

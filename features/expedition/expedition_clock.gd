@@ -35,3 +35,12 @@ func get_display_text() -> String:
 	var names := ["ДЕНЬ", "СУМЕРКИ", "НОЧЬ"]
 	var remaining := ceili((1.0 - progress) * expedition_duration)
 	return "%s · %02d:%02d" % [names[phase], remaining / 60, remaining % 60]
+
+
+func to_save_data() -> Dictionary:
+	return {"progress": progress, "running": running}
+
+
+func apply_save_data(data: Dictionary) -> void:
+	running = bool(data.get("running", true))
+	set_progress(float(data.get("progress", 0.0)))

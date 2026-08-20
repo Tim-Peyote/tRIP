@@ -5,6 +5,7 @@ signal harvested(item: ItemInstance)
 signal observed(definition_id: StringName)
 
 @export var definition_id: StringName
+@export var spawn_id: StringName
 @export var available_parts: Array[StringName] = [&"cap", &"stem", &"whole", &"spores"]
 @onready var interactable: InteractableComponent = %InteractableComponent
 
@@ -37,6 +38,10 @@ func _ready() -> void:
 
 func get_selected_part() -> StringName:
 	return available_parts[_selected_index]
+
+
+func get_spawn_id() -> StringName:
+	return spawn_id if spawn_id != &"" else StringName(get_path())
 
 
 func get_interaction_prompt(actor: Node) -> String:

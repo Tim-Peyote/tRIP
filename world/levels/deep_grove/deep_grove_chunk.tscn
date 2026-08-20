@@ -1,0 +1,94 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="1_portal"]
+
+[sub_resource type="StandardMaterial3D" id="GroundMat"]
+albedo_color = Color(0.018, 0.045, 0.032, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="GroundMesh"]
+size = Vector3(12, 0.24, 12)
+
+[sub_resource type="BoxShape3D" id="GroundShape"]
+size = Vector3(12, 0.24, 12)
+
+[sub_resource type="StandardMaterial3D" id="MyceliumMat"]
+albedo_color = Color(0.21, 0.42, 0.18, 1)
+emission_enabled = true
+emission = Color(0.12, 0.5, 0.2, 1)
+emission_energy_multiplier = 2.6
+
+[sub_resource type="TorusMesh" id="RingMesh"]
+inner_radius = 1.3
+outer_radius = 1.42
+rings = 18
+ring_segments = 7
+
+[sub_resource type="SphereMesh" id="NodeMesh"]
+radius = 0.16
+height = 0.25
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StoneMat"]
+albedo_color = Color(0.07, 0.105, 0.09, 1)
+roughness = 0.96
+
+[sub_resource type="SphereMesh" id="StoneMesh"]
+radius = 1.0
+height = 1.4
+radial_segments = 7
+rings = 4
+
+[node name="DeepGroveChunk" type="Node3D"]
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 1
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("GroundMesh")
+material_override = SubResource("GroundMat")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("GroundShape")
+
+[node name="AncientRing" type="MeshInstance3D" parent="."]
+position = Vector3(1.2, 0.16, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("RingMesh")
+material_override = SubResource("MyceliumMat")
+
+[node name="NodeA" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, 0.2, -1.0)
+mesh = SubResource("NodeMesh")
+material_override = SubResource("MyceliumMat")
+
+[node name="NodeB" type="MeshInstance3D" parent="."]
+position = Vector3(2.35, 0.2, 0.9)
+mesh = SubResource("NodeMesh")
+material_override = SubResource("MyceliumMat")
+
+[node name="StoneA" type="MeshInstance3D" parent="."]
+position = Vector3(2.8, 0.55, -2.5)
+scale = Vector3(1.2, 0.6, 0.85)
+mesh = SubResource("StoneMesh")
+material_override = SubResource("StoneMat")
+
+[node name="StoneB" type="MeshInstance3D" parent="."]
+position = Vector3(-1.8, 0.45, 2.6)
+scale = Vector3(0.8, 0.45, 1.15)
+mesh = SubResource("StoneMesh")
+material_override = SubResource("StoneMat")
+
+[node name="ReturnPortal" parent="." instance=ExtResource("1_portal")]
+position = Vector3(-5.4, 0.12, 0)
+target_position = Vector3(5.5, 0.12, 15)
+target_yaw = 1.5708
+portal_name = "Вернуться на поляну"
+
+[node name="GroveGlow" type="OmniLight3D" parent="."]
+position = Vector3(1.2, 1.4, 0)
+light_color = Color(0.18, 0.72, 0.32, 1)
+light_energy = 2.4
+omni_range = 7.0
+shadow_enabled = true

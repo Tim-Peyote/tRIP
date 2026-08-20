@@ -49,6 +49,40 @@ func get_clue_count(definition_id: StringName) -> int:
 	return (_clues.get(definition_id, {}) as Dictionary).size()
 
 
+func to_save_data() -> Dictionary:
+	var levels: Dictionary = {}
+	var clues: Dictionary = {}
+	var totals: Dictionary = {}
+	for id: StringName in _levels:
+		levels[String(id)] = _levels[id]
+	for id: StringName in _clues:
+		clues[String(id)] = (_clues[id] as Dictionary).keys().map(func(value: Variant) -> String: return String(value))
+	for id: StringName in _clue_totals:
+		totals[String(id)] = _clue_totals[id]
+	return {"levels": levels, "clues": clues, "totals": totals}
+
+
+func apply_save_data(data: Dictionary) -> void:
+	_levels.clear()
+	_clues.clear()
+	_clue_totals.clear()
+	for raw_id: Variant in (data.get("levels", {}) as Dictionary):
+		_levels[StringName(raw_id)] = int((data["levels"] as Dictionary)[raw_id])
+	for raw_id: Variant in (data.get("clues", {}) as Dictionary):
+		var entries: Dictionary[StringName, bool] = {}
+		for clue_id: Variant in (data["clues"] as Dictionary)[raw_id]:
+			entries[StringName(clue_id)] = true
+		_clues[StringName(raw_id)] = entries
+	for raw_id: Variant in (data.get("totals", {}) as Dictionary):
+		_clue_totals[StringName(raw_id)] = int((data["totals"] as Dictionary)[raw_id])
+	for definition_id: StringName in _levels:
+		entry_changed.emit(definition_id, _levels[definition_id])
+	for definition_id: StringName in _clues:
+		var entries: Dictionary = _clues[definition_id]
+		for clue_id: StringName in entries:
+			clue_recorded.emit(definition_id, clue_id, entries.size(), int(_clue_totals.get(definition_id, entries.size())))
+
+
 func get_level(definition_id: StringName) -> int:
 	return int(_levels.get(definition_id, Level.UNKNOWN))
 

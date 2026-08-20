@@ -188,6 +188,7 @@ material_override = SubResource("Material_stone")
 
 [node name="Mooncap" parent="." instance=ExtResource("1_mooncap")]
 position = Vector3(2.0, 0.14, 2.1)
+spawn_id = &"sample.forest.mooncap"
 
 [node name="FalseMooncap" parent="." instance=ExtResource("3_false")]
 position = Vector3(-1.5, 0.14, 1.45)
@@ -198,6 +199,15 @@ target_position = Vector3(0, 0.12, 2.65)
 target_yaw = 0.0
 portal_name = "Вернуться в убежище"
 portal_description = "Тёплый свет под дверью ещё виден отсюда."
+
+[node name="DeepGroveGate" parent="." instance=ExtResource("2_portal")]
+position = Vector3(7.1, 0.12, 0)
+target_position = Vector3(20.5, 0.12, 15)
+target_yaw = -1.5708
+portal_name = "Тропа в глубокую рощу"
+portal_description = "За переплетением корней чувствуется более древняя грибница."
+locked = true
+locked_prompt = "Мицелий не отзывается. Нужен состав, меняющий восприятие"
 
 [node name="ForestLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true

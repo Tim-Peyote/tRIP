@@ -32,6 +32,7 @@ collision_layer = 4
 collision_mask = 0
 script = ExtResource("1")
 definition_id = &"ingredient.false_mooncap"
+spawn_id = &"sample.forest.false_mooncap"
 
 [node name="Stem" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.2, 0)

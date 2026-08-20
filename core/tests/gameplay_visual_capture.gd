@@ -8,7 +8,7 @@ func _ready() -> void:
 	var main := packed.instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame
-	main.call("_on_game_requested", 0, true)
+	main.call("_on_game_requested", 91, true)
 	await get_tree().physics_frame
 	await get_tree().process_frame
 	var image := get_viewport().get_texture().get_image()

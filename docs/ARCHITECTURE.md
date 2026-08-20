@@ -286,6 +286,20 @@ res://
 - Runtime instances получают собственные ID только когда это действительно нужно.
 - Autosave пишется во временный файл и атомарно заменяет основной после успешной сериализации.
 
+`SessionPersistenceOrchestrator` принадлежит активной session scene и собирает save payload из публичных контрактов систем. Он не сериализует Nodes целиком:
+
+```text
+Inventory ItemInstances + Knowledge clue IDs + Objective stage
++ Expedition clock + Cooking process/vessel + Toolbelt
++ GameLoop stage/unlocks + collected spawn IDs + player transform
+                              ↓
+                    SaveService schema envelope
+```
+
+Harvestable использует стабильный `spawn_id`; после загрузки собранные world instances удаляются, поэтому ресурс нельзя дублировать повторным входом. Тестовые сценарии используют отдельные слоты `90+` и не затрагивают пользовательский slot `0`.
+
+`GameLoopOrchestrator` координирует макроэтапы `EXPEDITION → BREW → REWARD → DEEP_GROVE`. Он слушает завершённые события objective/cooking, формирует summary и unlock, но не рисует экран и не пишет файл самостоятельно. HUD и persistence подписываются на его typed signals.
+
 ## 10. UI architecture
 
 - Каждый экран — самостоятельная сцена `Control` с typed input/output signals.

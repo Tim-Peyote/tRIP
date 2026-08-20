@@ -3,7 +3,7 @@ extends Node
 signal save_completed(slot_id: int)
 signal save_failed(slot_id: int, reason: String)
 
-const SAVE_SCHEMA_VERSION: int = 1
+const SAVE_SCHEMA_VERSION: int = 2
 const SAVE_DIRECTORY: String = "user://saves"
 
 
@@ -60,9 +60,20 @@ func load_slot(slot_id: int) -> Dictionary:
 	return _migrate(envelope)
 
 
+func delete_slot(slot_id: int) -> bool:
+	var path := _slot_path(slot_id)
+	if not FileAccess.file_exists(path):
+		return true
+	return DirAccess.remove_absolute(ProjectSettings.globalize_path(path)) == OK
+
+
 func _migrate(envelope: Dictionary) -> Dictionary:
-	# Sequential migrations are added here whenever SAVE_SCHEMA_VERSION changes.
-	return envelope.get("payload", {}) as Dictionary
+	var version := int(envelope.get("schema_version", 1))
+	var payload := envelope.get("payload", {}) as Dictionary
+	if version == 1:
+		# Version 1 only contained prototype payloads. Missing session sections use defaults.
+		version = 2
+	return payload
 
 
 func _slot_path(slot_id: int) -> String:
