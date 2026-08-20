@@ -1,0 +1,90 @@
+[gd_scene load_steps=9 format=3]
+
+[sub_resource type="StandardMaterial3D" id="CapMat"]
+albedo_color = Color(0.46, 0.58, 0.35, 1)
+roughness = 0.65
+
+[sub_resource type="SphereMesh" id="CapMesh"]
+radius = 0.62
+height = 0.58
+radial_segments = 18
+rings = 9
+
+[sub_resource type="StandardMaterial3D" id="StemMat"]
+albedo_color = Color(0.64, 0.61, 0.48, 1)
+roughness = 0.92
+
+[sub_resource type="CylinderMesh" id="StemMesh"]
+top_radius = 0.12
+bottom_radius = 0.18
+height = 0.9
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="SilverMat"]
+albedo_color = Color(0.66, 0.82, 0.56, 1)
+emission_enabled = true
+emission = Color(0.3, 0.58, 0.22, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="SphereMesh" id="SpotMesh"]
+radius = 0.055
+height = 0.035
+radial_segments = 8
+rings = 3
+
+[sub_resource type="TorusMesh" id="RingMesh"]
+inner_radius = 0.14
+outer_radius = 0.19
+rings = 10
+ring_segments = 6
+
+[sub_resource type="BoxMesh" id="GillMesh"]
+size = Vector3(0.035, 0.025, 0.52)
+
+[node name="MooncapInspectModel" type="Node3D"]
+
+[node name="Stem" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.18, 0)
+mesh = SubResource("StemMesh")
+material_override = SubResource("StemMat")
+
+[node name="Cap" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.38, 0)
+scale = Vector3(1, 0.5, 1)
+mesh = SubResource("CapMesh")
+material_override = SubResource("CapMat")
+
+[node name="VeinA" type="MeshInstance3D" parent="."]
+position = Vector3(-0.22, 0.66, -0.28)
+scale = Vector3(1, 0.35, 1)
+mesh = SubResource("SpotMesh")
+material_override = SubResource("SilverMat")
+
+[node name="VeinB" type="MeshInstance3D" parent="."]
+position = Vector3(0.16, 0.68, -0.34)
+scale = Vector3(1.4, 0.3, 0.55)
+mesh = SubResource("SpotMesh")
+material_override = SubResource("SilverMat")
+
+[node name="StemRing" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.03, 0)
+mesh = SubResource("RingMesh")
+material_override = SubResource("SilverMat")
+
+[node name="GillA" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.31, 0.1)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("GillMesh")
+material_override = SubResource("SilverMat")
+
+[node name="GillB" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.31, 0.1)
+rotation = Vector3(0, 0.7, 1.5708)
+mesh = SubResource("GillMesh")
+material_override = SubResource("SilverMat")
+
+[node name="GillC" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.31, 0.1)
+rotation = Vector3(0, -0.7, 1.5708)
+mesh = SubResource("GillMesh")
+material_override = SubResource("SilverMat")

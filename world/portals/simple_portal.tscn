@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://world/portals/simple_portal.gd" id="1_portal"]
+[ext_resource type="Script" path="res://core/components/interactable_component.gd" id="2_interactable"]
+
+[sub_resource type="StandardMaterial3D" id="Material_door"]
+albedo_color = Color(0.105, 0.065, 0.036, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_door"]
+size = Vector3(1.35, 2.35, 0.12)
+
+[sub_resource type="BoxShape3D" id="Shape_door"]
+size = Vector3(1.35, 2.35, 0.14)
+
+[node name="SimplePortal" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_portal")
+
+[node name="Door" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.175, 0)
+mesh = SubResource("Mesh_door")
+material_override = SubResource("Material_door")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.175, 0)
+shape = SubResource("Shape_door")
+
+[node name="InteractableComponent" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_interactable")
+object_name = "Дверь в лес"
+primary_action = &"travel"
+primary_verb = "Открыть"
+hold_duration = 0.25
+inspection_description = "За дверью влажный лес. Воздух уже пахнет спорами."
+

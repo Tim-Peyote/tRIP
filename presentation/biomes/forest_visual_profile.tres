@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BiomeVisualProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/visual/biome_visual_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"biome.wet_forest"
+background_color = Color(0.004, 0.018, 0.012, 1)
+ambient_color = Color(0.075, 0.14, 0.095, 1)
+ambient_energy = 0.42
+fog_color = Color(0.035, 0.085, 0.055, 1)
+fog_density = 0.026
+fog_light_energy = 0.62

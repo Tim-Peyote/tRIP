@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2_step"]
+
+[sub_resource type="Resource" id="Step_grind"]
+script = ExtResource("2_step")
+operation = &"grind"
+ingredient_tag = &"part_cap"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 10.0
+maximum_temperature = 30.0
+minimum_duration = 4.0
+maximum_duration = 12.0
+player_hint = "Растолочь свежую шляпку до крупной влажной крошки."
+
+[sub_resource type="Resource" id="Step_heat"]
+script = ExtResource("2_step")
+operation = &"heat"
+ingredient_tag = &"perception"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 72.0
+maximum_temperature = 86.0
+minimum_duration = 18.0
+maximum_duration = 32.0
+minimum_stirs = 2
+minimum_homogeneity = 0.65
+maximum_overheat_duration = 3.5
+player_hint = "Держать ниже бурного кипения до серебристого пара."
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"recipe.spore_sight_brew"
+display_name = "Настой спорозрения"
+description = "Первый состав, открывающий скрытую структуру леса."
+tags = Array[StringName]([&"brew", &"perception", &"tutorial"])
+steps = Array[ExtResource("2_step")]([SubResource("Step_grind"), SubResource("Step_heat")])
+result_item_id = &"item.spore_sight_brew"
+effect_ids = Array[StringName]([&"effect.spore_sight"])
+acceptable_error = 0.25
+field_notes = "Измельчить до влажной крошки. Не давать бурно кипеть."

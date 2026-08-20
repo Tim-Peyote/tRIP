@@ -1,0 +1,182 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://features/frontend/main_menu.gd" id="1_menu"]
+[ext_resource type="Shader" path="res://features/frontend/main_menu_background.gdshader" id="2_shader"]
+[ext_resource type="Script" path="res://features/frontend/settings_panel.gd" id="3_settings"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_background"]
+shader = ExtResource("2_shader")
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_background")
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 72.0
+offset_top = 58.0
+offset_right = -72.0
+offset_bottom = -52.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SpacerTop" type="Control" parent="SafeArea/Layout"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="SafeArea/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.74, 0.82, 0.59, 1)
+theme_override_font_sizes/font_size = 84
+text = "TRip"
+
+[node name="Subtitle" type="Label" parent="SafeArea/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.52, 0.6, 0.5, 1)
+theme_override_font_sizes/font_size = 17
+text = "ЛЕС ПОМНИТ, ЧТО ТЫ ПРИНИМАЛ"
+
+[node name="Spacer" type="Control" parent="SafeArea/Layout"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+
+[node name="ContinueButton" type="Button" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(270, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Продолжить"
+
+[node name="NewGameButton" type="Button" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(270, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Новая игра"
+
+[node name="SettingsButton" type="Button" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(270, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Настройки"
+
+[node name="CreditsButton" type="Button" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(270, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Авторы"
+
+[node name="QuitButton" type="Button" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(270, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Выйти"
+
+[node name="FlexibleSpace" type="Control" parent="SafeArea/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NoticeLabel" type="Label" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.64, 0.42, 1)
+theme_override_font_sizes/font_size = 15
+text = "Notice"
+
+[node name="Version" type="Label" parent="SafeArea/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.31, 0.38, 0.32, 1)
+theme_override_font_sizes/font_size = 13
+text = "PRE-PRODUCTION / GODOT 4.7.2"
+
+[node name="SettingsPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -180.0
+offset_right = 250.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_settings")
+
+[node name="Margin" type="MarginContainer" parent="SettingsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 24
+
+[node name="Controls" type="VBoxContainer" parent="SettingsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="SettingsPanel/Margin/Controls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Настройки"
+
+[node name="VisualLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
+layout_mode = 2
+text = "Интенсивность визуальных эффектов"
+
+[node name="VisualIntensitySlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="MasterLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
+layout_mode = 2
+text = "Общая громкость"
+
+[node name="MasterVolumeSlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="Info" type="Label" parent="SettingsPanel/Margin/Controls"]
+layout_mode = 2
+autowrap_mode = 2
+text = "Полные параметры изображения, управления, звука и доступности появятся вместе с first-person прототипом."
+
+[node name="CloseButton" type="Button" parent="SettingsPanel/Margin/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Назад"
+

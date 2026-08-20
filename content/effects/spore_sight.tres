@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EffectDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/effect_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"effect.spore_sight"
+display_name = "Спорозрение"
+description = "Позволяет видеть потоки спор и временные грибные мосты."
+tags = Array[StringName]([&"perception", &"world_phase"])
+duration_seconds = 90.0
+gameplay_channels = {&"spore_vision": 1.0, &"mycelial_visibility": 1.0}
+presentation_channels = {&"perception": 0.8, &"chroma": 0.35, &"whispers": 0.25}
+opportunity = "Открывает скрытые потоки спор и грибные мосты."
+price = "Существа грибницы начинают видеть игрока."
+tell = "Контуры двоятся, а ветер складывается в ритмичное дыхание."
+counterplay = "Горькая ягода сокращает пик ценой временно приглушённого слуха."
+world_reaction = "Неподвижные формы начинают следовать за взглядом."

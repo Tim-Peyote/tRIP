@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+[ext_resource type="Script" path="res://core/resources/inspection_clue_definition.gd" id="2"]
+[ext_resource type="PackedScene" path="res://features/inspection/mooncap_inspect_model.tscn" id="3"]
+
+[sub_resource type="Resource" id="Clue_veins"]
+script = ExtResource("2")
+id = &"observation.mooncap.silver_veins"
+label = "Серебристые прожилки"
+description = "Прожилки расходятся не кольцами, а тонкой ветвящейся сетью."
+target_yaw = 0.0
+angle_tolerance = 32.0
+minimum_zoom = 0.15
+
+[sub_resource type="Resource" id="Clue_ring"]
+script = ExtResource("2")
+id = &"observation.mooncap.stem_ring"
+label = "Светлое кольцо ножки"
+description = "Тонкое светящееся кольцо отделяется от ткани ножки без тёмного ушиба."
+target_yaw = 92.0
+angle_tolerance = 28.0
+minimum_zoom = 0.45
+
+[sub_resource type="Resource" id="Clue_gills"]
+script = ExtResource("2")
+id = &"observation.mooncap.pale_gills"
+label = "Бледные частые пластинки"
+description = "Под шляпкой пластинки светлые и частые; между ними остаётся серебряная пыль."
+target_yaw = 168.0
+angle_tolerance = 30.0
+minimum_zoom = 0.6
+
+[resource]
+script = ExtResource("1")
+id = &"ingredient.mooncap"
+display_name = "Лунная шляпка"
+description = "Бледный гриб, на срезе которого проступают серебристые споры."
+tags = Array[StringName]([&"fungus", &"luminous", &"perception"])
+harvest_parts = Array[int]([1, 2, 6])
+unit_mass = 0.12
+unit_volume = 0.18
+freshness_hours = 18.0
+biome_tags = Array[StringName]([&"wet_forest", &"twilight"])
+allowed_operations = Array[StringName]([&"slice", &"grind", &"heat", &"filter"])
+trait_channels = {&"spore_sight": 0.8, &"toxicity": 0.25}
+inspect_scene = ExtResource("3")
+inspection_clues = Array[ExtResource("2")]([SubResource("Clue_veins"), SubResource("Clue_ring"), SubResource("Clue_gills")])

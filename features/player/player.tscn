@@ -1,0 +1,186 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://features/player/first_person_controller.gd" id="1_player"]
+[ext_resource type="Script" path="res://features/interaction/interaction_orchestrator.gd" id="2_interactor"]
+[ext_resource type="Script" path="res://features/inventory/inventory_component.gd" id="3_inventory"]
+[ext_resource type="Script" path="res://core/components/noise_emitter_component.gd" id="4_noise"]
+[ext_resource type="Script" path="res://features/tools/toolbelt_component.gd" id="5_toolbelt"]
+[ext_resource type="Script" path="res://features/stealth/distraction_thrower_component.gd" id="6_thrower"]
+[ext_resource type="PackedScene" path="res://features/stealth/distraction_projectile.tscn" id="7_projectile"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
+radius = 0.34
+height = 1.72
+
+[sub_resource type="BoxMesh" id="BoxMesh_hand"]
+size = Vector3(0.09, 0.12, 0.28)
+
+[sub_resource type="StandardMaterial3D" id="Material_hand"]
+albedo_color = Color(0.33, 0.285, 0.23, 1)
+roughness = 0.92
+shading_mode = 0
+
+[sub_resource type="BoxMesh" id="BoxMesh_sleeve"]
+size = Vector3(0.12, 0.14, 0.32)
+
+[sub_resource type="StandardMaterial3D" id="Material_sleeve"]
+albedo_color = Color(0.105, 0.14, 0.115, 1)
+roughness = 0.88
+shading_mode = 0
+
+[sub_resource type="BoxMesh" id="Mesh_knife_handle"]
+size = Vector3(0.085, 0.085, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="Material_knife_handle"]
+albedo_color = Color(0.13, 0.075, 0.036, 1)
+roughness = 0.8
+shading_mode = 0
+
+[sub_resource type="PrismMesh" id="Mesh_knife_blade"]
+size = Vector3(0.075, 0.02, 0.48)
+
+[sub_resource type="StandardMaterial3D" id="Material_knife_blade"]
+albedo_color = Color(0.42, 0.47, 0.43, 1)
+metallic = 0.8
+roughness = 0.32
+shading_mode = 0
+
+[sub_resource type="CylinderMesh" id="Mesh_vial"]
+top_radius = 0.045
+bottom_radius = 0.045
+height = 0.22
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="Material_vial"]
+transparency = 1
+albedo_color = Color(0.38, 0.67, 0.48, 0.58)
+roughness = 0.18
+shading_mode = 0
+
+[sub_resource type="CylinderMesh" id="Mesh_vial_cork"]
+top_radius = 0.05
+bottom_radius = 0.047
+height = 0.055
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Material_vial_cork"]
+albedo_color = Color(0.24, 0.13, 0.06, 1)
+roughness = 1.0
+shading_mode = 0
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 25
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 0.86, 0)
+shape = SubResource("CapsuleShape_player")
+
+[node name="CrouchClearance" type="RayCast3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 1.1, 0)
+target_position = Vector3(0, 0.72, 0)
+collision_mask = 1
+enabled = true
+
+[node name="CameraRig" type="Node3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 1.58, 0)
+rotation = Vector3(-0.08, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+unique_name_in_owner = true
+current = true
+near = 0.05
+
+[node name="InteractionOrchestrator" type="RayCast3D" parent="CameraRig/Camera3D"]
+unique_name_in_owner = true
+target_position = Vector3(0, 0, -3.1)
+collision_mask = 5
+collide_with_areas = true
+script = ExtResource("2_interactor")
+
+[node name="ViewModel" type="Node3D" parent="CameraRig/Camera3D"]
+position = Vector3(0, -0.05, -0.45)
+
+[node name="LeftSleeve" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel"]
+position = Vector3(-0.29, -0.28, -0.34)
+rotation = Vector3(-0.24, 0.12, -0.1)
+mesh = SubResource("BoxMesh_sleeve")
+material_override = SubResource("Material_sleeve")
+cast_shadow = 0
+
+[node name="LeftHand" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel"]
+position = Vector3(-0.275, -0.24, -0.51)
+rotation = Vector3(-0.12, 0.12, -0.08)
+mesh = SubResource("BoxMesh_hand")
+material_override = SubResource("Material_hand")
+cast_shadow = 0
+
+[node name="RightSleeve" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel"]
+position = Vector3(0.29, -0.28, -0.34)
+rotation = Vector3(-0.24, -0.12, 0.1)
+mesh = SubResource("BoxMesh_sleeve")
+material_override = SubResource("Material_sleeve")
+cast_shadow = 0
+
+[node name="RightHand" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel"]
+position = Vector3(0.275, -0.24, -0.51)
+rotation = Vector3(-0.12, -0.12, 0.08)
+mesh = SubResource("BoxMesh_hand")
+material_override = SubResource("Material_hand")
+cast_shadow = 0
+
+[node name="KnifeViewModel" type="Node3D" parent="CameraRig/Camera3D/ViewModel"]
+unique_name_in_owner = true
+position = Vector3(0.4, -0.13, -0.58)
+rotation = Vector3(-0.65, 0.08, -0.18)
+
+[node name="Handle" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+mesh = SubResource("Mesh_knife_handle")
+material_override = SubResource("Material_knife_handle")
+cast_shadow = 0
+
+[node name="Blade" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+position = Vector3(0, 0, -0.355)
+mesh = SubResource("Mesh_knife_blade")
+material_override = SubResource("Material_knife_blade")
+cast_shadow = 0
+
+[node name="VialViewModel" type="Node3D" parent="CameraRig/Camera3D/ViewModel"]
+unique_name_in_owner = true
+visible = false
+position = Vector3(0.38, -0.18, -0.59)
+rotation = Vector3(-0.28, 0, -0.12)
+
+[node name="Glass" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/VialViewModel"]
+mesh = SubResource("Mesh_vial")
+material_override = SubResource("Material_vial")
+cast_shadow = 0
+
+[node name="Cork" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/VialViewModel"]
+position = Vector3(0, 0.135, 0)
+mesh = SubResource("Mesh_vial_cork")
+material_override = SubResource("Material_vial_cork")
+cast_shadow = 0
+
+[node name="InventoryComponent" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_inventory")
+
+[node name="NoiseEmitterComponent" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("4_noise")
+
+[node name="ToolbeltComponent" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_toolbelt")
+starter_tool_ids = Array[StringName]([&"tool.field_knife", &"tool.spore_vial"])
+
+[node name="DistractionThrowerComponent" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("6_thrower")
+projectile_scene = ExtResource("7_projectile")
+starting_count = 3

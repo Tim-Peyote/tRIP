@@ -1,0 +1,67 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://features/ingredients/harvestable_ingredient.gd" id="1_collectible"]
+[ext_resource type="Script" path="res://core/components/interactable_component.gd" id="2_interactable"]
+
+[sub_resource type="StandardMaterial3D" id="Material_cap"]
+albedo_color = Color(0.48, 0.57, 0.36, 1)
+roughness = 0.7
+emission_enabled = true
+emission = Color(0.22, 0.34, 0.13, 1)
+emission_energy_multiplier = 0.65
+
+[sub_resource type="SphereMesh" id="SphereMesh_cap"]
+radius = 0.34
+height = 0.42
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Material_stem"]
+albedo_color = Color(0.57, 0.55, 0.43, 1)
+roughness = 0.95
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_stem"]
+top_radius = 0.07
+bottom_radius = 0.1
+height = 0.42
+radial_segments = 8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_mooncap"]
+radius = 0.28
+height = 0.62
+
+[node name="Mooncap" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_collectible")
+definition_id = &"ingredient.mooncap"
+
+[node name="Stem" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.21, 0)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Material_stem")
+
+[node name="Cap" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.48, 0)
+scale = Vector3(1.0, 0.52, 1.0)
+mesh = SubResource("SphereMesh_cap")
+material_override = SubResource("Material_cap")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.3, 0)
+shape = SubResource("CapsuleShape_mooncap")
+
+[node name="InteractableComponent" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_interactable")
+object_name = "Лунная шляпка"
+primary_action = &"collect"
+primary_verb = "Удерживать — срезать"
+hold_duration = 0.65
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 0.55, 0)
+light_color = Color(0.48, 0.68, 0.28, 1)
+light_energy = 0.45
+omni_range = 1.4
+shadow_enabled = false

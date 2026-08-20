@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="HypothesisDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/hypothesis_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"hypothesis.mooncap_identity"
+display_name = "Настоящая лунная шляпка"
+description = "Полевые признаки, позволяющие отличить полезный вид от токсичного двойника."
+tags = Array[StringName]([&"field", &"fungus", &"identification"])
+question = "Этот образец — настоящая лунная шляпка?"
+required_observation_ids = Array[StringName]([&"observation.mooncap.silver_veins", &"observation.mooncap.stem_ring", &"observation.mooncap.pale_gills"])
+suggested_item_ids = Array[StringName]([&"ingredient.mooncap", &"ingredient.false_mooncap"])
+approximate_region_id = &"region.forest_clearing"
+unlock_ids = Array[StringName]([&"recipe.spore_sight_brew"])

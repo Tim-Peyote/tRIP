@@ -1,0 +1,57 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://features/ingredients/harvestable_ingredient.gd" id="1"]
+[ext_resource type="Script" path="res://core/components/interactable_component.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Material_cap"]
+albedo_color = Color(0.33, 0.29, 0.11, 1)
+roughness = 0.82
+
+[sub_resource type="SphereMesh" id="Mesh_cap"]
+radius = 0.36
+height = 0.4
+radial_segments = 10
+rings = 5
+
+[sub_resource type="StandardMaterial3D" id="Material_stem"]
+albedo_color = Color(0.54, 0.49, 0.35, 1)
+roughness = 0.98
+
+[sub_resource type="CylinderMesh" id="Mesh_stem"]
+top_radius = 0.065
+bottom_radius = 0.12
+height = 0.4
+radial_segments = 7
+
+[sub_resource type="CapsuleShape3D" id="Shape"]
+radius = 0.29
+height = 0.62
+
+[node name="FalseMooncap" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1")
+definition_id = &"ingredient.false_mooncap"
+
+[node name="Stem" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.2, 0)
+mesh = SubResource("Mesh_stem")
+material_override = SubResource("Material_stem")
+
+[node name="Cap" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.46, 0)
+scale = Vector3(1, 0.5, 1)
+mesh = SubResource("Mesh_cap")
+material_override = SubResource("Material_cap")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.3, 0)
+shape = SubResource("Shape")
+
+[node name="InteractableComponent" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2")
+object_name = "Ложная лунница"
+primary_action = &"collect"
+primary_verb = "Удерживать — срезать"
+hold_duration = 0.65

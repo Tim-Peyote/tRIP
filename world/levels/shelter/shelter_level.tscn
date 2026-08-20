@@ -1,0 +1,630 @@
+[gd_scene load_steps=55 format=3]
+
+[ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://features/ingredients/mooncap_world.tscn" id="3_mooncap"]
+[ext_resource type="Script" path="res://presentation/audio/procedural_ambience.gd" id="4_ambience"]
+[ext_resource type="Script" path="res://features/cooking/cooking_orchestrator.gd" id="5_cooking"]
+[ext_resource type="Script" path="res://features/cooking/cooking_tool_component.gd" id="6_tool"]
+[ext_resource type="Script" path="res://core/components/interactable_component.gd" id="7_interactable"]
+[ext_resource type="RecipeDefinition" path="res://content/recipes/spore_sight_brew.tres" id="8_recipe"]
+[ext_resource type="Script" path="res://features/cooking/cooking_station_visuals.gd" id="9_station_visuals"]
+[ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="10_portal"]
+[ext_resource type="PackedScene" path="res://world/levels/forest_clearing/forest_clearing_chunk.tscn" id="11_forest"]
+[ext_resource type="Script" path="res://features/herbarium/knowledge_orchestrator.gd" id="12_knowledge"]
+[ext_resource type="Script" path="res://features/objectives/expedition_objective_orchestrator.gd" id="13_objective"]
+[ext_resource type="Script" path="res://features/expedition/expedition_clock.gd" id="14_clock"]
+[ext_resource type="Script" path="res://features/stealth/stealth_orchestrator.gd" id="15_stealth"]
+[ext_resource type="Script" path="res://features/cooking/physical_cooking_station_component.gd" id="16_physical_cooking"]
+[ext_resource type="Script" path="res://presentation/audio/cooking_station_audio.gd" id="17_cooking_audio"]
+[ext_resource type="Script" path="res://features/hypotheses/hypothesis_orchestrator.gd" id="18_hypothesis"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.105, 0.086, 0.062, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="Mesh_floor"]
+size = Vector3(10, 0.2, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_floor"]
+size = Vector3(10, 0.2, 8)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.082, 0.105, 0.083, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_wall_long"]
+size = Vector3(10, 3.2, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_long"]
+size = Vector3(10, 3.2, 0.2)
+
+[sub_resource type="BoxMesh" id="Mesh_wall_short"]
+size = Vector3(0.2, 3.2, 8)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_short"]
+size = Vector3(0.2, 3.2, 8)
+
+[sub_resource type="StandardMaterial3D" id="Material_table"]
+albedo_color = Color(0.22, 0.145, 0.075, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="Mesh_table_top"]
+size = Vector3(2.4, 0.14, 1.0)
+
+[sub_resource type="BoxShape3D" id="Shape_table_top"]
+size = Vector3(2.4, 0.14, 1.0)
+
+[sub_resource type="BoxMesh" id="Mesh_leg"]
+size = Vector3(0.14, 0.88, 0.14)
+
+[sub_resource type="StandardMaterial3D" id="Material_rug"]
+albedo_color = Color(0.19, 0.055, 0.038, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_rug"]
+size = Vector3(2.2, 0.018, 2.8)
+
+[sub_resource type="StandardMaterial3D" id="Material_window"]
+albedo_color = Color(0.08, 0.18, 0.16, 1)
+emission_enabled = true
+emission = Color(0.04, 0.16, 0.12, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="QuadMesh" id="Mesh_window"]
+size = Vector2(2.2, 1.45)
+
+[sub_resource type="StandardMaterial3D" id="Material_stone"]
+albedo_color = Color(0.18, 0.205, 0.17, 1)
+roughness = 0.98
+
+[sub_resource type="CylinderMesh" id="Mesh_mortar"]
+top_radius = 0.3
+bottom_radius = 0.22
+height = 0.22
+radial_segments = 10
+
+[sub_resource type="CylinderShape3D" id="Shape_mortar"]
+radius = 0.3
+height = 0.24
+
+[sub_resource type="CylinderMesh" id="Mesh_pestle"]
+top_radius = 0.055
+bottom_radius = 0.075
+height = 0.52
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Material_cauldron"]
+albedo_color = Color(0.055, 0.065, 0.056, 1)
+metallic = 0.72
+roughness = 0.48
+
+[sub_resource type="CylinderMesh" id="Mesh_cauldron"]
+top_radius = 0.36
+bottom_radius = 0.29
+height = 0.3
+radial_segments = 12
+
+[sub_resource type="CylinderShape3D" id="Shape_cauldron"]
+radius = 0.36
+height = 0.32
+
+[sub_resource type="StandardMaterial3D" id="Material_liquid"]
+albedo_color = Color(0.25, 0.34, 0.12, 1)
+emission_enabled = true
+emission = Color(0.16, 0.29, 0.07, 1)
+emission_energy_multiplier = 0.8
+
+[sub_resource type="CylinderMesh" id="Mesh_liquid"]
+top_radius = 0.31
+bottom_radius = 0.31
+height = 0.018
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="Material_mycelium"]
+albedo_color = Color(0.46, 0.72, 0.22, 1)
+roughness = 0.56
+emission_enabled = true
+emission = Color(0.26, 0.68, 0.12, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="SphereMesh" id="Mesh_spore_node"]
+radius = 0.13
+height = 0.22
+radial_segments = 8
+rings = 4
+
+[sub_resource type="BoxMesh" id="Mesh_mycelium_strand"]
+size = Vector3(0.045, 1.25, 0.045)
+
+[sub_resource type="StandardMaterial3D" id="Material_ground_mash"]
+albedo_color = Color(0.34, 0.39, 0.13, 1)
+roughness = 0.96
+
+[sub_resource type="CylinderMesh" id="Mesh_ground_mash"]
+top_radius = 0.22
+bottom_radius = 0.22
+height = 0.04
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="Material_steam"]
+transparency = 1
+albedo_color = Color(0.62, 0.82, 0.46, 0.46)
+shading_mode = 0
+
+[sub_resource type="SphereMesh" id="Mesh_steam"]
+radius = 0.075
+height = 0.13
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Material_fire"]
+albedo_color = Color(0.92, 0.28, 0.035, 1)
+emission_enabled = true
+emission = Color(1, 0.18, 0.01, 1)
+emission_energy_multiplier = 3.5
+shading_mode = 0
+
+[sub_resource type="SphereMesh" id="Mesh_fire"]
+radius = 0.12
+height = 0.34
+radial_segments = 7
+rings = 4
+
+[sub_resource type="CapsuleShape3D" id="Shape_small_tool"]
+radius = 0.11
+height = 0.48
+
+[sub_resource type="StandardMaterial3D" id="Material_water_jug"]
+albedo_color = Color(0.12, 0.22, 0.24, 1)
+roughness = 0.62
+
+[sub_resource type="StandardMaterial3D" id="Material_bottle"]
+transparency = 1
+albedo_color = Color(0.32, 0.58, 0.38, 0.58)
+roughness = 0.2
+
+[node name="ShelterLevel" type="Node3D"]
+script = ExtResource("1_level")
+
+[node name="KnowledgeOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("12_knowledge")
+
+[node name="ObjectiveOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("13_objective")
+
+[node name="ExpeditionClock" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("14_clock")
+
+[node name="StealthOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("15_stealth")
+
+[node name="HypothesisOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("18_hypothesis")
+
+[node name="CookingOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_cooking")
+recipe = ExtResource("8_recipe")
+
+[node name="CookingStationVisuals" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("9_station_visuals")
+
+[node name="MortarContents" type="MeshInstance3D" parent="CookingStationVisuals"]
+unique_name_in_owner = true
+visible = false
+position = Vector3(-0.72, 1.275, -2.35)
+mesh = SubResource("Mesh_ground_mash")
+material_override = SubResource("Material_ground_mash")
+
+[node name="ActiveLiquid" type="MeshInstance3D" parent="CookingStationVisuals"]
+unique_name_in_owner = true
+visible = false
+position = Vector3(0.72, 1.385, -2.35)
+mesh = SubResource("Mesh_liquid")
+material_override = SubResource("Material_liquid")
+
+[node name="Steam" type="Node3D" parent="CookingStationVisuals"]
+unique_name_in_owner = true
+visible = false
+position = Vector3(0.72, 1.42, -2.35)
+
+[node name="FireMesh" type="MeshInstance3D" parent="CookingStationVisuals"]
+unique_name_in_owner = true
+visible = false
+position = Vector3(0.72, 1.0, -2.35)
+mesh = SubResource("Mesh_fire")
+material_override = SubResource("Material_fire")
+
+[node name="FireGlow" type="OmniLight3D" parent="CookingStationVisuals"]
+unique_name_in_owner = true
+visible = false
+position = Vector3(0.72, 1.05, -2.15)
+light_color = Color(1, 0.31, 0.08, 1)
+light_energy = 1.2
+omni_range = 2.6
+shadow_enabled = false
+
+[node name="MoteA" type="MeshInstance3D" parent="CookingStationVisuals/Steam"]
+mesh = SubResource("Mesh_steam")
+material_override = SubResource("Material_steam")
+
+[node name="MoteB" type="MeshInstance3D" parent="CookingStationVisuals/Steam"]
+position = Vector3(0.05, 0.18, 0)
+scale = Vector3(0.72, 0.72, 0.72)
+mesh = SubResource("Mesh_steam")
+material_override = SubResource("Material_steam")
+
+[node name="MoteC" type="MeshInstance3D" parent="CookingStationVisuals/Steam"]
+position = Vector3(-0.05, 0.35, 0)
+scale = Vector3(0.5, 0.5, 0.5)
+mesh = SubResource("Mesh_steam")
+material_override = SubResource("Material_steam")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+unique_name_in_owner = true
+position = Vector3(0, 0.12, 0.4)
+
+[node name="Architecture" type="Node3D" parent="."]
+
+[node name="Floor" type="StaticBody3D" parent="Architecture"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Architecture/Floor"]
+mesh = SubResource("Mesh_floor")
+material_override = SubResource("Material_floor")
+
+[node name="Collision" type="CollisionShape3D" parent="Architecture/Floor"]
+shape = SubResource("Shape_floor")
+
+[node name="Ceiling" type="StaticBody3D" parent="Architecture"]
+position = Vector3(0, 3.15, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Architecture/Ceiling"]
+mesh = SubResource("Mesh_floor")
+material_override = SubResource("Material_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Architecture/Ceiling"]
+shape = SubResource("Shape_floor")
+
+[node name="BackWall" type="StaticBody3D" parent="Architecture"]
+position = Vector3(0, 1.5, -4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Architecture/BackWall"]
+mesh = SubResource("Mesh_wall_long")
+material_override = SubResource("Material_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Architecture/BackWall"]
+shape = SubResource("Shape_wall_long")
+
+[node name="FrontWall" type="StaticBody3D" parent="Architecture"]
+position = Vector3(0, 1.5, 4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Architecture/FrontWall"]
+mesh = SubResource("Mesh_wall_long")
+material_override = SubResource("Material_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Architecture/FrontWall"]
+shape = SubResource("Shape_wall_long")
+
+[node name="LeftWall" type="StaticBody3D" parent="Architecture"]
+position = Vector3(-5, 1.5, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Architecture/LeftWall"]
+mesh = SubResource("Mesh_wall_short")
+material_override = SubResource("Material_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Architecture/LeftWall"]
+shape = SubResource("Shape_wall_short")
+
+[node name="RightWall" type="StaticBody3D" parent="Architecture"]
+position = Vector3(5, 1.5, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Architecture/RightWall"]
+mesh = SubResource("Mesh_wall_short")
+material_override = SubResource("Material_wall")
+
+[node name="Collision" type="CollisionShape3D" parent="Architecture/RightWall"]
+shape = SubResource("Shape_wall_short")
+
+[node name="WindowGlow" type="MeshInstance3D" parent="Architecture"]
+position = Vector3(0, 1.72, -3.88)
+mesh = SubResource("Mesh_window")
+material_override = SubResource("Material_window")
+
+[node name="Table" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.93, -2.35)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Top" type="MeshInstance3D" parent="Table"]
+mesh = SubResource("Mesh_table_top")
+material_override = SubResource("Material_table")
+
+[node name="Collision" type="CollisionShape3D" parent="Table"]
+shape = SubResource("Shape_table_top")
+
+[node name="LegA" type="MeshInstance3D" parent="Table"]
+position = Vector3(-1.0, -0.5, -0.36)
+mesh = SubResource("Mesh_leg")
+material_override = SubResource("Material_table")
+
+[node name="LegB" type="MeshInstance3D" parent="Table"]
+position = Vector3(1.0, -0.5, -0.36)
+mesh = SubResource("Mesh_leg")
+material_override = SubResource("Material_table")
+
+[node name="LegC" type="MeshInstance3D" parent="Table"]
+position = Vector3(-1.0, -0.5, 0.36)
+mesh = SubResource("Mesh_leg")
+material_override = SubResource("Material_table")
+
+[node name="LegD" type="MeshInstance3D" parent="Table"]
+position = Vector3(1.0, -0.5, 0.36)
+mesh = SubResource("Mesh_leg")
+material_override = SubResource("Material_table")
+
+[node name="Mooncap" parent="." instance=ExtResource("3_mooncap")]
+position = Vector3(0, 1.02, -2.35)
+
+[node name="Mortar" type="StaticBody3D" parent="."]
+position = Vector3(-0.72, 1.08, -2.35)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Bowl" type="MeshInstance3D" parent="Mortar"]
+position = Vector3(0, 0.11, 0)
+mesh = SubResource("Mesh_mortar")
+material_override = SubResource("Material_stone")
+
+[node name="Pestle" type="MeshInstance3D" parent="Mortar"]
+position = Vector3(-0.12, 0.31, 0)
+rotation = Vector3(0, 0, -0.44)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_stone")
+
+[node name="Collision" type="CollisionShape3D" parent="Mortar"]
+position = Vector3(0, 0.12, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="Mortar"]
+script = ExtResource("7_interactable")
+object_name = "Каменная ступка"
+primary_action = &"grind"
+primary_verb = "Удерживать — растолочь"
+hold_duration = 0.8
+inspection_description = "Грубый камень. Подходит для влажной крупной крошки."
+
+[node name="CookingToolComponent" type="Node" parent="Mortar"]
+script = ExtResource("6_tool")
+operation = &"grind"
+ingredient_id = &"ingredient.mooncap"
+ingredient_tags = Array[StringName]([&"fungus", &"perception"])
+amount = 1.0
+temperature = 20.0
+duration = 8.0
+required_item_id = &"ingredient.mooncap"
+
+[node name="Cauldron" type="StaticBody3D" parent="."]
+position = Vector3(0.72, 1.08, -2.35)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Cauldron"]
+position = Vector3(0, 0.15, 0)
+mesh = SubResource("Mesh_cauldron")
+material_override = SubResource("Material_cauldron")
+
+[node name="Liquid" type="MeshInstance3D" parent="Cauldron"]
+position = Vector3(0, 0.29, 0)
+mesh = SubResource("Mesh_liquid")
+material_override = SubResource("Material_liquid")
+
+[node name="Collision" type="CollisionShape3D" parent="Cauldron"]
+position = Vector3(0, 0.16, 0)
+shape = SubResource("Shape_cauldron")
+
+[node name="InteractableComponent" type="Node" parent="Cauldron"]
+script = ExtResource("7_interactable")
+object_name = "Малый котёл"
+primary_action = &"heat"
+primary_verb = "Удерживать — нагреть"
+hold_duration = 1.0
+inspection_description = "Жидкость ещё спокойна. Нужный режим заметен по серебристому пару."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Cauldron"]
+script = ExtResource("16_physical_cooking")
+role = "transfer"
+
+[node name="WaterJug" type="StaticBody3D" parent="."]
+position = Vector3(1.55, 1.08, -2.35)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="WaterJug"]
+position = Vector3(0, 0.13, 0)
+mesh = SubResource("Mesh_mortar")
+material_override = SubResource("Material_water_jug")
+
+[node name="Collision" type="CollisionShape3D" parent="WaterJug"]
+position = Vector3(0, 0.13, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="WaterJug"]
+script = ExtResource("7_interactable")
+object_name = "Кувшин с водой"
+primary_action = &"add_water"
+primary_verb = "Налить воду в котёл"
+hold_duration = 0.35
+inspection_description = "Чистая ключевая вода. Объём котла рассчитан на один ковш."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="WaterJug"]
+script = ExtResource("16_physical_cooking")
+role = "add_water"
+
+[node name="FireControl" type="StaticBody3D" parent="."]
+position = Vector3(1.42, 0.35, -1.65)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="FireControl"]
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_table")
+
+[node name="Collision" type="CollisionShape3D" parent="FireControl"]
+rotation = Vector3(0, 0, 1.5708)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="FireControl"]
+script = ExtResource("7_interactable")
+object_name = "Заслонка очага"
+primary_action = &"cycle_heat"
+primary_verb = "Зажечь слабый огонь"
+hold_duration = 0.25
+inspection_description = "Три положения: погашено, слабое пламя и сильная тяга."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="FireControl"]
+script = ExtResource("16_physical_cooking")
+role = "cycle_heat"
+
+[node name="Ladle" type="StaticBody3D" parent="."]
+position = Vector3(0.0, 1.38, -2.85)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Ladle"]
+rotation = Vector3(0, 0, 1.2)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_stone")
+
+[node name="Collision" type="CollisionShape3D" parent="Ladle"]
+rotation = Vector3(0, 0, 1.2)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Ladle"]
+script = ExtResource("7_interactable")
+object_name = "Деревянная мешалка"
+primary_action = &"stir"
+primary_verb = "Помешать состав"
+hold_duration = 0.45
+inspection_description = "По сопротивлению мешалки можно почувствовать неоднородные комки."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Ladle"]
+script = ExtResource("16_physical_cooking")
+role = "stir"
+
+[node name="BottleRack" type="StaticBody3D" parent="."]
+position = Vector3(-1.55, 1.15, -2.35)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="BottleRack"]
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_bottle")
+
+[node name="Collision" type="CollisionShape3D" parent="BottleRack"]
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="BottleRack"]
+script = ExtResource("7_interactable")
+object_name = "Чистая склянка"
+primary_action = &"bottle"
+primary_verb = "Разлить готовый состав"
+hold_duration = 0.5
+inspection_description = "Стекло простерилизовано. Ранний розлив испортит настой."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="BottleRack"]
+script = ExtResource("16_physical_cooking")
+role = "bottle"
+
+[node name="Rug" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.11, 0.75)
+mesh = SubResource("Mesh_rug")
+material_override = SubResource("Material_rug")
+
+[node name="HiddenMycelium" type="Node3D" parent="."]
+unique_name_in_owner = true
+visible = false
+
+[node name="StrandA" type="MeshInstance3D" parent="HiddenMycelium"]
+position = Vector3(2.85, 1.22, -3.86)
+rotation = Vector3(0, 0, -0.62)
+mesh = SubResource("Mesh_mycelium_strand")
+material_override = SubResource("Material_mycelium")
+
+[node name="StrandB" type="MeshInstance3D" parent="HiddenMycelium"]
+position = Vector3(3.25, 1.55, -3.85)
+rotation = Vector3(0, 0, 0.78)
+mesh = SubResource("Mesh_mycelium_strand")
+material_override = SubResource("Material_mycelium")
+
+[node name="NodeA" type="MeshInstance3D" parent="HiddenMycelium"]
+position = Vector3(2.48, 0.76, -3.79)
+mesh = SubResource("Mesh_spore_node")
+material_override = SubResource("Material_mycelium")
+
+[node name="NodeB" type="MeshInstance3D" parent="HiddenMycelium"]
+position = Vector3(3.14, 1.44, -3.79)
+mesh = SubResource("Mesh_spore_node")
+material_override = SubResource("Material_mycelium")
+
+[node name="NodeC" type="MeshInstance3D" parent="HiddenMycelium"]
+position = Vector3(3.72, 1.95, -3.79)
+mesh = SubResource("Mesh_spore_node")
+material_override = SubResource("Material_mycelium")
+
+[node name="Glow" type="OmniLight3D" parent="HiddenMycelium"]
+position = Vector3(3.15, 1.45, -3.45)
+light_color = Color(0.34, 0.78, 0.16, 1)
+light_energy = 1.8
+omni_range = 3.2
+shadow_enabled = false
+
+[node name="Lighting" type="Node3D" parent="."]
+
+[node name="MoonLight" type="DirectionalLight3D" parent="Lighting"]
+rotation = Vector3(-0.62, -0.42, 0)
+light_color = Color(0.32, 0.5, 0.47, 1)
+light_energy = 0.72
+shadow_enabled = true
+
+[node name="Lamp" type="OmniLight3D" parent="Lighting"]
+position = Vector3(-1.65, 2.18, -1.8)
+light_color = Color(0.92, 0.57, 0.28, 1)
+light_energy = 2.2
+omni_range = 5.5
+shadow_enabled = true
+
+[node name="ProceduralAmbience" type="AudioStreamPlayer" parent="."]
+script = ExtResource("4_ambience")
+
+[node name="CookingStationAudio" type="AudioStreamPlayer3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0.72, 1.15, -2.35)
+script = ExtResource("17_cooking_audio")
+
+[node name="ForestDoor" parent="." instance=ExtResource("10_portal")]
+position = Vector3(0, 0.12, 3.82)
+target_position = Vector3(0, 0.12, 8.2)
+target_yaw = 3.14159
+
+[node name="ForestClearing" parent="." instance=ExtResource("11_forest")]
+position = Vector3(0, 0, 15)

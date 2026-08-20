@@ -1,0 +1,253 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="PackedScene" path="res://features/ingredients/mooncap_world.tscn" id="1_mooncap"]
+[ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="2_portal"]
+[ext_resource type="PackedScene" path="res://features/ingredients/false_mooncap_world.tscn" id="3_false"]
+[ext_resource type="Script" path="res://world/levels/forest_clearing/forest_clearing_chunk.gd" id="4_chunk"]
+[ext_resource type="Script" path="res://features/creatures/listener.gd" id="5_listener"]
+[ext_resource type="Script" path="res://features/stealth/perception_sensor_component.gd" id="6_sensor"]
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_color = Color(0.035, 0.07, 0.038, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_ground"]
+size = Vector3(18, 0.24, 18)
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(18, 0.24, 18)
+
+[sub_resource type="StandardMaterial3D" id="Material_trunk"]
+albedo_color = Color(0.105, 0.065, 0.038, 1)
+roughness = 0.96
+
+[sub_resource type="CylinderMesh" id="Mesh_trunk"]
+top_radius = 0.28
+bottom_radius = 0.42
+height = 5.5
+radial_segments = 7
+
+[sub_resource type="CylinderShape3D" id="Shape_trunk"]
+radius = 0.4
+height = 5.5
+
+[sub_resource type="StandardMaterial3D" id="Material_canopy"]
+albedo_color = Color(0.025, 0.085, 0.045, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_canopy"]
+radius = 2.2
+height = 2.8
+radial_segments = 8
+rings = 5
+
+[sub_resource type="StandardMaterial3D" id="Material_stone"]
+albedo_color = Color(0.12, 0.15, 0.125, 1)
+roughness = 0.98
+
+[sub_resource type="SphereMesh" id="Mesh_stone"]
+radius = 0.8
+height = 1.0
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Material_listener"]
+albedo_color = Color(0.055, 0.072, 0.06, 1)
+roughness = 0.92
+
+[sub_resource type="CapsuleMesh" id="Mesh_listener"]
+radius = 0.32
+height = 1.1
+radial_segments = 7
+rings = 3
+
+[sub_resource type="CapsuleShape3D" id="Shape_listener"]
+radius = 0.32
+height = 1.1
+
+[sub_resource type="PrismMesh" id="Mesh_ear"]
+size = Vector3(0.18, 0.5, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="Material_eye"]
+albedo_color = Color(0.6, 0.82, 0.26, 1)
+emission_enabled = true
+emission = Color(0.36, 0.72, 0.14, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="SphereMesh" id="Mesh_eye"]
+radius = 0.045
+height = 0.08
+radial_segments = 6
+rings = 3
+
+[node name="ForestClearingChunk" type="Node3D"]
+script = ExtResource("4_chunk")
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("Mesh_ground")
+material_override = SubResource("Material_ground")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("Shape_ground")
+
+[node name="TreeA" type="StaticBody3D" parent="."]
+position = Vector3(-5.8, 2.65, -4.8)
+collision_layer = 1
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeA"]
+mesh = SubResource("Mesh_trunk")
+material_override = SubResource("Material_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="TreeA"]
+position = Vector3(0, 2.75, 0)
+mesh = SubResource("Mesh_canopy")
+material_override = SubResource("Material_canopy")
+
+[node name="Collision" type="CollisionShape3D" parent="TreeA"]
+shape = SubResource("Shape_trunk")
+
+[node name="TreeB" type="StaticBody3D" parent="."]
+position = Vector3(5.4, 2.65, -5.6)
+collision_layer = 1
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeB"]
+mesh = SubResource("Mesh_trunk")
+material_override = SubResource("Material_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="TreeB"]
+position = Vector3(0, 2.75, 0)
+mesh = SubResource("Mesh_canopy")
+material_override = SubResource("Material_canopy")
+
+[node name="Collision" type="CollisionShape3D" parent="TreeB"]
+shape = SubResource("Shape_trunk")
+
+[node name="TreeC" type="StaticBody3D" parent="."]
+position = Vector3(-6.5, 2.65, 3.3)
+collision_layer = 1
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeC"]
+mesh = SubResource("Mesh_trunk")
+material_override = SubResource("Material_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="TreeC"]
+position = Vector3(0, 2.75, 0)
+mesh = SubResource("Mesh_canopy")
+material_override = SubResource("Material_canopy")
+
+[node name="Collision" type="CollisionShape3D" parent="TreeC"]
+shape = SubResource("Shape_trunk")
+
+[node name="TreeD" type="StaticBody3D" parent="."]
+position = Vector3(6.7, 2.65, 4.2)
+collision_layer = 1
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeD"]
+mesh = SubResource("Mesh_trunk")
+material_override = SubResource("Material_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="TreeD"]
+position = Vector3(0, 2.75, 0)
+mesh = SubResource("Mesh_canopy")
+material_override = SubResource("Material_canopy")
+
+[node name="Collision" type="CollisionShape3D" parent="TreeD"]
+shape = SubResource("Shape_trunk")
+
+[node name="TreeE" type="StaticBody3D" parent="."]
+position = Vector3(-2.6, 2.65, 7.0)
+collision_layer = 1
+
+[node name="Trunk" type="MeshInstance3D" parent="TreeE"]
+mesh = SubResource("Mesh_trunk")
+material_override = SubResource("Material_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="TreeE"]
+position = Vector3(0, 2.75, 0)
+mesh = SubResource("Mesh_canopy")
+material_override = SubResource("Material_canopy")
+
+[node name="Collision" type="CollisionShape3D" parent="TreeE"]
+shape = SubResource("Shape_trunk")
+
+[node name="StoneA" type="MeshInstance3D" parent="."]
+position = Vector3(-2.4, 0.34, 1.0)
+scale = Vector3(1.2, 0.55, 0.8)
+mesh = SubResource("Mesh_stone")
+material_override = SubResource("Material_stone")
+
+[node name="StoneB" type="MeshInstance3D" parent="."]
+position = Vector3(3.7, 0.25, -1.2)
+scale = Vector3(0.7, 0.42, 1.1)
+mesh = SubResource("Mesh_stone")
+material_override = SubResource("Material_stone")
+
+[node name="Mooncap" parent="." instance=ExtResource("1_mooncap")]
+position = Vector3(2.0, 0.14, 2.1)
+
+[node name="FalseMooncap" parent="." instance=ExtResource("3_false")]
+position = Vector3(-1.5, 0.14, 1.45)
+
+[node name="ReturnPortal" parent="." instance=ExtResource("2_portal")]
+position = Vector3(0, 0.12, -7.4)
+target_position = Vector3(0, 0.12, 2.65)
+target_yaw = 0.0
+portal_name = "Вернуться в убежище"
+portal_description = "Тёплый свет под дверью ещё виден отсюда."
+
+[node name="ForestLight" type="DirectionalLight3D" parent="."]
+unique_name_in_owner = true
+rotation = Vector3(-0.82, 0.38, 0)
+light_color = Color(0.27, 0.48, 0.32, 1)
+light_energy = 0.85
+shadow_enabled = true
+
+[node name="SporeGlow" type="OmniLight3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(2.0, 1.1, 2.1)
+light_color = Color(0.36, 0.72, 0.22, 1)
+light_energy = 1.1
+omni_range = 4.0
+shadow_enabled = false
+
+[node name="Listener" type="CharacterBody3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(-4.6, 0.67, 4.7)
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("5_listener")
+
+[node name="Body" type="MeshInstance3D" parent="Listener"]
+mesh = SubResource("Mesh_listener")
+material_override = SubResource("Material_listener")
+
+[node name="EarLeft" type="MeshInstance3D" parent="Listener"]
+position = Vector3(-0.2, 0.62, 0)
+rotation = Vector3(0, 0, -0.28)
+mesh = SubResource("Mesh_ear")
+material_override = SubResource("Material_listener")
+
+[node name="EarRight" type="MeshInstance3D" parent="Listener"]
+position = Vector3(0.2, 0.62, 0)
+rotation = Vector3(0, 0, 0.28)
+mesh = SubResource("Mesh_ear")
+material_override = SubResource("Material_listener")
+
+[node name="Eye" type="MeshInstance3D" parent="Listener"]
+position = Vector3(0, 0.18, -0.32)
+mesh = SubResource("Mesh_eye")
+material_override = SubResource("Material_eye")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Listener"]
+shape = SubResource("Shape_listener")
+
+[node name="PerceptionSensorComponent" type="Node3D" parent="Listener"]
+unique_name_in_owner = true
+position = Vector3(0, 0.45, -0.2)
+script = ExtResource("6_sensor")
+vision_range = 10.5
+vision_angle = 76.0

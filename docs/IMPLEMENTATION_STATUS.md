@@ -1,0 +1,273 @@
+# TRip — implementation status
+
+Последнее обновление: 2026-08-20  
+Движок: Godot 4.7.2 stable  
+Renderer: Forward+ / Metal 4.0 на Apple M1  
+
+## Milestone 0 — implemented
+
+### Project foundation
+
+- Рабочий `project.godot` с main scene, input actions, physics layers и shader globals.
+- Git-репозиторий, `.gitignore` и `.gitattributes`.
+- Верхнеуровневый SceneTree: frontend, session roots, UI, presentation и debug.
+- Main Menu с живым shader-фоном, базовой навигацией и настройками.
+
+### Autoload services
+
+- `SceneRouter` — проверяемая смена PackedScene.
+- `SaveService` — versioned JSON envelope и запись через temporary file.
+- `SettingsService` — ConfigFile, defaults и применение аудиогромкости.
+- `ContentDB` — рекурсивная регистрация content Resources и проверка уникальных ID.
+
+### Data-driven contracts
+
+- `ContentDefinition`
+- `IngredientDefinition`
+- `ItemDefinition`
+- `EffectDefinition`
+- `RecipeDefinition` / `RecipeStepDefinition`
+- `HypothesisDefinition`
+- `VisualProfile`
+- `AudioProfile`
+
+ID используют namespaces (`ingredient.*`, `item.*`, `recipe.*`, `effect.*`). Runtime-состояние вынесено в отдельные domain objects.
+
+### Domain and components
+
+- `ItemInstance`
+- `CookingProcess` / `CookingProcessEvent`
+- `RecipeResolver` / `RecipeResolution`
+- `InteractableComponent`
+- `NoiseEmitterComponent` / `GameplayNoiseEvent`
+
+### Presentation and audio
+
+- `PresentationSnapshot` отделяет gameplay state от экранного исполнения.
+- `PresentationDirector` сглаживает стабильный набор shader global channels.
+- `AudioDirector` переключает snapshots независимо от gameplay noise.
+- Созданы 10 шин: Master, Music, UI, PlayerFoley, World, Ambience, Creatures, Interactions, Voice, Perception.
+- Visual intensity сохраняется и уже влияет на shader главного меню.
+
+### First content thread
+
+- `ingredient.mooncap`
+- `effect.spore_sight`
+- `item.spore_sight_brew`
+- `recipe.spore_sight_brew`
+
+Эталонный процесс `grind → heat` проходит через настоящий RecipeResolver и выдаёт качество `PURE`.
+
+## Verification
+
+Smoke test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot \
+  --headless \
+  --path /Users/shaman/Desktop/Projects/Godot/TRIP \
+  res://core/tests/smoke_test.tscn
+```
+
+Ожидаемый результат: `TRip smoke test: PASS`.
+
+Visual capture:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot \
+  --path /Users/shaman/Desktop/Projects/Godot/TRIP \
+  res://core/tests/visual_capture.tscn
+```
+
+Сцена сохраняет `/tmp/trip_visual_capture.png` и завершает процесс.
+
+## Milestone 1 — playable foundation implemented
+
+- `CharacterBody3D` controller с acceleration, gravity, sprint и crouch.
+- Crouch меняет camera height и capsule; clearance ray не даёт встать под препятствием.
+- Mouse look и InputMap gamepad defaults для обоих стиков и основных действий.
+- Независимый camera rig и временный low-poly viewmodel рук.
+- `InteractionOrchestrator`: raycast, focus, единый prompt, hold/cancel и inspect.
+- `InventoryComponent` с mass/volume contract.
+- Физическая сцена лунной шляпки получает имя и описание через `ContentDB`.
+- Gameplay HUD: reticle, prompt, hold progress, inspect card, сумка и pause panel.
+- Blockout убежища с физикой, светом, столом и первой точкой взаимодействия.
+- Процедурный ambience играет через шину `Ambience`.
+- Шаги создают отдельные `GameplayNoiseEvent`; звук не является источником AI-шума.
+- Main Menu → Shelter → Pause → Main Menu работает без смены архитектурных контрактов.
+
+Gameplay test проверяет физический raycast, data-driven prompt/inspection и перенос собранного предмета в сумку.
+
+## Remaining Milestone 1 polish
+
+- настроить ощущение acceleration, sprint и head bob на живом управлении;
+- заменить blockout viewmodel на rigged руки и предмет в руке;
+- добавить surface-based footstep cues и glyph switching;
+- сделать полноценный режим осмотра с вращением предмета;
+- провести десятиминутный playtest на motion comfort.
+
+## Cooking/effect vertical thread — implemented
+
+Рабочая цепочка:
+
+```text
+ingredient.mooncap
+  → Mortar / grind
+  → Cauldron / heat
+  → RecipeResolver / PURE
+  → item.spore_sight_brew
+  → quick use
+  → effect.spore_sight
+  → screen perception + hidden world geometry
+```
+
+### Inventory
+
+- Добавлены удаление предмета, расходники и сигнал использования.
+- `ConsumableDefinition` хранит `effect_ids` и число доз.
+- `B` показывает содержимое сумки, `1` применяет первый готовый состав.
+
+### Physical cooking
+
+- `CookingOrchestrator` владеет одним runtime `CookingProcess` и выбранным `RecipeDefinition`.
+- `CookingToolComponent` конфигурирует физический инструмент данными: operation, ingredient, tags, amount, temperature, duration и required item.
+- Ступка и котёл не имеют уникальной рецептурной логики.
+- Неверный порядок отклоняется с объяснимым сообщением.
+- Ступка действительно удаляет лунную шляпку из сумки.
+- Resolver создаёт готовый предмет только для качества `WORKING` и выше.
+
+### Effect execution
+
+- `EffectOrchestrator` хранит активные эффекты и их длительность.
+- Gameplay и presentation channels агрегируются отдельно.
+- `PresentationSnapshot` управляет shader globals.
+- Full-screen perception pass добавляет chroma separation, tracking, scanlines, noise и palette quantization.
+- `spore_vision` открывает реальную world-space геометрию мицелия; shader не является gameplay truth.
+
+### Verification
+
+- `TRip smoke test: PASS`
+- `TRip gameplay test: PASS`
+- `TRip cooking/effect test: PASS`
+- Обычное состояние и спорозрение проверены через GPU visual capture в Forward+/Metal.
+
+## Tool/harvest/forest vertical thread — implemented
+
+### Equipment
+
+- `ToolDefinition` описывает capabilities и precision.
+- `ToolbeltComponent` не зависит от конкретного ножа.
+- `tool.field_knife` даёт `cut`, `separate_cap` и `separate_stem`.
+- `Q` достаёт/убирает инструмент; состояние синхронизировано с viewmodel и HUD.
+
+### Harvest decisions
+
+- ПКМ циклически выбирает `cap / stem / whole / spores`.
+- Prompt сообщает выбранную часть и отсутствие нужного инструмента.
+- Чистый срез запрещён без подходящей capability.
+- Вырвать целое растение можно руками, но качество падает до 55%.
+- Runtime item сохраняет part, harvest damage, tool ID и quality.
+- Сумка показывает часть и качество конкретного экземпляра.
+
+### Recipe consequences
+
+- Рецепт спорозрения требует `part_cap`, а не просто любой fungus.
+- `CookingProcessEvent` переносит source quality.
+- `RecipeResolver` учитывает технологическую точность и качество сырья.
+- Аккуратно срезанная шляпка даёт `PURE`; повреждённый целый гриб — `UNSTABLE`.
+
+### Observable station
+
+- После `grind` в ступке появляется измельчённое сырьё.
+- После `heat` меняются жидкость и анимированный пар котла.
+- Визуал подписан на domain-события и не определяет результат рецепта.
+
+### First forest chunk
+
+- За физической дверью доступна отдельная low-poly поляна.
+- Chunk содержит землю, коллизии деревьев, камни, свет и второй harvestable mooncap.
+- Обратный portal возвращает игрока в убежище.
+- Это пока blockout пространства, а не финальный environment art.
+
+### Verification
+
+- `TRip smoke test: PASS`
+- `TRip gameplay test: PASS` — включая переход на поляну.
+- `TRip harvest quality test: PASS`
+- `TRip cooking/effect test: PASS` — включая visual states станции.
+- Поляна визуально проверена в Forward+/Metal.
+
+## Expedition/knowledge vertical thread — implemented
+
+### Field decisions
+
+- `ToolbeltComponent` поддерживает набор инструментов и переключает их по stable content ID.
+- `tool.spore_vial` даёт capability `collect_spores`; `Q` переключает нож и пробирку вместе с viewmodel.
+- На поляне появилась `ingredient.false_mooncap` — опасный двойник с отдельным data definition, визуальным силуэтом и токсичными trait channels.
+- Выбор `spores` реально требует пробирку, тогда как чистый срез шляпки требует нож.
+
+### Knowledge and objective
+
+- Осмотр через общий `InteractableComponent` создаёт semantic inspection event, не UI-хак.
+- `KnowledgeOrchestrator` хранит уровни `UNKNOWN → OBSERVED → COLLECTED → UNDERSTOOD`.
+- Полевой гербарий открывается на `J` и подписан на knowledge events.
+- Первая цель требует правильный вид и часть `cap`, собранные именно в лесной зоне.
+- Ложная лунница даёт объяснимую ошибку, но не двигает цель.
+- После правильного образца цель меняется на возвращение; обратный portal завершает вылазку.
+
+### Risk pressure
+
+- `ExpeditionClock` выдаёт нормализованное время и фазы `DAY / DUSK / NIGHT`.
+- Forest chunk сам интерпретирует фазу через свет и интенсивность свечения спор.
+- Первый `ListenerCreature` принимает только `GameplayNoiseEvent`, различает investigate/alert и идёт к источнику.
+- Шаги игрока подключены к слуху существа на уровне композиции ShelterLevel.
+
+### Verification
+
+- `TRip expedition systems test: PASS` — проверены гербарий, пробирка, ложный/верный образец, возвращение, фазы времени и реакция AI на шум.
+- Все четыре прежних headless-теста продолжают проходить.
+- Поляна повторно проверена GPU capture: в кадре видны оба вида гриба, listener и новый objective/clock HUD.
+
+## Stealth vertical thread — implemented
+
+- `PerceptionSensorComponent` объединяет настраиваемый cone/range, physics line-of-sight, слух и suspicion.
+- Стены, деревья и камни действительно перекрывают зрение через collision query.
+- Стояние, движение, бег и crouch дают различную сигнатуру заметности.
+- `ListenerCreature` перешёл на состояния `IDLE / INVESTIGATE / ALERT / CHASE / SEARCH`.
+- `StealthOrchestrator` связывает player и sensors на уровне зоны и агрегирует угрозу для HUD.
+- HUD показывает состояния `СКРЫТ / ПОДОЗРЕНИЕ / ТРЕВОГА / ОБНАРУЖЕН` и шкалу накопления.
+- На `G` бросается физический камень; удар создаёт `GameplayNoiseEvent`, расходует ограниченный запас и переносит внимание существа.
+- `TRip stealth test: PASS` проверяет прямую видимость, преследование, снижение exposure в crouch и отвлечение ударом камня.
+
+## Physical cooking vertical thread — implemented
+
+- `ThermalVesselState` моделирует воду, текущую и пиковую температуру, уровень огня, выдержку в целевом окне, передержку, число перемешиваний и однородность.
+- Слабый огонь стабилизируется в рабочем диапазоне; сильный быстрее нагревает, но может необратимо испортить смесь.
+- Готовка разбита на физические affordances: кувшин, ступка, котёл, заслонка очага, мешалка и чистая склянка.
+- Игрок должен налить воду, перенести измельчённый образец, выбрать огонь, перемешать и самостоятельно решить момент розлива.
+- Resolver оценивает реальные измерения процесса: stir count, homogeneity и overheat duration.
+- HUD сообщает наблюдаемые признаки вместо скрытого progress bar: температура, однородность, нужный режим, серебристый пар и запах гари.
+- Жидкость меняет цвет от температуры, слабый/сильный огонь меняет свет, пар усиливает читаемость готовности.
+- `CookingStationAudio` процедурно создаёт пространственный треск огня и частоту пузырьков без зависимости gameplay от аудио.
+- `TRip physical cooking test: PASS` проверяет чистый состав на слабом огне и провал от сильной передержки.
+
+## Interactive inspection vertical thread — implemented
+
+- `InspectionClueDefinition` задаёт stable observation ID, ракурс, допуск и нужный zoom.
+- `InspectionSession` независимо от UI вычисляет найденные признаки по вращению и приближению.
+- Полноэкранный `SampleInspectionView` использует отдельный SubViewport и собственный World3D.
+- Модель можно непрерывно вращать мышью, пошагово на `A/D` и приближать колесом.
+- Для настоящего и ложного гриба созданы разные inspect-модели и по три морфологических признака.
+- Гербарий хранит конкретные clue IDs и показывает прогресс признаков каждого вида.
+- Полный набор переводит вид в `UNDERSTOOD`, а не просто факт открытия карточки.
+- `HypothesisOrchestrator` проверяет data-driven required observations; гипотеза настоящей лунной шляпки подтверждается тремя совместными признаками.
+- Мир не ставится на паузу во время полевого осмотра: скрытность и время продолжают создавать риск.
+- `TRip inspection test: PASS` проверяет модель, ракурсы, zoom, знания и подтверждение гипотезы.
+
+## Next vertical thread
+
+1. Сохранение прогресса гербария, целей, гипотез и состояния экспедиции.
+2. Первый завершённый 15-минутный цикл с наградой за чистый образец и новым маршрутом.
+3. Surface audio и выразительные animation/audio cues состояний существа.
+4. Разные типы топлива, посуды и технологические ошибки как расширение data definitions.
+5. Полевая доска гипотез с выбором активной исследовательской цели.

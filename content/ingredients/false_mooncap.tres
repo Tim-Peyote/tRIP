@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+[ext_resource type="Script" path="res://core/resources/inspection_clue_definition.gd" id="2"]
+[ext_resource type="PackedScene" path="res://features/inspection/false_mooncap_inspect_model.tscn" id="3"]
+
+[sub_resource type="Resource" id="Clue_rings"]
+script = ExtResource("2")
+id = &"observation.false_mooncap.olive_rings"
+label = "Оливковые кольца"
+description = "Пятна замыкаются в ровные кольца — главный признак ложной лунницы."
+target_yaw = 0.0
+angle_tolerance = 32.0
+minimum_zoom = 0.15
+
+[sub_resource type="Resource" id="Clue_bruise"]
+script = ExtResource("2")
+id = &"observation.false_mooncap.dark_bruise"
+label = "Тёмный ушиб ножки"
+description = "Ткань у основания быстро темнеет до бурого цвета."
+target_yaw = -92.0
+angle_tolerance = 28.0
+minimum_zoom = 0.45
+
+[sub_resource type="Resource" id="Clue_gills"]
+script = ExtResource("2")
+id = &"observation.false_mooncap.dark_gills"
+label = "Редкие тёмные пластинки"
+description = "Пластинки под шляпкой редкие и темнее мякоти."
+target_yaw = 168.0
+angle_tolerance = 30.0
+minimum_zoom = 0.6
+
+[resource]
+script = ExtResource("1")
+id = &"ingredient.false_mooncap"
+display_name = "Ложная лунница"
+description = "Похожий гриб с тёплой оливковой шляпкой. Пятна образуют кольца, а не серебристые прожилки."
+tags = Array[StringName]([&"fungus", &"mimic", &"toxic"])
+harvest_parts = Array[int]([1, 2, 6])
+unit_mass = 0.14
+unit_volume = 0.18
+freshness_hours = 14.0
+biome_tags = Array[StringName]([&"wet_forest", &"twilight"])
+allowed_operations = Array[StringName]([&"slice", &"grind", &"heat"])
+trait_channels = {&"nausea": 0.8, &"toxicity": 0.72}
+inspect_scene = ExtResource("3")
+inspection_clues = Array[ExtResource("2")]([SubResource("Clue_rings"), SubResource("Clue_bruise"), SubResource("Clue_gills")])
