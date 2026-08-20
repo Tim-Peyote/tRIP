@@ -77,7 +77,12 @@ func _on_vessel_state_changed(state: ThermalVesselState) -> void:
 		var material := active_liquid.material_override as StandardMaterial3D
 		if material != null:
 			var heat_t := inverse_lerp(20.0, 100.0, state.temperature)
-			material.albedo_color = Color(0.12, 0.22, 0.16).lerp(Color(0.44, 0.34, 0.09), heat_t)
+			if state.ingredient_id == &"ingredient.emberberry":
+				material.albedo_color = Color(0.22, 0.045, 0.025).lerp(Color(0.72, 0.09, 0.018), heat_t)
+				material.emission = Color(0.5, 0.035, 0.01)
+			else:
+				material.albedo_color = Color(0.12, 0.22, 0.16).lerp(Color(0.44, 0.34, 0.09), heat_t)
+				material.emission = Color(0.16, 0.29, 0.07)
 
 
 func _on_physical_action_recorded(action: StringName) -> void:

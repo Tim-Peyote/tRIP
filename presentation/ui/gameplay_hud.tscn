@@ -140,6 +140,34 @@ offset_bottom = 107.0
 grow_horizontal = 2
 show_percentage = false
 
+[node name="SporeTideLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 114.0
+offset_bottom = 136.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.46, 0.86, 0.34, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "СПОРОВЫЙ ПРИЛИВ"
+horizontal_alignment = 1
+
+[node name="SporeTideBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -110.0
+offset_top = 139.0
+offset_right = 110.0
+offset_bottom = 145.0
+grow_horizontal = 2
+show_percentage = false
+
 [node name="CookingStatusLabel" type="Label" parent="."]
 unique_name_in_owner = true
 visible = false

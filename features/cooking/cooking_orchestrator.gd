@@ -9,9 +9,18 @@ signal vessel_state_changed(state: ThermalVesselState)
 signal physical_action_recorded(action: StringName)
 
 @export var recipe: RecipeDefinition
+@export var recipes: Array[RecipeDefinition] = []
 
 var process := CookingProcess.new()
 var vessel := ThermalVesselState.new()
+var active_recipe: RecipeDefinition
+
+
+func _ready() -> void:
+	if not recipes.is_empty():
+		active_recipe = recipes[0]
+	else:
+		active_recipe = recipe
 
 
 func _process(delta: float) -> void:
@@ -32,10 +41,10 @@ func add_water() -> bool:
 
 func transfer_prepared_ingredient() -> bool:
 	if process.events.is_empty() or process.events[0].operation != &"grind":
-		action_rejected.emit("Сначала измельчи шляпку в ступке.")
+		action_rejected.emit("Сначала измельчи подходящий образец в ступке.")
 		return false
 	var source := process.events[0]
-	if not vessel.add_ingredient(source.ingredient_id, source.source_quality):
+	if not vessel.add_ingredient(source.ingredient_id, source.source_quality, source.ingredient_tags):
 		action_rejected.emit("Сначала налей воду; второй образец уже не нужен.")
 		return false
 	physical_action_recorded.emit(&"transfer")
@@ -78,7 +87,7 @@ func bottle_result(actor: Node) -> bool:
 		vessel.effective_target_duration,
 		Time.get_ticks_msec() / 1000.0
 	)
-	event.ingredient_tags.assign([&"fungus", &"perception"])
+	event.ingredient_tags.assign(vessel.ingredient_tags)
 	event.source_quality = vessel.source_quality
 	event.stir_count = vessel.stir_count
 	event.homogeneity = vessel.homogeneity
@@ -99,7 +108,10 @@ func perform_action(
 	duration: float,
 	required_item_id: StringName = &""
 ) -> bool:
-	if recipe == null:
+	if process.events.is_empty():
+		active_recipe = _find_recipe(ingredient_id)
+	var current_recipe := active_recipe if active_recipe != null else recipe
+	if current_recipe == null:
 		action_rejected.emit("У станции не назначен рецепт.")
 		return false
 	var inventory := actor.find_child("InventoryComponent", true, false) as InventoryComponent
@@ -111,9 +123,11 @@ func perform_action(
 		var item_name := definition.display_name if definition != null else String(required_item_id)
 		action_rejected.emit("Нужен ингредиент: %s" % item_name)
 		return false
-	if process.events.size() >= recipe.steps.size():
+	if process.events.size() >= current_recipe.steps.size():
 		reset_process()
-	var expected_step := recipe.steps[process.events.size()]
+		active_recipe = _find_recipe(ingredient_id)
+		current_recipe = active_recipe if active_recipe != null else recipe
+	var expected_step := current_recipe.steps[process.events.size()]
 	if expected_step.operation != operation:
 		action_rejected.emit("Сейчас требуется другое действие. Сверься с рецептом.")
 		return false
@@ -138,7 +152,7 @@ func perform_action(
 	event.source_quality = consumed_item.quality if consumed_item != null else 1.0
 	process.append_event(event)
 	action_recorded.emit(operation, process.events.size())
-	if process.events.size() == recipe.steps.size():
+	if process.events.size() == current_recipe.steps.size():
 		_resolve(inventory)
 	return true
 
@@ -151,17 +165,26 @@ func reset_process() -> void:
 
 
 func to_save_data() -> Dictionary:
-	return {"process": process.to_save_data(), "vessel": vessel.to_save_data()}
+	return {
+		"process": process.to_save_data(),
+		"vessel": vessel.to_save_data(),
+		"active_recipe_id": String(active_recipe.id) if active_recipe != null else "",
+	}
 
 
 func apply_save_data(data: Dictionary) -> void:
 	process.apply_save_data(data.get("process", []) as Array)
 	vessel.apply_save_data(data.get("vessel", {}) as Dictionary)
+	var saved_recipe_id := StringName(data.get("active_recipe_id", ""))
+	active_recipe = _find_recipe_by_id(saved_recipe_id)
+	if active_recipe == null:
+		active_recipe = _find_recipe(vessel.ingredient_id) if vessel.ingredient_id != &"" else recipe
 	vessel_state_changed.emit(vessel)
 
 
 func _resolve(inventory: InventoryComponent) -> void:
-	var resolution := RecipeResolver.new().resolve(process, recipe)
+	var current_recipe := active_recipe if active_recipe != null else recipe
+	var resolution := RecipeResolver.new().resolve(process, current_recipe)
 	var result_definition := ContentDB.get_definition(resolution.result_item_id)
 	var result_name := result_definition.display_name if result_definition != null else String(resolution.result_item_id)
 	if resolution.quality < RecipeResolution.Quality.WORKING:
@@ -173,3 +196,23 @@ func _resolve(inventory: InventoryComponent) -> void:
 		return
 	result_created.emit(resolution, result_name)
 	reset_process()
+
+
+func _find_recipe(ingredient_id: StringName) -> RecipeDefinition:
+	for candidate: RecipeDefinition in recipes:
+		if candidate != null and candidate.primary_ingredient_id == ingredient_id:
+			return candidate
+	if recipe != null and recipe.primary_ingredient_id == ingredient_id:
+		return recipe
+	return null
+
+
+func _find_recipe_by_id(recipe_id: StringName) -> RecipeDefinition:
+	if recipe_id == &"":
+		return null
+	for candidate: RecipeDefinition in recipes:
+		if candidate != null and candidate.id == recipe_id:
+			return candidate
+	if recipe != null and recipe.id == recipe_id:
+		return recipe
+	return null

@@ -1,6 +1,7 @@
 class_name RecipeDefinition
 extends ContentDefinition
 
+@export var primary_ingredient_id: StringName
 @export var steps: Array[RecipeStepDefinition] = []
 @export var result_item_id: StringName
 @export var effect_ids: Array[StringName] = []
@@ -12,6 +13,8 @@ func validate() -> PackedStringArray:
 	var messages := super()
 	if steps.is_empty():
 		messages.append("Recipe '%s' has no steps." % id)
+	if primary_ingredient_id == &"":
+		messages.append("Recipe '%s' has no primary ingredient id." % id)
 	for index in steps.size():
 		if steps[index] == null:
 			messages.append("Recipe '%s' step %d is null." % [id, index])
@@ -20,4 +23,3 @@ func validate() -> PackedStringArray:
 	if result_item_id == &"":
 		messages.append("Recipe '%s' has no result item id." % id)
 	return messages
-

@@ -94,7 +94,7 @@ func _on_interaction_completed(actor: Node, _action: StringName) -> void:
 	var part := get_selected_part()
 	var toolbelt := _get_toolbelt(actor)
 	var capability: StringName = PART_CAPABILITIES.get(part, &"")
-	var quality := 0.55 if capability == &"" else toolbelt.precision_for(capability)
+	var quality := 0.55 if part == &"whole" else (0.92 if capability == &"" else toolbelt.precision_for(capability))
 	if part == &"stem":
 		quality *= 0.88
 	var item := ItemInstance.new(definition_id, 1.0)

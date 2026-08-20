@@ -12,6 +12,7 @@ float hash(vec2 p) {
 
 void fragment() {
 	float strength = clamp(trip_perception * trip_visual_intensity, 0.0, 1.0);
+	float quiet = clamp(trip_toxicity * trip_visual_intensity, 0.0, 1.0);
 	vec2 uv = SCREEN_UV;
 	vec2 centered = uv - vec2(0.5);
 	float radius = length(centered);
@@ -35,5 +36,9 @@ void fragment() {
 	color += vec3(scanline + noise, scanline * 0.7, noise * 0.8);
 	color = mix(color, floor(color * 28.0) / 28.0, 0.22 * strength);
 	color *= 1.0 - smoothstep(0.34, 0.78, radius) * 0.32 * strength;
-	COLOR = vec4(color, strength * 0.92);
+	vec3 quiet_grade = vec3(luminance * 0.72, luminance * 0.3, luminance * 0.22);
+	color = mix(color, quiet_grade, quiet * 0.42);
+	color *= 1.0 - smoothstep(0.18, 0.72, radius) * 0.52 * quiet;
+	color += vec3(0.16, 0.015, 0.005) * sin(TIME * 2.4) * 0.035 * quiet;
+	COLOR = vec4(color, max(strength * 0.92, quiet * 0.72));
 }

@@ -48,6 +48,7 @@ var _is_crouched: bool = false
 var _viewmodel_rest_position: Vector3
 var _viewmodel_look_offset: Vector2 = Vector2.ZERO
 var _spore_vision_active: bool = false
+var _spore_resistance: float = 0.0
 var _consumption_tween: Tween
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
@@ -139,11 +140,16 @@ func get_stealth_exposure() -> float:
 	var movement_exposure := remap(clampf(planar_speed, 0.0, sprint_speed), 0.0, sprint_speed, 0.72, 1.35)
 	var stance_exposure := 0.48 if _is_crouched else 1.0
 	var perception_price := 1.28 if _spore_vision_active else 1.0
-	return clampf(movement_exposure * stance_exposure * perception_price, 0.3, 1.55)
+	var quieting := lerpf(1.0, 0.72, _spore_resistance)
+	return clampf(movement_exposure * stance_exposure * perception_price * quieting, 0.25, 1.55)
 
 
 func set_spore_vision_active(value: bool) -> void:
 	_spore_vision_active = value
+
+
+func set_spore_resistance(value: float) -> void:
+	_spore_resistance = clampf(value, 0.0, 1.0)
 
 
 func play_consumption_animation(_effect_ids: Array[StringName], _display_name: String) -> void:

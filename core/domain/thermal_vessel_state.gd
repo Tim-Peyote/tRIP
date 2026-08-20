@@ -8,6 +8,7 @@ var temperature: float = 20.0
 var heat_level: HeatLevel = HeatLevel.OFF
 var ingredient_loaded: bool = false
 var ingredient_id: StringName
+var ingredient_tags: Array[StringName] = []
 var source_quality: float = 1.0
 var process_elapsed: float = 0.0
 var effective_target_duration: float = 0.0
@@ -28,11 +29,12 @@ func add_water(amount: float) -> bool:
 	return true
 
 
-func add_ingredient(id: StringName, quality: float) -> bool:
+func add_ingredient(id: StringName, quality: float, tags: Array[StringName] = []) -> bool:
 	if ingredient_loaded or water_amount <= 0.0:
 		return false
 	ingredient_loaded = true
 	ingredient_id = id
+	ingredient_tags.assign(tags)
 	source_quality = clampf(quality, 0.0, 1.0)
 	return true
 
@@ -88,7 +90,7 @@ func get_stage_text() -> String:
 	if is_ruined():
 		return "СМЕСЬ ПЕРЕГРЕТА · запах гари"
 	if is_ready():
-		return "СЕРЕБРИСТЫЙ ПАР · можно разливать"
+		return "ТЁМНО-КРАСНЫЙ ПАР · можно разливать" if ingredient_id == &"ingredient.emberberry" else "СЕРЕБРИСТЫЙ ПАР · можно разливать"
 	if temperature < TARGET_MIN:
 		return "НАГРЕВ %d°C · однородность %d%%" % [roundi(temperature), roundi(homogeneity * 100.0)]
 	if temperature <= TARGET_MAX:
@@ -102,6 +104,7 @@ func reset() -> void:
 	heat_level = HeatLevel.OFF
 	ingredient_loaded = false
 	ingredient_id = &""
+	ingredient_tags.clear()
 	source_quality = 1.0
 	process_elapsed = 0.0
 	effective_target_duration = 0.0
@@ -118,6 +121,7 @@ func to_save_data() -> Dictionary:
 		"heat_level": int(heat_level),
 		"ingredient_loaded": ingredient_loaded,
 		"ingredient_id": String(ingredient_id),
+		"ingredient_tags": ingredient_tags.map(func(value: StringName) -> String: return String(value)),
 		"source_quality": source_quality,
 		"process_elapsed": process_elapsed,
 		"effective_target_duration": effective_target_duration,
@@ -134,6 +138,9 @@ func apply_save_data(data: Dictionary) -> void:
 	heat_level = clampi(int(data.get("heat_level", HeatLevel.OFF)), HeatLevel.OFF, HeatLevel.HIGH) as HeatLevel
 	ingredient_loaded = bool(data.get("ingredient_loaded", false))
 	ingredient_id = StringName(data.get("ingredient_id", ""))
+	ingredient_tags.clear()
+	for raw_tag: Variant in data.get("ingredient_tags", []):
+		ingredient_tags.append(StringName(raw_tag))
 	source_quality = clampf(float(data.get("source_quality", 1.0)), 0.0, 1.0)
 	process_elapsed = maxf(0.0, float(data.get("process_elapsed", 0.0)))
 	effective_target_duration = maxf(0.0, float(data.get("effective_target_duration", 0.0)))

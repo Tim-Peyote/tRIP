@@ -54,6 +54,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	gameplay_hud.setup_stealth(_active_level.get_stealth_orchestrator())
 	gameplay_hud.setup_hypotheses(_active_level.get_hypothesis_orchestrator())
 	gameplay_hud.setup_game_loop(_active_level.get_game_loop_orchestrator())
+	gameplay_hud.setup_spore_tide(_active_level.get_spore_tide())
 	var persistence := _active_level.get_session_persistence()
 	persistence.setup(_active_level, _active_level.get_game_loop_orchestrator(), slot_id)
 	gameplay_hud.setup_persistence(persistence)
@@ -64,7 +65,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 		persistence.initialize_new()
 	_active_player.inventory.consumable_used.connect(effect_orchestrator.apply_effects)
 	_active_player.inventory.consumable_used.connect(_active_player.play_consumption_animation)
-	effect_orchestrator.gameplay_channels_changed.connect(_active_level.apply_gameplay_channels)
+	effect_orchestrator.gameplay_channels_changed.connect(_on_effect_gameplay_channels_changed)
 	audio_director.set_snapshot(&"default")
 
 
@@ -104,3 +105,14 @@ func _return_to_main_menu() -> void:
 func _on_setting_changed(section: StringName, key: StringName, value: Variant) -> void:
 	if section == &"accessibility" and key == &"visual_intensity":
 		presentation_director.set_visual_intensity(float(value))
+
+
+func _on_effect_gameplay_channels_changed(channels: Dictionary[StringName, float]) -> void:
+	if _active_level != null:
+		_active_level.apply_gameplay_channels(channels)
+	if float(channels.get(&"spore_resistance", 0.0)) > 0.1:
+		audio_director.set_snapshot(&"spore_quiet")
+	elif float(channels.get(&"spore_vision", 0.0)) > 0.1:
+		audio_director.set_snapshot(&"danger")
+	else:
+		audio_director.set_snapshot(&"default")

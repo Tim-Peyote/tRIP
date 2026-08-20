@@ -21,6 +21,9 @@ func apply_effects(effect_ids: Array[StringName], _display_name: String = "") ->
 		if definition == null:
 			push_error("Unknown effect id: %s" % effect_id)
 			continue
+		for cancelled_id: StringName in definition.cancels_effect_ids:
+			if _active.erase(cancelled_id):
+				effect_ended.emit(cancelled_id)
 		_active[effect_id] = definition.duration_seconds
 		effect_started.emit(effect_id, definition.duration_seconds)
 	_rebuild_channels()
@@ -68,11 +71,10 @@ func _rebuild_channels() -> void:
 		var snapshot := PresentationSnapshot.new()
 		snapshot.visual_intensity = float(SettingsService.get_value(&"accessibility", &"visual_intensity", 1.0))
 		snapshot.perception = float(presentation.get(&"perception", 0.0))
-		snapshot.toxicity = float(gameplay.get(&"toxicity", 0.0))
+		snapshot.toxicity = maxf(float(gameplay.get(&"toxicity", 0.0)), float(presentation.get(&"toxicity", 0.0)))
 		_presentation.apply_snapshot(snapshot)
 
 
 func _accumulate_channels(target: Dictionary[StringName, float], source: Dictionary[StringName, float]) -> void:
 	for channel: StringName in source:
 		target[channel] = clampf(float(target.get(channel, 0.0)) + source[channel], 0.0, 1.0)
-

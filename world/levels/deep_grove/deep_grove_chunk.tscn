@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://world/levels/deep_grove/deep_grove_chunk.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://features/ingredients/emberberry_world.tscn" id="6"]
 [ext_resource type="Script" path="res://presentation/audio/spatial_forest_emitter.gd" id="7"]
 [ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="8"]
+[ext_resource type="Script" path="res://features/hazards/spore_tide_orchestrator.gd" id="9"]
 
 [sub_resource type="StandardMaterial3D" id="GroundMat"]
 albedo_color = Color(0.29, 0.38, 0.28, 1)
@@ -129,6 +130,10 @@ rings = 3
 
 [node name="DeepGroveChunk" type="Node3D"]
 script = ExtResource("1")
+
+[node name="SporeTideOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("9")
 
 [node name="Ground" type="StaticBody3D" parent="."]
 collision_layer = 1
@@ -329,6 +334,7 @@ portal_name = "Вернуться на северную тропу"
 portal_description = "Споровый проход ведёт обратно к зарубкам миколога."
 
 [node name="Spores" type="GPUParticles3D" parent="."]
+unique_name_in_owner = true
 position = Vector3(0, 2.0, 0)
 amount = 210
 lifetime = 11.0
@@ -352,6 +358,7 @@ intensity = 0.3
 seed = 809
 
 [node name="GroveGlow" type="OmniLight3D" parent="."]
+unique_name_in_owner = true
 position = Vector3(-2.5, 2.4, -3.2)
 light_color = Color(0.16, 0.82, 0.3, 1)
 light_energy = 2.8

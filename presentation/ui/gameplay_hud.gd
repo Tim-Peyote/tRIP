@@ -23,6 +23,7 @@ var _stealth: StealthOrchestrator
 var _hypotheses: HypothesisOrchestrator
 var _game_loop: GameLoopOrchestrator
 var _persistence: SessionPersistenceOrchestrator
+var _spore_tide: SporeTideOrchestrator
 
 
 func _ready() -> void:
@@ -111,6 +112,13 @@ func setup_persistence(persistence: SessionPersistenceOrchestrator) -> void:
 	persistence.saved.connect(_on_session_saved)
 
 
+func setup_spore_tide(spore_tide: SporeTideOrchestrator) -> void:
+	_spore_tide = spore_tide
+	spore_tide.state_changed.connect(_on_spore_tide_state_changed)
+	spore_tide.exposure_changed.connect(_on_spore_exposure_changed)
+	spore_tide.overwhelmed.connect(func() -> void: show_notice("Споры забили дыхание. Роща вытолкнула тебя ко входу."))
+
+
 func clear() -> void:
 	_player = null
 	_cooking = null
@@ -121,6 +129,7 @@ func clear() -> void:
 	_hypotheses = null
 	_game_loop = null
 	_persistence = null
+	_spore_tide = null
 	prompt_label.text = ""
 	hold_progress.visible = false
 	notice_label.visible = false
@@ -171,7 +180,7 @@ func _on_consumable_used(_effect_ids: Array[StringName], display_name: String) -
 
 func _on_cooking_action_recorded(operation: StringName, step_count: int) -> void:
 	var verbs: Dictionary = {
-		&"grind": "Шляпка растолчена до влажной крошки",
+		&"grind": "Образец измельчён и готов к переносу",
 		&"heat": "Смесь выдержана на слабом огне",
 	}
 	show_notice("%s  ·  этап %d" % [verbs.get(operation, String(operation)), step_count])
@@ -280,6 +289,16 @@ func _on_threat_changed(value: float, state_text: String) -> void:
 
 func _on_distraction_count_changed(remaining: int) -> void:
 	%DistractionLabel.text = "КАМНИ  %d  [G]" % remaining
+
+
+func _on_spore_tide_state_changed(state: int, label: String) -> void:
+	%SporeTideLabel.text = label
+	%SporeTideLabel.visible = state != SporeTideOrchestrator.State.CALM
+
+
+func _on_spore_exposure_changed(value: float) -> void:
+	%SporeTideBar.value = value * 100.0
+	%SporeTideBar.visible = value > 0.01
 
 
 func _on_inspection_requested(title: String, description: String) -> void:

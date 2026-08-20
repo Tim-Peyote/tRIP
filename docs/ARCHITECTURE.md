@@ -217,6 +217,10 @@ measured CookingProcessEvent → RecipeResolver
 
 Физические объекты станции используют один `PhysicalCookingStationComponent` с ролями `add_water`, `transfer`, `cycle_heat`, `stir`, `bottle`. Они отправляют команды в `CookingOrchestrator`, но не вычисляют рецепт. `CookingStationVisuals`, температурный HUD и `CookingStationAudio` подписаны на один vessel state и не являются источником результата.
 
+Несколько рецептов станции задаются массивом `RecipeDefinition`; выбор происходит по `primary_ingredient_id` первого события, а активный recipe ID сохраняется вместе с process/vessel. `ThermalVesselState` переносит ingredient tags, поэтому физический розлив оценивается тем же `RecipeResolver` для гриба, ягоды и будущих типов сырья.
+
+Зональные угрозы оформляются локальными orchestrator-компонентами chunk-сцены. `SporeTideOrchestrator` знает только player contract, границы зоны, фазу и semantic effect channels; HUD, GPU particles, свет и audio independently интерпретируют его сигналы. Переполнение exposure меняет позицию игрока как gameplay consequence, но визуальная плотность спор не определяет расчёт.
+
 Старый параметрический `perform_action()` остаётся полезным для инструментов и headless-тестов. Физический путь формирует тот же `CookingProcessEvent`, дополненный измеренными `stir_count`, `homogeneity` и `overheat_duration`; поэтому resolver не имеет отдельной ветки «игровой котёл».
 
 ## 7. Контракт эффектов

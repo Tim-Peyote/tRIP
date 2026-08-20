@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ConsumableDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/consumable_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"item.emberberry_tonic"
+display_name = "Тлеющий контрагент"
+description = "Густой красный отвар, приглушающий голос грибницы."
+tags = Array[StringName]([&"brew", &"consumable", &"counteragent"])
+mass = 0.32
+volume = 0.28
+max_stack = 1
+effect_ids = Array[StringName]([&"effect.spore_quiet"])
+doses = 1
+

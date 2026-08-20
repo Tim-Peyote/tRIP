@@ -19,6 +19,7 @@ extends Node3D
 @onready var forest_trail: Node3D = $ForestTrail
 @onready var deep_grove: Node3D = $DeepGrove
 @onready var shelter_progression_visuals: ShelterProgressionVisuals = %ShelterProgressionVisuals
+@onready var spore_tide: SporeTideOrchestrator = deep_grove.get_node("SporeTideOrchestrator") as SporeTideOrchestrator
 
 
 func _ready() -> void:
@@ -32,6 +33,7 @@ func _ready() -> void:
 	game_loop_orchestrator.setup(objective_orchestrator, cooking_orchestrator, expedition_clock, knowledge_orchestrator)
 	game_loop_orchestrator.route_unlock_changed.connect(_on_route_unlock_changed)
 	shelter_progression_visuals.setup(game_loop_orchestrator)
+	spore_tide.setup(player)
 	_on_route_unlock_changed(game_loop_orchestrator.route_unlocked)
 	for node: Node in find_children("*", "HarvestableIngredient", true, false):
 		var ingredient := node as HarvestableIngredient
@@ -94,6 +96,10 @@ func get_session_persistence() -> SessionPersistenceOrchestrator:
 	return session_persistence
 
 
+func get_spore_tide() -> SporeTideOrchestrator:
+	return spore_tide
+
+
 func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	biome_visual_controller.setup(world_environment)
 
@@ -110,5 +116,7 @@ func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
 	var spore_vision_active := float(channels.get(&"spore_vision", 0.0)) > 0.1
 	hidden_mycelium.visible = spore_vision_active
 	player.set_spore_vision_active(spore_vision_active)
+	player.set_spore_resistance(float(channels.get(&"spore_resistance", 0.0)))
 	forest_trail.set_spore_vision_active(spore_vision_active)
-	game_loop_orchestrator.set_spore_vision_active(spore_vision_active)
+	game_loop_orchestrator.set_effect_channels(channels)
+	spore_tide.apply_gameplay_channels(channels)

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EffectDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/effect_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"effect.spore_quiet"
+display_name = "Тихая кровь"
+description = "Тлеющая ягода гасит спорозрение и делает дыхание грибницы почти неслышным."
+tags = Array[StringName]([&"counteragent", &"protection", &"hearing_cost"])
+duration_seconds = 75.0
+cancels_effect_ids = Array[StringName]([&"effect.spore_sight"])
+gameplay_channels = {&"spore_resistance": 1.0, &"hearing_dampening": 0.45}
+presentation_channels = {&"toxicity": 0.72}
+opportunity = "Почти останавливает накопление спорового прилива и снижает заметность для грибницы."
+price = "Глушит пространственные подсказки и немедленно закрывает маршруты спорозрения."
+tell = "Края зрения темнеют, высокие звуки исчезают, пульс становится тяжёлым."
+counterplay = "Дождаться окончания или снова принять настой спорозрения."
+world_reaction = "Светящиеся нити гаснут, а споры перестают тянуться к игроку."

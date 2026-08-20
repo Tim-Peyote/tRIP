@@ -8,6 +8,7 @@ extends Node
 @export_range(-50.0, 300.0, 0.1, "suffix:°C") var temperature: float = 20.0
 @export_range(0.0, 3600.0, 0.1, "suffix:s") var duration: float = 1.0
 @export var required_item_id: StringName
+@export var candidate_ingredient_ids: Array[StringName] = []
 
 var orchestrator: CookingOrchestrator
 @onready var interactable: InteractableComponent = get_parent().get_node("InteractableComponent") as InteractableComponent
@@ -25,14 +26,32 @@ func _on_interaction_completed(actor: Node, _action: StringName) -> void:
 	if orchestrator == null:
 		push_error("CookingToolComponent '%s' has no CookingOrchestrator." % get_path())
 		return
+	var selected_ingredient_id := ingredient_id
+	var selected_required_id := required_item_id
+	var selected_tags := ingredient_tags.duplicate()
+	if not candidate_ingredient_ids.is_empty():
+		var inventory := actor.find_child("InventoryComponent", true, false) as InventoryComponent
+		selected_ingredient_id = &""
+		if inventory != null:
+			for candidate_id: StringName in candidate_ingredient_ids:
+				if inventory.count(candidate_id) <= 0.0:
+					continue
+				selected_ingredient_id = candidate_id
+				selected_required_id = candidate_id
+				var definition := ContentDB.get_definition(candidate_id) as IngredientDefinition
+				if definition != null:
+					selected_tags.assign(definition.tags)
+				break
+		if selected_ingredient_id == &"":
+			orchestrator.action_rejected.emit("В сумке нет подходящего свежего образца.")
+			return
 	orchestrator.perform_action(
 		actor,
 		operation,
-		ingredient_id,
-		ingredient_tags,
+		selected_ingredient_id,
+		selected_tags,
 		amount,
 		temperature,
 		duration,
-		required_item_id
+		selected_required_id
 	)
-

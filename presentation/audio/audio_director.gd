@@ -21,6 +21,7 @@ func _apply_snapshot(snapshot_id: StringName) -> void:
 		&"default": {&"Music": 0.0, &"Ambience": 0.0, &"Perception": -6.0},
 		&"pause": {&"Music": -4.0, &"Ambience": -10.0, &"Perception": -12.0},
 		&"danger": {&"Music": -3.0, &"Ambience": -5.0, &"Perception": 0.0},
+		&"spore_quiet": {&"Music": -7.0, &"Ambience": -13.0, &"Perception": -18.0},
 	}
 	var values: Dictionary = targets.get(snapshot_id, targets[&"default"])
 	var tween := create_tween().set_parallel(true)
@@ -33,4 +34,3 @@ func _apply_snapshot(snapshot_id: StringName) -> void:
 				float(values[bus_name]),
 				SNAPSHOT_FADE_SECONDS
 			)
-

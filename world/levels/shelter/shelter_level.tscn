@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3]
+[gd_scene load_steps=67 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -27,6 +27,8 @@
 [ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/forest_visual_profile.tres" id="25_forest_profile"]
 [ext_resource type="PackedScene" path="res://world/levels/forest_trail/forest_trail_chunk.tscn" id="26_forest_trail"]
 [ext_resource type="PackedScene" path="res://world/props/shelter/shelter_progression_visuals.tscn" id="27_shelter_progression"]
+[ext_resource type="RecipeDefinition" path="res://content/recipes/emberberry_tonic.tres" id="28_ember_recipe"]
+[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="29_recipe_script"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -239,6 +241,7 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 script = ExtResource("5_cooking")
 recipe = ExtResource("8_recipe")
+recipes = Array[ExtResource("29_recipe_script")]([ExtResource("8_recipe"), ExtResource("28_ember_recipe")])
 
 [node name="CookingStationVisuals" type="Node3D" parent="."]
 unique_name_in_owner = true
@@ -450,6 +453,7 @@ amount = 1.0
 temperature = 20.0
 duration = 8.0
 required_item_id = &"ingredient.mooncap"
+candidate_ingredient_ids = Array[StringName]([&"ingredient.mooncap", &"ingredient.emberberry"])
 
 [node name="Cauldron" type="StaticBody3D" parent="."]
 position = Vector3(0.72, 1.08, -2.35)

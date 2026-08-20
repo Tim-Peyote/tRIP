@@ -5,6 +5,7 @@ extends ContentDefinition
 @export_range(0.1, 3600.0, 0.1, "suffix:s") var duration_seconds: float = 30.0
 @export var onset_curve: Curve
 @export var decay_curve: Curve
+@export var cancels_effect_ids: Array[StringName] = []
 
 @export_category("Gameplay Channels")
 @export var gameplay_channels: Dictionary[StringName, float] = {}
@@ -29,4 +30,3 @@ func validate() -> PackedStringArray:
 	if price.strip_edges().is_empty():
 		messages.append("Effect '%s' has no price/tradeoff." % id)
 	return messages
-

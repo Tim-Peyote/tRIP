@@ -17,6 +17,8 @@ var spore_vision_active: bool = false
 var deep_grove_entered: bool = false
 var emberberry_collected: bool = false
 var second_expedition_complete: bool = false
+var counteragent_brewed: bool = false
+var spore_quiet_active: bool = false
 var _objective: ExpeditionObjectiveOrchestrator
 var _cooking: CookingOrchestrator
 var _clock: ExpeditionClock
@@ -51,6 +53,12 @@ func get_objective_text() -> String:
 		Stage.REWARD:
 			return "ЦИКЛ ЗАВЕРШЁН · разобрать результаты"
 		_:
+			if counteragent_brewed and spore_quiet_active:
+				return "ТИХАЯ КРОВЬ · пережить споровый прилив и исследовать кольцо"
+			if counteragent_brewed and spore_vision_active:
+				return "СПОРОЗРЕНИЕ · рискнуть во время прилива ради скрытого следа"
+			if counteragent_brewed:
+				return "ВЫБОР ПРЕПАРАТА · спорозрение открывает путь, контрагент защищает"
 			if second_expedition_complete:
 				return "УБЕЖИЩЕ · исследовать тлеющую ягоду и карту миколога"
 			if emberberry_collected:
@@ -92,6 +100,12 @@ func set_spore_vision_active(value: bool) -> void:
 	_emit_state()
 
 
+func set_effect_channels(channels: Dictionary[StringName, float]) -> void:
+	spore_vision_active = float(channels.get(&"spore_vision", 0.0)) > 0.1
+	spore_quiet_active = float(channels.get(&"spore_resistance", 0.0)) > 0.1
+	_emit_state()
+
+
 func record_grove_entered(_actor: Node = null) -> void:
 	if stage != Stage.DEEP_GROVE:
 		return
@@ -127,6 +141,7 @@ func to_save_data() -> Dictionary:
 		"deep_grove_entered": deep_grove_entered,
 		"emberberry_collected": emberberry_collected,
 		"second_expedition_complete": second_expedition_complete,
+		"counteragent_brewed": counteragent_brewed,
 	}
 
 
@@ -140,6 +155,7 @@ func apply_save_data(data: Dictionary) -> void:
 	deep_grove_entered = bool(data.get("deep_grove_entered", false))
 	emberberry_collected = bool(data.get("emberberry_collected", false))
 	second_expedition_complete = bool(data.get("second_expedition_complete", false))
+	counteragent_brewed = bool(data.get("counteragent_brewed", false))
 	route_unlock_changed.emit(route_unlocked)
 	_emit_state()
 
@@ -154,6 +170,12 @@ func _on_expedition_returned() -> void:
 
 
 func _on_cooking_result(result: RecipeResolution, _display_name: String) -> void:
+	if result.result_item_id == &"item.emberberry_tonic" and second_expedition_complete:
+		counteragent_brewed = true
+		narrative_notice_requested.emit("НОВЫЙ ВЫБОР", "Контрагент почти гасит споровый прилив, но вместе с ним исчезают скрытые тропы. Теперь подготовка определяет доступный маршрут.")
+		_emit_state()
+		autosave_requested.emit(&"counteragent_brewed")
+		return
 	if stage != Stage.BREW or result.result_item_id != &"item.spore_sight_brew":
 		return
 	completed_cycles += 1

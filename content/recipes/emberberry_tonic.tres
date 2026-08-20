@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1"]
+[ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="Step_grind"]
+script = ExtResource("2")
+operation = &"grind"
+ingredient_tag = &"part_berry"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 10.0
+maximum_temperature = 30.0
+minimum_duration = 4.0
+maximum_duration = 12.0
+player_hint = "Раздавить ягоды, не растирая горячие семена."
+
+[sub_resource type="Resource" id="Step_heat"]
+script = ExtResource("2")
+operation = &"heat"
+ingredient_tag = &"counteragent"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 72.0
+maximum_temperature = 86.0
+minimum_duration = 18.0
+maximum_duration = 32.0
+minimum_stirs = 2
+minimum_homogeneity = 0.65
+maximum_overheat_duration = 3.5
+player_hint = "Выдержать до тёмно-красного пара и снять до вспышки."
+
+[resource]
+script = ExtResource("1")
+id = &"recipe.emberberry_tonic"
+display_name = "Тлеющий контрагент"
+description = "Защитный отвар по схеме из лагеря миколога."
+tags = Array[StringName]([&"brew", &"counteragent", &"deep_grove"])
+primary_ingredient_id = &"ingredient.emberberry"
+steps = Array[ExtResource("2")]([SubResource("Step_grind"), SubResource("Step_heat")])
+result_item_id = &"item.emberberry_tonic"
+effect_ids = Array[StringName]([&"effect.spore_quiet"])
+acceptable_error = 0.25
+field_notes = "Ягоды раздавить, но не дробить семена. Красный пар означает готовность."
+

@@ -36,6 +36,7 @@ id = &"recipe.spore_sight_brew"
 display_name = "Настой спорозрения"
 description = "Первый состав, открывающий скрытую структуру леса."
 tags = Array[StringName]([&"brew", &"perception", &"tutorial"])
+primary_ingredient_id = &"ingredient.mooncap"
 steps = Array[ExtResource("2_step")]([SubResource("Step_grind"), SubResource("Step_heat")])
 result_item_id = &"item.spore_sight_brew"
 effect_ids = Array[StringName]([&"effect.spore_sight"])
