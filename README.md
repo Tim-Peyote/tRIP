@@ -107,7 +107,7 @@ Full cycle and persistence test:
 - `G` — throw a stone to distract creatures
 - `L` — dismiss or manifest the unlocked road laboratory near the player
 - `Esc` — pause
-- `F10` — developer world-phase panel (`PageUp/PageDown`, `Enter` simulate formula, `R`, `Backspace`)
+- `F10` — developer world-phase panel (`PageUp/PageDown`, `P` resolve nearest POI event, `Enter` simulate formula, `R`, `Backspace`)
 
 During inspection: hold left mouse and drag to rotate, use the wheel to zoom, or use `A/D` for stepped rotation. Finding every morphological clue confirms the species hypothesis.
 

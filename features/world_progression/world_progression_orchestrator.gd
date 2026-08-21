@@ -19,6 +19,10 @@ var _recipes: RecipeKnowledgeOrchestrator
 var _loop: GameLoopOrchestrator
 var _discovered_mysteries: Dictionary[StringName, bool] = {}
 var _session_active: bool = false
+var _active_event: WorldMysteryDefinition
+var _active_event_instruction: String = ""
+var _active_event_progress: float = 0.0
+var _active_event_pressure: float = 0.0
 
 
 func setup(
@@ -38,6 +42,9 @@ func setup(
 		if recipe != null:
 			_cooking.add_recipe(recipe)
 	terrain.mystery_discovered.connect(_on_mystery_discovered)
+	terrain.mystery_event_started.connect(_on_mystery_event_started)
+	terrain.mystery_event_failed.connect(_on_mystery_event_failed)
+	terrain.mystery_event_progressed.connect(_on_mystery_event_progressed)
 	cooking.result_created.connect(_on_result_created)
 	phases.phase_changed.connect(_on_phase_changed)
 	_emit_contract()
@@ -83,6 +90,7 @@ func apply_save_data(data: Dictionary) -> void:
 	_discovered_mysteries.clear()
 	for raw_id: Variant in data.get("discovered_mysteries", []):
 		_discovered_mysteries[StringName(raw_id)] = true
+	_terrain.apply_discovered_mysteries(data.get("discovered_mysteries", []) as Array)
 	_terrain.apply_collected_biome_ingredient_spawns(data.get("collected_biome_ingredients", []) as Array)
 	_phases.set_story_phase(StringName(data.get("story_phase_id", "phase.ordinary")))
 	_emit_contract()
@@ -100,10 +108,16 @@ func simulate_transition_formula() -> bool:
 	return true
 
 
+func simulate_nearest_mystery_event() -> bool:
+	return _terrain != null and _terrain.simulate_nearest_mystery_event()
+
+
 func _on_mystery_discovered(definition: WorldMysteryDefinition) -> void:
 	if definition == null or _discovered_mysteries.has(definition.id):
 		return
 	_discovered_mysteries[definition.id] = true
+	_active_event = null
+	_active_event_instruction = ""
 	if definition.recipe_hint_id != &"":
 		_recipes.discover_recipe(definition.recipe_hint_id)
 	if definition.ingredient_hint_id != &"":
@@ -112,6 +126,34 @@ func _on_mystery_discovered(definition: WorldMysteryDefinition) -> void:
 		_loop.narrative_notice_requested.emit(definition.display_name, definition.discovery_text)
 	autosave_requested.emit(&"world_mystery_discovered")
 	_emit_contract()
+
+
+func _on_mystery_event_started(definition: WorldMysteryDefinition, instruction: String) -> void:
+	_active_event = definition
+	_active_event_instruction = instruction
+	_active_event_progress = 0.0
+	_active_event_pressure = 0.0
+	_loop.narrative_notice_requested.emit("МЕСТО ОТВЕТИЛО", instruction)
+	_emit_contract()
+
+
+func _on_mystery_event_failed(definition: WorldMysteryDefinition, failure_text: String) -> void:
+	_active_event = null
+	_active_event_instruction = ""
+	_active_event_progress = 0.0
+	_active_event_pressure = 0.0
+	_loop.narrative_notice_requested.emit("КОНТАКТ СОРВАН · %s" % definition.display_name, failure_text)
+	_emit_contract()
+
+
+func _on_mystery_event_progressed(definition: WorldMysteryDefinition, progress: float, pressure: float) -> void:
+	if _active_event != definition:
+		return
+	_active_event_progress = progress
+	_active_event_pressure = pressure
+	# Update the HUD in coarse steps; the event itself remains smooth in world space.
+	if int(progress * 10.0) % 2 == 0:
+		_emit_contract()
 
 
 func _on_phase_changed(definition: WorldPhaseDefinition, developer_override: bool) -> void:
@@ -169,6 +211,13 @@ func _get_objective_text() -> String:
 		return ""
 	var pack := phase.content_pack
 	var world_name := phase.display_name.to_upper()
+	if _active_event != null:
+		return "%s · %s · настройка %d%% · давление %d%%" % [
+			world_name,
+			_active_event_instruction,
+			int(_active_event_progress * 100.0),
+			int(_active_event_pressure * 100.0),
+		]
 	var mystery := pack.mysteries[0] if not pack.mysteries.is_empty() else null
 	if mystery != null and not _discovered_mysteries.has(mystery.id):
 		return "%s · найти точку тайны «%s»" % [world_name, mystery.display_name]

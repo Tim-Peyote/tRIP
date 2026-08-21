@@ -44,6 +44,15 @@ func get_inspection_data() -> Dictionary:
 	return {"definition_id": definition_id, "title": _interactable.object_name, "description": _interactable.inspection_description}
 
 
+func set_revealed(value: bool) -> void:
+	visible = value
+	process_mode = Node.PROCESS_MODE_INHERIT if value else Node.PROCESS_MODE_DISABLED
+	if _interactable != null:
+		_interactable.enabled = value
+	for node: Node in find_children("*", "CollisionShape3D", true, false):
+		(node as CollisionShape3D).disabled = not value
+
+
 func _on_interaction_completed(actor: Node, _action: StringName) -> void:
 	var inventory := actor.find_child("InventoryComponent", true, false) as InventoryComponent
 	if inventory == null:

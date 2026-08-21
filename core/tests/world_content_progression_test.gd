@@ -35,16 +35,24 @@ func _run() -> void:
 		var probe_rng := RandomNumberGenerator.new()
 		probe_rng.seed = 700 + index
 		terrain.call("_add_point_of_interest", probe_body, Vector2i(20 + index, 20), probe_rng)
-		_expect(not probe_body.find_children("*", "WorldMysteryPOI", true, false).is_empty(), "World %s generated no interactive POI." % phase.id)
+		var generated_pois := probe_body.find_children("*", "WorldMysteryPOI", true, false)
+		_expect(not generated_pois.is_empty(), "World %s generated no interactive POI." % phase.id)
+		var generated_poi := generated_pois[0] as WorldMysteryPOI if not generated_pois.is_empty() else null
 		if index >= expected_ingredients.size():
+			if generated_poi != null:
+				generated_poi.call("_resolve_event")
 			probe_body.free()
 			break
 		var generated_samples := probe_body.find_children("*", "GeneratedBiomeIngredient", true, false)
 		_expect(not generated_samples.is_empty(), "World %s generated no local ingredient near its POI." % phase.id)
 		if not generated_samples.is_empty():
-			_expect((generated_samples[0] as GeneratedBiomeIngredient).definition_id == expected_ingredients[index], "Generated POI sample does not belong to world %s." % phase.id)
+			var generated_sample := generated_samples[0] as GeneratedBiomeIngredient
+			_expect(generated_sample.definition_id == expected_ingredients[index], "Generated POI sample does not belong to world %s." % phase.id)
+			_expect(not generated_sample.visible, "World %s exposed its local ingredient before resolving the POI event." % phase.id)
+			if generated_poi != null:
+				generated_poi.call("_resolve_event")
+			_expect(generated_sample.visible, "World %s did not reveal its local ingredient after resolving the POI event." % phase.id)
 			if index == 2:
-				var generated_sample := generated_samples[0] as GeneratedBiomeIngredient
 				var generated_interactable := generated_sample.find_children("*", "InteractableComponent", true, false)[0] as InteractableComponent
 				generated_interactable.complete_interaction(level.player)
 				_expect(terrain.get_collected_biome_ingredient_spawns().has(generated_sample.spawn_id), "Generated local sample collection was not recorded.")
@@ -52,7 +60,6 @@ func _run() -> void:
 		probe_body.free()
 		_expect(pack.local_ingredient_ids.has(expected_ingredients[index]), "World %s exposes the wrong local ingredient." % phase.id)
 		var mystery := pack.mysteries[0]
-		terrain.mystery_discovered.emit(mystery)
 		_expect(level.get_world_progression().has_discovered(mystery.id), "Mystery %s was not recorded." % mystery.id)
 		_expect(level.recipe_knowledge_orchestrator.is_discovered(pack.transition_recipe_id), "Mystery did not reveal transition recipe %s." % pack.transition_recipe_id)
 		var recipe := level.cooking_orchestrator.find_recipe_by_id(pack.transition_recipe_id)
@@ -86,7 +93,7 @@ func _run() -> void:
 		_expect(level.world_phase_orchestrator.get_current().id == phase_ids[index + 1], "Consuming %s did not rebuild the world into %s." % [recipe.id, phase_ids[index + 1]])
 	var save_data := level.session_persistence.capture_save_data()
 	var progression_data := save_data.get("world_progression", {}) as Dictionary
-	_expect((progression_data.get("discovered_mysteries", []) as Array).size() == 7, "World mysteries were not persisted across the full chain.")
+	_expect((progression_data.get("discovered_mysteries", []) as Array).size() == 8, "World mysteries were not persisted across the full chain.")
 	_expect((progression_data.get("collected_biome_ingredients", []) as Array).size() == 1, "Collected procedural ingredient spawn was not persisted.")
 	_expect(StringName(progression_data.get("story_phase_id", "")) == &"phase.distant_heart", "Highest reached story world was not persisted.")
 	main.effect_orchestrator.clear()

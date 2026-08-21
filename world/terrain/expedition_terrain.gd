@@ -2,6 +2,9 @@ class_name ExpeditionTerrain
 extends StaticBody3D
 
 signal mystery_discovered(definition: WorldMysteryDefinition)
+signal mystery_event_started(definition: WorldMysteryDefinition, instruction: String)
+signal mystery_event_failed(definition: WorldMysteryDefinition, failure_text: String)
+signal mystery_event_progressed(definition: WorldMysteryDefinition, progress: float, pressure: float)
 signal biome_ingredient_harvested(item: ItemInstance)
 signal biome_ingredient_observed(definition_id: StringName)
 
@@ -35,6 +38,7 @@ var _mesh_library: RefCounted = BIOME_MESH_LIBRARY.new()
 var _biome_ambience: AudioStreamPlayer
 var _decor_exclusion_centers: Array[Vector2] = []
 var _collected_biome_ingredient_spawns: Dictionary[StringName, bool] = {}
+var _discovered_mystery_ids: Dictionary[StringName, bool] = {}
 
 
 func _ready() -> void:
@@ -151,6 +155,32 @@ func apply_collected_biome_ingredient_spawns(values: Array) -> void:
 		var sample := node as GeneratedBiomeIngredient
 		if _collected_biome_ingredient_spawns.has(sample.spawn_id):
 			sample.queue_free()
+
+
+func apply_discovered_mysteries(values: Array) -> void:
+	_discovered_mystery_ids.clear()
+	for raw_id: Variant in values:
+		_discovered_mystery_ids[StringName(raw_id)] = true
+	for node: Node in find_children("*", "WorldMysteryPOI", true, false):
+		var poi := node as WorldMysteryPOI
+		if poi.definition != null:
+			poi.set_completed(_discovered_mystery_ids.has(poi.definition.id))
+
+
+func simulate_nearest_mystery_event() -> bool:
+	var nearest: WorldMysteryPOI
+	var nearest_distance := INF
+	for node: Node in find_children("*", "WorldMysteryPOI", true, false):
+		var poi := node as WorldMysteryPOI
+		if poi.is_completed() or poi.definition == null:
+			continue
+		var collision := poi.find_child("MysteryCollision", true, false) as CollisionShape3D
+		var center := collision.global_position if collision != null else poi.global_position
+		var distance := center.distance_to(_target.global_position) if is_instance_valid(_target) else 0.0
+		if distance < nearest_distance:
+			nearest = poi
+			nearest_distance = distance
+	return nearest != null and nearest.simulate_resolution()
 
 
 func _process(_delta: float) -> void:
@@ -600,7 +630,7 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 		root.set_meta(&"mystery_id", &"mystery.altai.bound_thread")
 		_configure_generated_poi_content(root, center, coordinate, pack, mystery)
 		return
-	var count := 5 + rng.randi_range(0, 4)
+	var count := 6 if poi_family == &"predator_shrine" else 5 + rng.randi_range(0, 4)
 	for index in count:
 		var shard := MeshInstance3D.new()
 		var mesh: PrimitiveMesh
@@ -628,9 +658,9 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 				mesh = pole
 			&"predator_shrine":
 				var antler := CylinderMesh.new()
-				antler.top_radius = 0.045
-				antler.bottom_radius = 0.16
-				antler.height = rng.randf_range(2.8, 5.2)
+				antler.top_radius = 0.035
+				antler.bottom_radius = 0.12
+				antler.height = rng.randf_range(2.3, 3.4)
 				antler.radial_segments = 5
 				mesh = antler
 			_:
@@ -638,10 +668,12 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 				prism.size = Vector3(rng.randf_range(0.45, 1.4), rng.randf_range(2.8, 7.0), rng.randf_range(0.45, 1.5))
 				mesh = prism
 		var accent := pack.accent_color if pack != null else Color(0.55, 0.6, 0.4)
-		mesh.material = _standard_material(accent.darkened(rng.randf_range(0.0, 0.38)), _is_altered_phase())
+		# Structural silhouettes stay matte. Emission is reserved for the event core,
+		# otherwise an altered biome turns into a flat wall of neon.
+		mesh.material = _standard_material(accent.darkened(rng.randf_range(0.34, 0.62)), false)
 		shard.mesh = mesh
 		var angle := TAU * float(index) / float(count) + rng.randf_range(-0.25, 0.25)
-		var radius := rng.randf_range(2.0, 5.5)
+		var radius := rng.randf_range(4.8, 6.2) if poi_family == &"predator_shrine" else rng.randf_range(2.0, 5.5)
 		var point := center + Vector2(cos(angle), sin(angle)) * radius
 		var height_offset := 0.15
 		if mesh is PrismMesh:
@@ -655,7 +687,7 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 		if mesh is TorusMesh:
 			shard.rotation.x = PI * 0.5
 		if poi_family == &"predator_shrine":
-			shard.rotation.z = (-0.62 if index % 2 == 0 else 0.62) + rng.randf_range(-0.12, 0.12)
+			shard.rotation.z = (-0.18 if index % 2 == 0 else 0.18) + rng.randf_range(-0.06, 0.06)
 		if poi_family == &"frozen_archive":
 			shard.rotation.z = rng.randf_range(-0.24, 0.24)
 		root.add_child(shard)
@@ -700,7 +732,7 @@ func _add_predator_shrine_heart(root: Node3D, center: Vector2, rng: RandomNumber
 	var antler_mesh := BIOME_MESH_LIBRARY.create_antler_crown()
 	_set_mesh_material(antler_mesh, _standard_material(pack.ground_high.lightened(0.08)))
 	antler_arch.mesh = antler_mesh
-	antler_arch.scale = Vector3(2.7, 2.7, 2.7)
+	antler_arch.scale = Vector3(1.72, 1.72, 1.72)
 	antler_arch.position = Vector3(center.x, ground + 0.1, center.y + 0.65)
 	antler_arch.rotation.y = PI
 	root.add_child(antler_arch)
@@ -754,7 +786,14 @@ func _configure_generated_poi_content(
 	var ground := _height_at(center.x, center.y)
 	if mystery != null:
 		root.configure(mystery, Vector3(center.x, ground, center.y))
-		root.discovered.connect(func(definition: WorldMysteryDefinition) -> void: mystery_discovered.emit(definition))
+		root.set_completed(_discovered_mystery_ids.has(mystery.id))
+		root.discovered.connect(func(definition: WorldMysteryDefinition) -> void:
+			_discovered_mystery_ids[definition.id] = true
+			mystery_discovered.emit(definition)
+		)
+		root.event_started.connect(func(definition: WorldMysteryDefinition, instruction: String) -> void: mystery_event_started.emit(definition, instruction))
+		root.event_failed.connect(func(definition: WorldMysteryDefinition, failure_text: String) -> void: mystery_event_failed.emit(definition, failure_text))
+		root.event_progressed.connect(func(definition: WorldMysteryDefinition, progress: float, pressure: float) -> void: mystery_event_progressed.emit(definition, progress, pressure))
 	if pack == null or pack.local_ingredient_ids.is_empty():
 		return
 	var ingredient_id := pack.local_ingredient_ids[abs(int(_chunk_seed(coordinate) + 17)) % pack.local_ingredient_ids.size()]
@@ -774,6 +813,7 @@ func _configure_generated_poi_content(
 	)
 	sample.observed.connect(func(definition_id: StringName) -> void: biome_ingredient_observed.emit(definition_id))
 	root.add_child(sample)
+	root.register_reveal_node(sample)
 
 
 func _build_altai_waymark(root: Node3D, center: Vector2, rng: RandomNumberGenerator) -> void:

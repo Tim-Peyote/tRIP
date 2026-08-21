@@ -15,18 +15,23 @@ func _ready() -> void:
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	for _frame: int in 30:
 		await get_tree().process_frame
-	var samples := terrain.find_children("*", "GeneratedBiomeIngredient", true, false)
-	if samples.is_empty():
-		push_error("No generated world POI sample available for capture.")
+	var pois := terrain.find_children("*", "WorldMysteryPOI", true, false)
+	if pois.is_empty():
+		push_error("No generated world POI available for capture.")
 		get_tree().quit(1)
 		return
-	var target := (samples[0] as GeneratedBiomeIngredient).global_position
-	var player_position := target + Vector3(0, 0, 5.8)
+	var poi := pois[0] as WorldMysteryPOI
+	var target := (poi.get_node("MysteryCollision") as CollisionShape3D).global_position - Vector3.UP * 1.9
+	var player_position := target + Vector3(0, 0, 4.8)
 	player_position.y = terrain.get_height_at_global(player_position) + 0.18
 	level.player.global_position = player_position
 	level.player.rotation.y = 0.0
 	(level.player.get_node("CameraRig") as Node3D).rotation.x = -0.32
-	for _frame: int in 18:
+	var interactable := poi.find_child("InteractableComponent", true, false) as InteractableComponent
+	interactable.complete_interaction(level.player)
+	level.player.velocity = Vector3(1.5, 0.0, 0.0)
+	level.player.process_mode = Node.PROCESS_MODE_DISABLED
+	for _frame: int in 28:
 		await get_tree().process_frame
 	var image := get_viewport().get_texture().get_image()
 	var error := image.save_png(OUTPUT_PATH)

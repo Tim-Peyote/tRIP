@@ -98,6 +98,23 @@ static func create_antler_crown() -> ArrayMesh:
 	return surface.commit()
 
 
+static func create_false_beast_echo() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# A low-poly running animal readable at a distance: long torso, lowered head,
+	# four broken legs and two antler strokes. It deliberately has no closed feet.
+	_add_tube_segment(surface, Vector3(-0.72, 0.52, 0), Vector3(0.48, 0.58, 0), 0.34, 0.24, 6)
+	_add_tube_segment(surface, Vector3(0.38, 0.61, 0), Vector3(0.86, 0.78, 0), 0.25, 0.14, 5)
+	_add_tube_segment(surface, Vector3(-0.48, 0.38, -0.18), Vector3(-0.72, -0.18, -0.3), 0.09, 0.025, 4)
+	_add_tube_segment(surface, Vector3(-0.2, 0.38, 0.18), Vector3(-0.05, -0.2, 0.34), 0.09, 0.025, 4)
+	_add_tube_segment(surface, Vector3(0.24, 0.42, -0.17), Vector3(0.48, -0.18, -0.28), 0.08, 0.02, 4)
+	_add_tube_segment(surface, Vector3(0.48, 0.45, 0.16), Vector3(0.72, -0.16, 0.3), 0.08, 0.02, 4)
+	_add_tube_segment(surface, Vector3(0.72, 0.88, -0.08), Vector3(0.92, 1.22, -0.28), 0.055, 0.018, 4)
+	_add_tube_segment(surface, Vector3(0.72, 0.88, 0.08), Vector3(0.94, 1.18, 0.31), 0.055, 0.018, 4)
+	surface.generate_normals()
+	return surface.commit()
+
+
 static func create_crystal_cluster() -> ArrayMesh:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)

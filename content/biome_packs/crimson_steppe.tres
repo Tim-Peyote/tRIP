@@ -24,4 +24,4 @@ geology_density = 1.55
 landmark_period = 4
 ground_low = Color(0.16, 0.018, 0.012, 1)
 ground_high = Color(0.55, 0.075, 0.018, 1)
-accent_color = Color(1, 0.15, 0.01, 1)
+accent_color = Color(0.78, 0.13, 0.025, 1)

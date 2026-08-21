@@ -51,6 +51,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_orchestrator.clear_developer_override()
 	elif key.keycode == KEY_ENTER and _progression != null:
 		_progression.simulate_transition_formula()
+	elif key.keycode == KEY_P and _progression != null:
+		_progression.simulate_nearest_mystery_event()
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -97,8 +99,12 @@ func _build_ui() -> void:
 		transition_button.text = "▶ ИМИТИРОВАТЬ УПОТРЕБЛЕНИЕ ПЕРЕХОДНОЙ ФОРМУЛЫ"
 		transition_button.pressed.connect(_progression.simulate_transition_formula)
 		column.add_child(transition_button)
+		var mystery_button := Button.new()
+		mystery_button.text = "◆ РАЗРЕШИТЬ БЛИЖАЙШЕЕ СОБЫТИЕ POI"
+		mystery_button.pressed.connect(_progression.simulate_nearest_mystery_event)
+		column.add_child(mystery_button)
 	var help := Label.new()
-	help.text = "PgUp/PgDn — мир   Enter — употребить переходную формулу   R — новый seed   Backspace — снять симуляцию   F10 — закрыть"
+	help.text = "PgUp/PgDn — мир   P — разрешить POI   Enter — употребить формулу   R — новый seed   Backspace — снять симуляцию   F10 — закрыть"
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.modulate = Color(0.68, 0.76, 0.62)
 	column.add_child(help)

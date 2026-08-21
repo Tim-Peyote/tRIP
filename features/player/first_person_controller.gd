@@ -146,6 +146,14 @@ func get_stealth_exposure() -> float:
 	return clampf(movement_exposure * stance_exposure * perception_price * crimson_price * quieting, 0.25, 1.9)
 
 
+func get_planar_speed() -> float:
+	return Vector2(velocity.x, velocity.z).length()
+
+
+func is_crouched() -> bool:
+	return _is_crouched
+
+
 func set_spore_vision_active(value: bool) -> void:
 	_spore_vision_active = value
 

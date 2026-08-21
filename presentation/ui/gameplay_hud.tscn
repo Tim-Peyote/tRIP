@@ -77,15 +77,21 @@ show_percentage = false
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 42.0
-offset_bottom = 76.0
+anchor_left = 0.15
+anchor_top = 0.18
+anchor_right = 0.85
+anchor_bottom = 0.18
+offset_bottom = 72.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 17
 text = "В сумке"
 horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="ObjectiveLabel" type="Label" parent="."]
 unique_name_in_owner = true
@@ -93,10 +99,11 @@ layout_mode = 1
 offset_left = 28.0
 offset_top = 24.0
 offset_right = 560.0
-offset_bottom = 54.0
+offset_bottom = 68.0
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 0.94)
 theme_override_font_sizes/font_size = 15
 text = "ВЫЛАЗКА 01"
+autowrap_mode = 2
 
 [node name="ClockLabel" type="Label" parent="."]
 unique_name_in_owner = true
