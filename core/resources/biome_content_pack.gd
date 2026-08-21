@@ -58,10 +58,15 @@ enum GeologyFamily {
 @export_range(0.6, 2.4, 0.05) var composition_scale: float = 1.0
 @export_range(0.0, 0.5, 0.01) var ecology_motion_strength: float = 0.08
 @export_range(0.1, 3.0, 0.05) var ecology_motion_speed: float = 1.0
+@export_category("Route identity")
+@export_range(3.0, 12.0, 0.25, "suffix:m") var route_width: float = 5.5
+@export_range(0.25, 2.0, 0.05) var route_wander_scale: float = 1.0
+@export_range(0.2, 2.0, 0.05) var route_relief_scale: float = 1.0
+@export_range(3, 12, 1, "suffix:chunks") var vista_period_chunks: int = 6
 @export var ground_low: Color = Color(0.08, 0.16, 0.07)
 @export var ground_high: Color = Color(0.3, 0.28, 0.13)
 @export var accent_color: Color = Color(0.65, 0.8, 0.35)
 
 
 func get_generation_signature() -> String:
-	return "%s:%d:%d:%d:%s:%s" % [id, ecology_family, vegetation_family, geology_family, poi_family, composition_family]
+	return "%s:%d:%d:%d:%s:%s:%.2f:%.2f:%.2f:%d" % [id, ecology_family, vegetation_family, geology_family, poi_family, composition_family, route_width, route_wander_scale, route_relief_scale, vista_period_chunks]

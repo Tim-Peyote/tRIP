@@ -84,6 +84,15 @@ func _run() -> void:
 	var biome_key_light := level.biome_visual_controller.get_primary_light()
 	_expect(biome_key_light != null and is_equal_approx(biome_key_light.light_energy, level.biome_visual_controller.forest_profile.primary_light_energy), "Biome visual controller did not bind the level key light.")
 	_expect(main.world_environment.environment.ambient_light_sky_contribution < 0.5, "Forest ambient fill is still being replaced by the sky contribution.")
+	level.expedition_clock.set_progress(0.08)
+	var day_light_energy := biome_key_light.light_energy
+	var day_light_color := biome_key_light.light_color
+	level.expedition_clock.set_progress(0.9)
+	_expect(biome_key_light.light_energy < day_light_energy * 0.72, "Night did not lower the biome key-light energy.")
+	var light_color_delta := absf(biome_key_light.light_color.r - day_light_color.r) + absf(biome_key_light.light_color.g - day_light_color.g) + absf(biome_key_light.light_color.b - day_light_color.b)
+	_expect(light_color_delta > 0.12, "Night did not apply the biome-specific moonlight color.")
+	_expect(main.world_environment.environment.tonemap_exposure <= level.biome_visual_controller.forest_profile.tonemap_exposure, "Night exposure did not follow the biome profile.")
+	level.expedition_clock.set_progress(0.0)
 	_expect(not level.forest_clearing.listener.visible and level.forest_clearing.listener.process_mode == Node.PROCESS_MODE_DISABLED, "Deprecated prototype Listener is still active in the opening clearing.")
 	_expect(level.get_biome_population().get_active_population_count() == 0, "Fauna spawned inside the protected expedition opening.")
 	level.expedition_clock.running = false

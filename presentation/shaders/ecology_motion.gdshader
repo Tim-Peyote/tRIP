@@ -21,7 +21,10 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 tint = base_color.rgb * COLOR.rgb;
+	// MultiMesh COLOR already carries the authored per-instance palette. Multiplying
+	// two dark forest colors crushed the crowns almost to black and erased every
+	// lit plane. A weighted tint keeps biome identity while preserving value range.
+	vec3 tint = mix(base_color.rgb, COLOR.rgb, 0.68);
 	ALBEDO = tint * mix(0.9, 1.08, motion_light);
 	ROUGHNESS = 0.86;
 	EMISSION = tint * emission_strength;

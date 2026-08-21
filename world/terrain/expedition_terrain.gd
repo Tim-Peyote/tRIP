@@ -461,7 +461,15 @@ func _height_at(x: float, z: float) -> float:
 				var radius := point.length()
 				height += sin(radius * 0.09 + atan2(z, x) * 3.0) * 3.2
 	var route_distance := _distance_to_expedition_route(point)
-	height -= (1.0 - smoothstep(4.0, 15.0, route_distance)) * 3.4
+	var route_width := pack.route_width if pack != null else 5.5
+	var route_influence := 1.0 - smoothstep(route_width, route_width * 3.1, route_distance)
+	var authored_route_blend := smoothstep(52.0, 84.0, z)
+	var route_seed_phase := float(posmod(_run_seed, 997)) * 0.013
+	var vista_period := float(pack.vista_period_chunks if pack != null else 6) * chunk_size
+	var route_grade := sin(z * TAU / vista_period + route_seed_phase) * 3.1 * (pack.route_relief_scale if pack != null else 1.0)
+	route_grade += sin(z * TAU / (vista_period * 2.35) - route_seed_phase * 0.4) * 1.45
+	var target_route_height := minf(route_grade, height - 2.5)
+	height = lerpf(height - route_influence * 2.2, target_route_height, route_influence * authored_route_blend * 0.78)
 	var terrain_coordinate := Vector2i(floori(x / chunk_size), floori(z / chunk_size))
 	if _should_place_landmark(terrain_coordinate, pack):
 		var landmark_center := _landmark_center(terrain_coordinate, pack)
@@ -504,7 +512,8 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	_decor_exclusion_centers.clear()
 	if has_landmark and not _is_reserved(landmark_center):
 		_decor_exclusion_centers.append(landmark_center)
-	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(16.0 * vegetation_density)))
+	var procedural_tree_budget := 10.5 if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA else 16.0
+	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(procedural_tree_budget * vegetation_density)))
 	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density)))
 	_add_groundcover_multimesh(body, coordinate, rng, maxi(6, roundi(34.0 * vegetation_density)))
 	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
@@ -523,8 +532,9 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 
 
 func _add_authored_taiga_details(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
-	var families: Array[StringName] = [&"tall_pine", &"round_pine", &"rock", &"forest_floor", &"fungi"]
-	for family: StringName in families:
+	var families: Array[StringName] = [&"tall_pine", &"round_pine", &"forest_floor", &"tall_pine", &"rock", &"round_pine", &"forest_floor", &"fungi"]
+	for family_index in families.size():
+		var family := families[family_index]
 		var point := Vector2.ZERO
 		var accepted := false
 		for _attempt in 8:
@@ -535,7 +545,7 @@ func _add_authored_taiga_details(body: Node3D, coordinate: Vector2i, rng: Random
 				break
 		if not accepted:
 			continue
-		var variant: int = absi(int(_chunk_seed(coordinate)) + families.find(family) * 7919)
+		var variant: int = absi(int(_chunk_seed(coordinate)) + family_index * 7919)
 		var instance := _authored_nature_library.call("instantiate_variant", family, variant) as Node3D
 		if instance == null:
 			continue
@@ -1260,7 +1270,9 @@ func _is_reserved(point: Vector2) -> bool:
 		return true
 	# The route is a readable valley and a playable movement lane, not a painted road.
 	# Keep only its narrow walking core free; larger vegetation still frames both sides.
-	if _distance_to_expedition_route(point) < 2.25:
+	var pack := _get_content_pack()
+	var clear_route_width := (pack.route_width if pack != null else 5.5) * 0.44
+	if _distance_to_expedition_route(point) < clear_route_width:
 		return true
 	if point.distance_to(Vector2(0, 15)) < 9.0:
 		return true
@@ -1294,7 +1306,17 @@ func _chunk_seed(coordinate: Vector2i) -> int:
 func _route_center_x(z: float) -> float:
 	var seed_phase := float(posmod(_run_seed, 997)) * 0.013
 	var phase_offset := float(_phase_definition.order if _phase_definition != null else 0) * 0.73
-	var wandering := sin(z * 0.018 + seed_phase) * 17.0 + sin(z * 0.0065 - seed_phase * 0.37 + phase_offset) * 9.0
+	var pack := _get_content_pack()
+	var wander_scale := pack.route_wander_scale if pack != null else 1.0
+	var wandering := (sin(z * 0.018 + seed_phase) * 17.0 + sin(z * 0.0065 - seed_phase * 0.37 + phase_offset) * 9.0) * wander_scale
+	if pack != null:
+		match pack.ecology_family:
+			BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
+				wandering += sin(z * 0.052 + seed_phase * 1.7) * 5.5
+			BiomeContentPack.EcologyFamily.MIRROR_WETLAND:
+				wandering += sin(z * 0.011 - seed_phase) * 7.0
+			BiomeContentPack.EcologyFamily.ROOT_CAVERN:
+				wandering += sin(z * 0.044 + phase_offset) * 7.5
 	# Preserve the authored first departure from camp, then let the route become seed-specific.
 	return wandering * smoothstep(42.0, 105.0, z)
 

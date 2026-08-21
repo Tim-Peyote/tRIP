@@ -201,6 +201,7 @@ func apply_world_seed(value: int) -> void:
 
 func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	biome_visual_controller.setup(world_environment)
+	biome_visual_controller.setup_clock(expedition_clock)
 	weather = WeatherOrchestrator.new()
 	weather.name = "WeatherOrchestrator"
 	add_child(weather)
