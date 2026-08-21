@@ -39,6 +39,26 @@ func _validate_landscape_rules() -> void:
 	_expect(camp_height > 1.45, "The deep-grove camp landmark lost its natural elevation.")
 	_expect(ramp_height > clearing_height and ramp_height < camp_height, "The camp approach is not a continuous slope.")
 	_expect(terrain.get_loaded_chunk_count() >= 1, "Streaming terrain did not create its center chunk.")
+	terrain.set_run_seed(77123)
+	var ordinary_pack := load("res://content/biome_packs/ordinary_taiga.tres") as BiomeContentPack
+	var previous_landmark_row := -999
+	var cadence_count := 0
+	for row: int in range(2, 31):
+		var center := terrain.call("_landmark_center_for_row", row, ordinary_pack) as Vector2
+		var coordinate := Vector2i(floori(center.x / terrain.chunk_size), row)
+		if terrain.call("_should_place_landmark", coordinate, ordinary_pack):
+			if previous_landmark_row > -900:
+				_expect(row - previous_landmark_row == ordinary_pack.landmark_period, "Landmark cadence drifted away from the authored biome period.")
+			previous_landmark_row = row
+			cadence_count += 1
+			var route_distance := absf(center.x - float(terrain.call("_route_center_x", center.y)))
+			_expect(route_distance >= 8.4 and route_distance <= 13.6, "Landmark was not staged at the readable edge of the expedition route.")
+	_expect(cadence_count >= 4, "The infinite route produced too few controlled landmark opportunities.")
+	var far_z := 240.0
+	var route_x := float(terrain.call("_route_center_x", far_z))
+	var route_height := terrain.get_height_at_global(Vector3(route_x, 0, far_z))
+	var shoulder_height := terrain.get_height_at_global(Vector3(route_x + 18.0, 0, far_z))
+	_expect(route_height < shoulder_height, "The expedition route no longer forms a navigable valley through the streamed world.")
 	var target := Node3D.new()
 	add_child(target)
 	target.global_position = Vector3(95, 0, 95)

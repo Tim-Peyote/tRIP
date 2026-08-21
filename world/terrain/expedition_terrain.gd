@@ -346,12 +346,11 @@ func _height_at(x: float, z: float) -> float:
 			BiomeContentPack.EcologyFamily.HEART_PLATEAU:
 				var radius := point.length()
 				height += sin(radius * 0.09 + atan2(z, x) * 3.0) * 3.2
-	var wandering_center := sin(z * 0.018 + float(_run_seed % 97)) * 18.0
-	height -= (1.0 - smoothstep(4.0, 15.0, absf(x - wandering_center))) * 3.4
+	var route_distance := _distance_to_expedition_route(point)
+	height -= (1.0 - smoothstep(4.0, 15.0, route_distance)) * 3.4
 	var terrain_coordinate := Vector2i(floori(x / chunk_size), floori(z / chunk_size))
-	var landmark_period := pack.landmark_period if pack != null else 7
-	if abs(int(_chunk_seed(terrain_coordinate))) % landmark_period == 0:
-		var landmark_center := Vector2((float(terrain_coordinate.x) + 0.5) * chunk_size, (float(terrain_coordinate.y) + 0.5) * chunk_size)
+	if _should_place_landmark(terrain_coordinate, pack):
+		var landmark_center := _landmark_center(terrain_coordinate, pack)
 		if landmark_center.y >= MIN_EXPEDITION_Z + 2.0:
 			var landmark_height := _noise.get_noise_2d(landmark_center.x, landmark_center.y) * 5.2 * elevation_scale
 			height = _blend_disc(height, point, landmark_center, 9.5, landmark_height)
@@ -372,8 +371,9 @@ func _terrain_color(point: Vector2, height: float, slope: float) -> Color:
 	var ground_low := pack.ground_low if pack != null else Color(0.105, 0.205, 0.085)
 	var ground_high := pack.ground_high if pack != null else Color(0.31, 0.29, 0.13)
 	var color := ground_low.lerp(ground_high, clampf((height + 3.0) / 15.0, 0.0, 1.0))
-	var trail := 1.0 - smoothstep(1.15, 3.1, _distance_to_segment(point, Vector2(0, 17), Vector2(0, 49)))
-	color = color.lerp(ground_high.darkened(0.18), trail * 0.55)
+	var authored_trail := 1.0 - smoothstep(1.15, 3.1, _distance_to_segment(point, Vector2(0, 17), Vector2(0, 49)))
+	var expedition_route := 1.0 - smoothstep(1.3, 4.6, _distance_to_expedition_route(point))
+	color = color.lerp(ground_high.darkened(0.18), maxf(authored_trail * 0.55, expedition_route * 0.42))
 	var grove := 1.0 - smoothstep(10.0, 25.0, point.distance_to(Vector2(27, 17)))
 	color = color.lerp(ground_low.lightened(0.12), grove * 0.35)
 	return color.lerp(ground_high.lightened(0.16), smoothstep(0.12, 0.38, slope))
@@ -385,9 +385,8 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	var pack := _get_content_pack()
 	var vegetation_density := pack.vegetation_density if pack != null else 1.0
 	var geology_density := pack.geology_density if pack != null else 1.0
-	var landmark_period := pack.landmark_period if pack != null else 7
-	var has_landmark: bool = abs(int(_chunk_seed(coordinate))) % landmark_period == 0
-	var landmark_center := Vector2((float(coordinate.x) + 0.5) * chunk_size, (float(coordinate.y) + 0.5) * chunk_size)
+	var has_landmark := _should_place_landmark(coordinate, pack)
+	var landmark_center := _landmark_center(coordinate, pack)
 	_decor_exclusion_centers.clear()
 	if has_landmark and not _is_reserved(landmark_center):
 		_decor_exclusion_centers.append(landmark_center)
@@ -613,13 +612,13 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 
 
 func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
-	var center := Vector2((float(coordinate.x) + 0.5) * chunk_size, (float(coordinate.y) + 0.5) * chunk_size)
-	if _is_reserved(center):
+	var pack := _get_content_pack()
+	var center := _landmark_center(coordinate, pack)
+	if center.y < MIN_EXPEDITION_Z + 2.0:
 		return
 	var root := WorldMysteryPOI.new()
 	root.name = "GeneratedPOI"
 	body.add_child(root)
-	var pack := _get_content_pack()
 	var poi_family := pack.poi_family if pack != null else &"field_station"
 	var mystery: WorldMysteryDefinition
 	if pack != null and not pack.mysteries.is_empty():
@@ -957,6 +956,10 @@ func _is_reserved(point: Vector2) -> bool:
 			return true
 	if point.y < MIN_EXPEDITION_Z + 2.0:
 		return true
+	# The route is a readable valley and a playable movement lane, not a painted road.
+	# Keep only its narrow walking core free; larger vegetation still frames both sides.
+	if _distance_to_expedition_route(point) < 2.25:
+		return true
 	if point.distance_to(Vector2(0, 15)) < 9.0:
 		return true
 	if _distance_to_segment(point, Vector2(0, 17), Vector2(0, 49)) < 3.4:
@@ -984,6 +987,47 @@ func _get_content_pack() -> BiomeContentPack:
 
 func _chunk_seed(coordinate: Vector2i) -> int:
 	return int(base_seed) * 73856093 ^ int(_run_seed) * 19349663 ^ coordinate.x * 83492791 ^ coordinate.y * 2971215073
+
+
+func _route_center_x(z: float) -> float:
+	var seed_phase := float(posmod(_run_seed, 997)) * 0.013
+	var phase_offset := float(_phase_definition.order if _phase_definition != null else 0) * 0.73
+	var wandering := sin(z * 0.018 + seed_phase) * 17.0 + sin(z * 0.0065 - seed_phase * 0.37 + phase_offset) * 9.0
+	# Preserve the authored first departure from camp, then let the route become seed-specific.
+	return wandering * smoothstep(42.0, 105.0, z)
+
+
+func _distance_to_expedition_route(point: Vector2) -> float:
+	return absf(point.x - _route_center_x(point.y))
+
+
+func _should_place_landmark(coordinate: Vector2i, pack: BiomeContentPack) -> bool:
+	var period := pack.landmark_period if pack != null else 7
+	if posmod(coordinate.y - 2, period) != 0:
+		return false
+	var intended := _landmark_center_for_row(coordinate.y, pack)
+	return coordinate.x == floori(intended.x / chunk_size)
+
+
+func _landmark_center(coordinate: Vector2i, pack: BiomeContentPack) -> Vector2:
+	if _should_place_landmark_row(coordinate.y, pack):
+		return _landmark_center_for_row(coordinate.y, pack)
+	return Vector2((float(coordinate.x) + 0.5) * chunk_size, (float(coordinate.y) + 0.5) * chunk_size)
+
+
+func _should_place_landmark_row(row: int, pack: BiomeContentPack) -> bool:
+	var period := pack.landmark_period if pack != null else 7
+	return posmod(row - 2, period) == 0
+
+
+func _landmark_center_for_row(row: int, _pack: BiomeContentPack) -> Vector2:
+	var row_seed := _chunk_seed(Vector2i(0, row))
+	var jitter_a := float(abs(row_seed) % 1009) / 1008.0
+	var jitter_b := float(abs(row_seed / 1013) % 1019) / 1018.0
+	var z := (float(row) + lerpf(0.34, 0.68, jitter_a)) * chunk_size
+	var side := -1.0 if (abs(row_seed) % 2 == 0) else 1.0
+	var lateral := side * lerpf(8.5, 13.5, jitter_b)
+	return Vector2(_route_center_x(z) + lateral, z)
 
 
 func _rebuild_loaded_chunks() -> void:

@@ -20,8 +20,10 @@ func _ready() -> void:
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
-	# The comparison camera sits on the deterministic wandering route, not on a ridge.
-	var viewpoint := Vector3(10.5, 0, 76)
+	# The comparison camera sits on the seed-specific route after it has left the
+	# authored camp corridor and begun to wander through streamed terrain.
+	var route_z := 132.0
+	var viewpoint := Vector3(float(terrain.call("_route_center_x", route_z)), 0, route_z)
 	viewpoint.y = terrain.get_height_at_global(viewpoint) + 0.12
 	terrain.ensure_area_at(viewpoint)
 	level.player.global_position = viewpoint
