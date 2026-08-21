@@ -618,11 +618,11 @@ func _update_inventory_panel() -> void:
 		total_units += float(stack["quantity"])
 		var accent := _inventory_category_color(definition)
 		var card := VBoxContainer.new()
-		card.custom_minimum_size = Vector2(126.0, 154.0)
-		card.add_theme_constant_override("separation", 5)
+		card.custom_minimum_size = Vector2(146.0, 172.0)
+		card.add_theme_constant_override("separation", 7)
 		card.set_meta(&"definition_id", definition_id)
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(126.0, 112.0)
+		button.custom_minimum_size = Vector2(146.0, 126.0)
 		button.toggle_mode = true
 		button.button_pressed = definition_id == _selected_inventory_id
 		button.set_meta(&"definition_id", definition_id)
@@ -647,18 +647,18 @@ func _update_inventory_panel() -> void:
 		card.add_child(button)
 		var name_label := Label.new()
 		name_label.text = definition.display_name if definition != null else String(definition_id)
-		name_label.add_theme_font_size_override("font_size", 13)
+		name_label.add_theme_font_size_override("font_size", 14)
 		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card.add_child(name_label)
 		var meta_label := Label.new()
-		meta_label.text = "×%.0f   ◆%d" % [float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0)]
-		meta_label.add_theme_font_size_override("font_size", 11)
+		meta_label.text = "×%.0f   ·   %d%%" % [float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0)]
+		meta_label.add_theme_font_size_override("font_size", 12)
 		meta_label.add_theme_color_override("font_color", accent)
 		meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card.add_child(meta_label)
 		inventory_list.add_child(card)
-	inventory_item_count.text = "%d ЯЧЕЕК · %.0f ЕДИНИЦ     МАССА %.1f/%.1f КГ     ОБЪЁМ %.1f/%.1f Л" % [
+	inventory_item_count.text = "ПРЕДМЕТОВ %d · ЕДИНИЦ %.0f     НАГРУЗКА %.1f/%.1f КГ     ОБЪЁМ %.1f/%.1f Л" % [
 		visible_entries.size(), total_units,
 		_player.inventory.current_mass(), _player.inventory.maximum_mass,
 		_player.inventory.current_volume(), _player.inventory.maximum_volume,
@@ -676,7 +676,7 @@ func _update_inventory_panel() -> void:
 	inventory_mass_bar.value = _player.inventory.current_mass()
 	inventory_volume_bar.max_value = _player.inventory.maximum_volume
 	inventory_volume_bar.value = _player.inventory.current_volume()
-	inventory_capacity_label.text = "МАССА  %.1f / %.1f кг     ОБЪЁМ  %.1f / %.1f л" % [
+	inventory_capacity_label.text = "НАГРУЗКА  %.1f / %.1f кг     ·     ОБЪЁМ  %.1f / %.1f л" % [
 		_player.inventory.current_mass(), _player.inventory.maximum_mass,
 		_player.inventory.current_volume(), _player.inventory.maximum_volume,
 	]
@@ -684,7 +684,7 @@ func _update_inventory_panel() -> void:
 
 func _make_inventory_empty_state() -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(640.0, 280.0)
+	panel.custom_minimum_size = Vector2(624.0, 294.0)
 	panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color("788875"), 0.34))
 	var center := CenterContainer.new()
 	panel.add_child(center)

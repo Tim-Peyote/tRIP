@@ -43,7 +43,7 @@ static func build() -> Theme:
 	result.set_constant("outline_size", "RichTextLabel", 1)
 	result.set_color("font_color", "ItemList", PAPER)
 	result.set_color("font_selected_color", "ItemList", Color("101510"))
-	result.set_stylebox("panel", "ItemList", _box(Color(0.055, 0.068, 0.058, 0.66), Color(0.65, 0.7, 0.58, 0.2), 1, 9, 8))
+	result.set_stylebox("panel", "ItemList", _box(Color(0.055, 0.068, 0.058, 0.42), Color(0.65, 0.7, 0.58, 0.14), 1, 9, 8))
 	result.set_stylebox("selected", "ItemList", _box(Color(MOSS.r, MOSS.g, MOSS.b, 0.9), MOSS, 0, 7, 8))
 	result.set_stylebox("selected_focus", "ItemList", _box(Color(MOSS.r, MOSS.g, MOSS.b, 0.95), Color("ecf7c6"), 1, 7, 8))
 	result.set_stylebox("focus", "ItemList", StyleBoxEmpty.new())
@@ -65,12 +65,12 @@ static func make_key_chip() -> StyleBoxFlat:
 
 
 static func make_inventory_panel() -> StyleBoxFlat:
-	var style := _box(Color(0.105, 0.12, 0.105, 0.92), Color(0.76, 0.84, 0.61, 0.48), 1, 20, 22)
-	style.border_width_top = 2
-	style.border_width_left = 2
-	style.shadow_color = Color(0, 0, 0, 0.68)
-	style.shadow_size = 34
-	style.shadow_offset = Vector2(0, 14)
+	var style := _box(Color(0.075, 0.09, 0.078, 0.84), Color(0.76, 0.84, 0.61, 0.28), 1, 18, 22)
+	style.border_width_top = 1
+	style.border_width_left = 1
+	style.shadow_color = Color(0, 0, 0, 0.42)
+	style.shadow_size = 14
+	style.shadow_offset = Vector2(0, 6)
 	return style
 
 
@@ -78,8 +78,8 @@ static func make_modal_panel(accent: Color = MOSS) -> StyleBoxFlat:
 	var style := _box(Color(0.105, 0.12, 0.105, 0.95), Color(accent.r, accent.g, accent.b, 0.52), 1, 18, 24)
 	style.border_width_top = 3
 	style.shadow_color = Color(0, 0, 0, 0.72)
-	style.shadow_size = 30
-	style.shadow_offset = Vector2(0, 12)
+	style.shadow_size = 18
+	style.shadow_offset = Vector2(0, 8)
 	return style
 
 
@@ -94,7 +94,7 @@ static func make_hud_plate(accent: Color = MOSS, align_right: bool = false) -> S
 	var style := _box(Color(0.025, 0.035, 0.03, 0.62), Color(accent.r, accent.g, accent.b, 0.42), 0, 8, 10)
 	style.border_width_right = 3 if align_right else 0
 	style.border_width_left = 0 if align_right else 3
-	style.shadow_size = 12
+	style.shadow_size = 7
 	return style
 
 
@@ -103,10 +103,12 @@ static func make_button(state: StringName, accent: Color = MOSS) -> StyleBoxFlat
 		&"hover":
 			var hover := _box(Color(0.13, 0.16, 0.135, 0.96), Color(accent.r, accent.g, accent.b, 0.78), 1, 9, 15)
 			hover.border_width_left = 4
+			hover.shadow_size = 4
 			return hover
 		&"focus":
 			var focus := _box(Color(0.15, 0.18, 0.145, 0.98), accent, 1, 9, 15)
 			focus.border_width_left = 5
+			focus.shadow_size = 5
 			return focus
 		&"pressed":
 			return _box(Color(accent.r, accent.g, accent.b, 0.96), accent.lightened(0.12), 1, 9, 15)
@@ -155,7 +157,7 @@ static func _box(fill: Color, border: Color, width: int, radius: int, padding: i
 	style.content_margin_right = padding
 	style.content_margin_top = maxi(6, padding / 2)
 	style.content_margin_bottom = maxi(6, padding / 2)
-	style.shadow_color = Color(0, 0, 0, 0.42)
-	style.shadow_size = 8
-	style.shadow_offset = Vector2(0, 3)
+	style.shadow_color = Color(0, 0, 0, 0.32)
+	style.shadow_size = 0
+	style.shadow_offset = Vector2.ZERO
 	return style
