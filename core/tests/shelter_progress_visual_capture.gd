@@ -16,8 +16,8 @@ func _ready() -> void:
 		"completed_cycles": 2,
 		"second_expedition_complete": true,
 	})
-	level.player.global_position = Vector3(0.2, 0.12, 0.8)
-	level.player.rotation.y = -1.5708
+	level.player.global_position = Vector3(0.2, 0.12, 2.65)
+	level.player.rotation.y = 0.0
 	for _frame in 12:
 		await get_tree().process_frame
 	var image := get_viewport().get_texture().get_image()

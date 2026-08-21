@@ -86,7 +86,8 @@ gravity = Vector3(0, 0.01, 0)
 script = ExtResource("1")
 
 [node name="Ground" type="StaticBody3D" parent="."]
-collision_layer = 1
+visible = false
+collision_layer = 0
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="Ground"]
@@ -97,30 +98,35 @@ material_override = SubResource("GroundMat")
 shape = SubResource("GroundShape")
 
 [node name="PathA" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-0.6, 0.145, -8.5)
 rotation = Vector3(0, -0.12, 0)
 mesh = SubResource("PathMesh")
 material_override = SubResource("PathMat")
 
 [node name="PathB" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(0.45, 0.146, -2.1)
 rotation = Vector3(0, 0.2, 0)
 mesh = SubResource("PathMesh")
 material_override = SubResource("PathMat")
 
 [node name="PathC" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-0.35, 0.147, 4.25)
 rotation = Vector3(0, -0.16, 0)
 mesh = SubResource("PathMesh")
 material_override = SubResource("PathMat")
 
 [node name="MoundA" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-5.7, 0.1, -3.0)
 scale = Vector3(1.5, 0.62, 1.1)
 mesh = SubResource("MoundMesh")
 material_override = SubResource("MossMat")
 
 [node name="MoundB" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(5.2, 0.08, 5.5)
 scale = Vector3(1.3, 0.5, 1.6)
 mesh = SubResource("MoundMesh")

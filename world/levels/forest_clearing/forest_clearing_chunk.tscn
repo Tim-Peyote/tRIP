@@ -107,9 +107,9 @@ roughness = 1.0
 size = Vector3(2.15, 0.035, 5.2)
 
 [sub_resource type="CylinderMesh" id="Mesh_fallen_log"]
-top_radius = 0.38
-bottom_radius = 0.52
-height = 5.2
+top_radius = 0.24
+bottom_radius = 0.34
+height = 4.1
 radial_segments = 7
 
 [sub_resource type="CylinderMesh" id="Mesh_log_branch"]
@@ -161,7 +161,8 @@ scale_max = 1.0
 script = ExtResource("4_chunk")
 
 [node name="Ground" type="StaticBody3D" parent="."]
-collision_layer = 1
+visible = false
+collision_layer = 0
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="Ground"]
@@ -172,36 +173,42 @@ material_override = SubResource("Material_ground")
 shape = SubResource("Shape_ground")
 
 [node name="Trail" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-0.35, 0.145, 2.65)
 rotation = Vector3(0, -0.11, 0)
 mesh = SubResource("Mesh_path")
 material_override = SubResource("Material_path")
 
 [node name="TrailMiddle" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(0.25, 0.146, -1.9)
 rotation = Vector3(0, 0.16, 0)
 mesh = SubResource("Mesh_path")
 material_override = SubResource("Material_path")
 
 [node name="TrailFar" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-0.2, 0.147, -6.15)
 rotation = Vector3(0, -0.09, 0)
 mesh = SubResource("Mesh_path")
 material_override = SubResource("Material_path")
 
 [node name="MoundA" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-3.2, 0.12, -1.2)
 scale = Vector3(1.35, 0.5, 0.9)
 mesh = SubResource("Mesh_mound")
 material_override = SubResource("Material_moss_mound")
 
 [node name="MoundB" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(3.5, 0.08, 3.2)
 scale = Vector3(1.1, 0.42, 1.5)
 mesh = SubResource("Mesh_mound")
 material_override = SubResource("Material_moss_mound")
 
 [node name="MoundC" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-5.1, 0.05, 5.8)
 scale = Vector3(1.6, 0.35, 1.0)
 mesh = SubResource("Mesh_mound")
@@ -249,7 +256,7 @@ fern_count = 64
 
 [node name="BiomeDressingScatter" type="Node3D" parent="."]
 script = ExtResource("10_dressing")
-area_size = Vector2(42, 42)
+area_size = Vector2(42, 16)
 base_seed = 11031
 conifer_count = 32
 broadleaf_count = 25
@@ -278,26 +285,26 @@ mesh = SubResource("Mesh_stone")
 material_override = SubResource("Material_stone")
 
 [node name="FallenLog" type="MeshInstance3D" parent="."]
-position = Vector3(-3.7, 0.52, 0.3)
+position = Vector3(-4.15, 0.36, 0.65)
 rotation = Vector3(0, 0, 1.5708)
 mesh = SubResource("Mesh_fallen_log")
 material_override = SubResource("Material_trunk")
 
 [node name="BrokenBranch" type="MeshInstance3D" parent="."]
-position = Vector3(-2.3, 0.86, 0.15)
+position = Vector3(-3.05, 0.64, 0.48)
 rotation = Vector3(-0.4, 0.2, -0.72)
 mesh = SubResource("Mesh_log_branch")
 material_override = SubResource("Material_trunk")
 
 [node name="LogMossA" type="MeshInstance3D" parent="."]
-position = Vector3(-3.2, 0.94, 0.28)
-scale = Vector3(1.4, 0.7, 0.7)
+position = Vector3(-3.65, 0.61, 0.64)
+scale = Vector3(0.9, 0.5, 0.52)
 mesh = SubResource("Mesh_log_moss")
 material_override = SubResource("Material_moss_mound")
 
 [node name="LogMossB" type="MeshInstance3D" parent="."]
-position = Vector3(-4.25, 0.91, 0.25)
-scale = Vector3(0.85, 0.55, 0.65)
+position = Vector3(-4.55, 0.58, 0.62)
+scale = Vector3(0.65, 0.42, 0.5)
 mesh = SubResource("Mesh_log_moss")
 material_override = SubResource("Material_moss_mound")
 

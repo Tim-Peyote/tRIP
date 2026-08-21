@@ -40,14 +40,11 @@ func _rebuild() -> void:
 			child.free()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(base_seed) * 1000003 + int(_run_seed)
-	_build_ground()
-	_build_terrain_mounds(rng)
 	_build_conifers(rng)
 	_build_broadleaves(rng)
 	_build_snags(rng)
 	_build_rocks(rng)
 	_build_logs(rng)
-	_build_distant_ridges(rng)
 	_generation_signature = rng.state
 
 
@@ -196,15 +193,15 @@ func _build_rocks(rng: RandomNumberGenerator) -> void:
 
 func _build_logs(rng: RandomNumberGenerator) -> void:
 	var mesh := CylinderMesh.new()
-	mesh.top_radius = 0.18
-	mesh.bottom_radius = 0.28
-	mesh.height = 3.6
+	mesh.top_radius = 0.13
+	mesh.bottom_radius = 0.2
+	mesh.height = 2.8
 	mesh.radial_segments = 6
 	mesh.material = _material(bark_color, true)
 	var multimesh := _multimesh(mesh, log_count, true)
 	for index in log_count:
 		var point := _sample_position(rng, true)
-		var size := rng.randf_range(0.55, 1.2)
+		var size := rng.randf_range(0.5, 1.0)
 		var basis := Basis.from_euler(Vector3(0, rng.randf_range(0.0, TAU), PI * 0.5)).scaled(Vector3(size, size, size))
 		multimesh.set_instance_transform(index, Transform3D(basis, point + Vector3.UP * 0.27 * size))
 		multimesh.set_instance_color(index, bark_color.lerp(Color(0.28, 0.11, 0.035), rng.randf_range(0.0, 0.55)))
@@ -235,8 +232,19 @@ func _sample_position(rng: RandomNumberGenerator, keep_off_trail: bool) -> Vecto
 			continue
 		if keep_off_trail and absf(point.x) < trail_half_width:
 			continue
+		return _project_to_terrain(point)
+	return _project_to_terrain(Vector3(area_size.x * 0.42, 0, area_size.y * 0.42))
+
+
+func _project_to_terrain(point: Vector3) -> Vector3:
+	if not is_inside_tree():
 		return point
-	return Vector3(area_size.x * 0.42, 0, area_size.y * 0.42)
+	var provider := get_tree().get_first_node_in_group(&"terrain_height_provider")
+	if provider == null or not provider.has_method("get_height_at_global"):
+		return point
+	var world_point := to_global(point)
+	point.y = float(provider.call("get_height_at_global", world_point)) - global_position.y
+	return point
 
 
 func _material(color: Color, use_vertex_color: bool) -> StandardMaterial3D:

@@ -74,8 +74,11 @@ func _build_grass() -> void:
 
 
 func _build_ferns() -> void:
-	var mesh := PrismMesh.new()
-	mesh.size = Vector3(0.52, 0.035, 0.95)
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.3
+	mesh.height = 0.42
+	mesh.radial_segments = 7
+	mesh.rings = 3
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color.WHITE
 	material.roughness = 1.0
@@ -89,8 +92,9 @@ func _build_ferns() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(random_seed + 991) * 1000003 + int(_run_seed)
 	for index in fern_count:
-		var position := _sample_position(rng) + Vector3.UP * 0.18
-		var basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * rng.randf_range(0.65, 1.25))
+		var position := _sample_position(rng) + Vector3.UP * 0.16
+		var size := rng.randf_range(0.65, 1.25)
+		var basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(size * rng.randf_range(1.15, 1.65), size, size * rng.randf_range(0.85, 1.35)))
 		multimesh.set_instance_transform(index, Transform3D(basis, position))
 		multimesh.set_instance_color(index, Color(rng.randf_range(0.055, 0.12), rng.randf_range(0.17, 0.32), rng.randf_range(0.055, 0.12), 1))
 	var instance := MultiMeshInstance3D.new()
@@ -104,5 +108,16 @@ func _sample_position(rng: RandomNumberGenerator) -> Vector3:
 	for _attempt in 12:
 		var candidate := Vector3(rng.randf_range(-area_size.x * 0.5, area_size.x * 0.5), 0.14, rng.randf_range(-area_size.y * 0.5, area_size.y * 0.5))
 		if absf(candidate.x) > trail_half_width or candidate.z > 3.5:
-			return candidate
-	return Vector3(rng.randf_range(-area_size.x * 0.5, area_size.x * 0.5), 0.14, rng.randf_range(-area_size.y * 0.5, area_size.y * 0.5))
+			return _project_to_terrain(candidate)
+	return _project_to_terrain(Vector3(rng.randf_range(-area_size.x * 0.5, area_size.x * 0.5), 0.14, rng.randf_range(-area_size.y * 0.5, area_size.y * 0.5)))
+
+
+func _project_to_terrain(point: Vector3) -> Vector3:
+	if not is_inside_tree():
+		return point
+	var provider := get_tree().get_first_node_in_group(&"terrain_height_provider")
+	if provider == null or not provider.has_method("get_height_at_global"):
+		return point
+	var world_point := to_global(point)
+	point.y = float(provider.call("get_height_at_global", world_point)) - global_position.y + 0.03
+	return point

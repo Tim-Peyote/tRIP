@@ -8,6 +8,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	await _validate_landscape_rules()
 	var first := _create_scatter()
 	var second := _create_scatter()
 	first.set_run_seed(77123)
@@ -23,6 +24,21 @@ func _run() -> void:
 	first.free()
 	second.free()
 	_finish()
+
+
+func _validate_landscape_rules() -> void:
+	var terrain := ExpeditionTerrain.new()
+	add_child(terrain)
+	await get_tree().process_frame
+	var clearing_height := terrain.get_height_at_global(Vector3(0, 0, 15))
+	var trail_height := terrain.get_height_at_global(Vector3(0, 0, 35))
+	var camp_height := terrain.get_height_at_global(Vector3(31.5, 0, 20.5))
+	var ramp_height := terrain.get_height_at_global(Vector3(25, 0, 18.5))
+	_expect(absf(clearing_height) < 0.08, "The shelter clearing is not authored as a stable landing area.")
+	_expect(trail_height > -0.1 and trail_height < 0.35, "The expedition trail left its authored height corridor.")
+	_expect(camp_height > 1.45, "The deep-grove camp landmark lost its natural elevation.")
+	_expect(ramp_height > clearing_height and ramp_height < camp_height, "The camp approach is not a continuous slope.")
+	terrain.free()
 
 
 func _create_scatter() -> BiomeDressingScatter:

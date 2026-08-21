@@ -138,7 +138,8 @@ unique_name_in_owner = true
 script = ExtResource("9")
 
 [node name="Ground" type="StaticBody3D" parent="."]
-collision_layer = 1
+visible = false
+collision_layer = 0
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="Ground"]
@@ -149,8 +150,9 @@ material_override = SubResource("GroundMat")
 shape = SubResource("GroundShape")
 
 [node name="UpperTerrace" type="StaticBody3D" parent="."]
+visible = false
 position = Vector3(6.7, 0.78, 5.5)
-collision_layer = 1
+collision_layer = 0
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="UpperTerrace"]
@@ -161,9 +163,10 @@ material_override = SubResource("TerraceMat")
 shape = SubResource("TerraceShape")
 
 [node name="TerraceRamp" type="StaticBody3D" parent="."]
+visible = false
 position = Vector3(0.9, 0.68, 5.3)
 rotation = Vector3(0, 0, -0.235)
-collision_layer = 1
+collision_layer = 0
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="TerraceRamp"]
@@ -196,6 +199,7 @@ omni_range = 8.5
 shadow_enabled = false
 
 [node name="LowerMound" type="MeshInstance3D" parent="."]
+visible = false
 position = Vector3(-7, 0.15, 8)
 scale = Vector3(4.5, 0.8, 3.2)
 mesh = SubResource("GiantCapMesh")
@@ -211,7 +215,7 @@ trail_half_width = 1.6
 
 [node name="BiomeDressingScatter" type="Node3D" parent="."]
 script = ExtResource("11_dressing")
-area_size = Vector2(50, 50)
+area_size = Vector2(40, 30)
 base_seed = 33091
 conifer_count = 16
 broadleaf_count = 30
