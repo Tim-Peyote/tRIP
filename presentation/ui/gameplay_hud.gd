@@ -13,6 +13,13 @@ signal overlay_state_changed(is_open: bool)
 @onready var notice_timer: Timer = %NoticeTimer
 @onready var inspection_panel: PanelContainer = %InspectionPanel
 @onready var inventory_panel: PanelContainer = %InventoryPanel
+@onready var inventory_list: VBoxContainer = %InventoryList
+@onready var inventory_detail_title: Label = %InventoryDetailTitle
+@onready var inventory_detail_body: Label = %InventoryDetailBody
+@onready var inventory_mass_bar: ProgressBar = %InventoryMassBar
+@onready var inventory_volume_bar: ProgressBar = %InventoryVolumeBar
+@onready var inventory_capacity_label: Label = %InventoryCapacityLabel
+@onready var inventory_use_button: Button = %InventoryUseButton
 @onready var inspection_view: SampleInspectionView = %SampleInspectionView
 @onready var focus_card: PanelContainer = %FocusCard
 @onready var focus_key: Label = %FocusKey
@@ -36,6 +43,7 @@ var _inside_root_well: bool = false
 var _weather: WeatherOrchestrator
 var _notice_tween: Tween
 var _last_interaction_context: Dictionary = {}
+var _selected_inventory_id: StringName
 
 
 func _ready() -> void:
@@ -44,6 +52,7 @@ func _ready() -> void:
 	%ResumeButton.pressed.connect(func() -> void: resume_requested.emit())
 	%MainMenuButton.pressed.connect(func() -> void: main_menu_requested.emit())
 	%ContinueCycleButton.pressed.connect(_acknowledge_cycle_result)
+	inventory_use_button.pressed.connect(_use_selected_inventory_item)
 	notice_timer.timeout.connect(func() -> void: notice_label.visible = false)
 	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
 	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
@@ -292,6 +301,10 @@ func _toggle_inventory() -> void:
 	inventory_panel.visible = should_open
 	_update_inventory_panel()
 	_apply_field_overlay_state()
+	if should_open:
+		var first_button := inventory_list.get_child(0) as Button if inventory_list.get_child_count() > 0 else null
+		if first_button != null:
+			first_button.grab_focus()
 
 
 func _toggle_journal() -> void:
@@ -511,15 +524,77 @@ func _update_inventory_label() -> void:
 	if _player == null:
 		inventory_label.text = ""
 		return
-	inventory_label.text = "СУМКА  %d / %.1f" % [_player.inventory.items.size(), _player.inventory.maximum_volume]
+	inventory_label.text = "СУМКА  %.1f/%.1f л  ·  %.1f/%.1f кг  [B]" % [
+		_player.inventory.current_volume(), _player.inventory.maximum_volume,
+		_player.inventory.current_mass(), _player.inventory.maximum_mass,
+	]
 
 
 func _update_inventory_panel() -> void:
 	if _player == null:
-		%InventoryContents.text = ""
+		_clear_inventory_list()
 		return
-	var lines := _player.inventory.get_display_lines()
-	%InventoryContents.text = "Сумка пуста" if lines.is_empty() else "\n".join(lines)
+	_clear_inventory_list()
+	var stacks := _player.inventory.get_stacks()
+	for stack: Dictionary in stacks:
+		var definition_id: StringName = stack["definition_id"]
+		var definition := ContentDB.get_definition(definition_id)
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(310.0, 50.0)
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.text = "%s\n  × %.0f   ·   качество %d%%" % [
+			definition.display_name if definition != null else String(definition_id),
+			float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0),
+		]
+		button.tooltip_text = definition.description if definition != null else String(definition_id)
+		button.pressed.connect(_select_inventory_stack.bind(definition_id))
+		inventory_list.add_child(button)
+	if stacks.is_empty():
+		var empty := Label.new()
+		empty.text = "Сумка пуста. Собранные образцы появятся здесь."
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		inventory_list.add_child(empty)
+		_selected_inventory_id = &""
+	elif _selected_inventory_id == &"" or _player.inventory.count(_selected_inventory_id) <= 0.0:
+		_select_inventory_stack(stacks[0]["definition_id"])
+	else:
+		_select_inventory_stack(_selected_inventory_id)
+	inventory_mass_bar.max_value = _player.inventory.maximum_mass
+	inventory_mass_bar.value = _player.inventory.current_mass()
+	inventory_volume_bar.max_value = _player.inventory.maximum_volume
+	inventory_volume_bar.value = _player.inventory.current_volume()
+	inventory_capacity_label.text = "МАССА  %.1f / %.1f кг     ОБЪЁМ  %.1f / %.1f л" % [
+		_player.inventory.current_mass(), _player.inventory.maximum_mass,
+		_player.inventory.current_volume(), _player.inventory.maximum_volume,
+	]
+
+
+func _clear_inventory_list() -> void:
+	for child: Node in inventory_list.get_children():
+		inventory_list.remove_child(child)
+		child.queue_free()
+
+
+func _select_inventory_stack(definition_id: StringName) -> void:
+	_selected_inventory_id = definition_id
+	var definition := ContentDB.get_definition(definition_id)
+	if definition == null:
+		inventory_detail_title.text = String(definition_id)
+		inventory_detail_body.text = "Нет данных об образце."
+		inventory_use_button.disabled = true
+		return
+	var category := "СОСТАВ" if definition is ConsumableDefinition else ("ИНГРЕДИЕНТ" if definition is IngredientDefinition else "СНАРЯЖЕНИЕ")
+	inventory_detail_title.text = definition.display_name
+	inventory_detail_body.text = "%s\n\n%s\n\nВ сумке: %.0f" % [category, definition.description, _player.inventory.count(definition_id)]
+	inventory_use_button.disabled = not definition is ConsumableDefinition
+	inventory_use_button.text = "Принять состав" if definition is ConsumableDefinition else "Нельзя применить напрямую"
+
+
+func _use_selected_inventory_item() -> void:
+	if _player == null or _selected_inventory_id == &"":
+		return
+	if _player.inventory.use_consumable(_selected_inventory_id):
+		_update_inventory_panel()
 
 
 func _update_journal() -> void:

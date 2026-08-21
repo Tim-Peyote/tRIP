@@ -78,6 +78,9 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 		persistence.initialize_new()
 	elif not persistence.load():
 		persistence.initialize_new()
+	# Capture explicitly after the menu click and save initialization. Relying on
+	# Player._ready() alone lets the embedded game window return focus to the UI.
+	_active_player.capture_mouse()
 	_active_player.inventory.consumable_used.connect(effect_orchestrator.apply_effects)
 	_active_player.inventory.consumable_used.connect(_active_player.play_consumption_animation)
 	effect_orchestrator.gameplay_channels_changed.connect(_on_effect_gameplay_channels_changed)

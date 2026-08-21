@@ -10,6 +10,12 @@ func _ready() -> void:
 
 func _run() -> void:
 	InputBootstrap.ensure_defaults()
+	for action: StringName in [&"move_forward", &"move_back", &"move_left", &"move_right", &"interact", &"inventory"]:
+		var has_keyboard_binding := false
+		for event: InputEvent in InputMap.action_get_events(action):
+			if event is InputEventKey and event.device < 0:
+				has_keyboard_binding = true
+		_expect(has_keyboard_binding, "Gameplay action has no normal-keyboard binding: %s" % action)
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame
@@ -23,8 +29,14 @@ func _run() -> void:
 	main.call("_on_game_requested", 41, true)
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	_expect(not level.forest_clearing.listener.visible and level.forest_clearing.listener.process_mode == Node.PROCESS_MODE_DISABLED, "Deprecated prototype Listener is still active in the opening clearing.")
+	_expect(level.get_biome_population().get_active_population_count() == 0, "Fauna spawned inside the protected expedition opening.")
 	level.expedition_clock.running = false
 	var player := level.player
+	player.inventory.add_item(ItemInstance.new(&"ingredient.mooncap"))
+	player.inventory.add_item(ItemInstance.new(&"ingredient.mooncap"))
+	var inventory_stacks := player.inventory.get_stacks()
+	_expect(inventory_stacks.size() == 1 and is_equal_approx(float(inventory_stacks[0]["quantity"]), 2.0), "Inventory did not present duplicate samples as a readable stack.")
 	player.set_gameplay_input_override_for_testing(true)
 	var hud := main.gameplay_hud
 	var start_position := player.global_position
@@ -49,6 +61,7 @@ func _run() -> void:
 	# Field overlays are exclusive and own cursor/interactor state.
 	hud.call("_toggle_inventory")
 	_expect(hud.inventory_panel.visible, "Inventory did not open.")
+	_expect(hud.inventory_list.get_child_count() == 1, "Inventory stack did not create one selectable UI card.")
 	_expect(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Inventory did not release the cursor.")
 	_expect(not player.interactor.is_processing(), "World interaction stayed active behind inventory.")
 	hud.call("_toggle_journal")
@@ -56,6 +69,8 @@ func _run() -> void:
 	_expect(hud.close_top_overlay(), "Escape contract could not close the active field overlay.")
 	_expect(not hud.has_modal_overlay(), "Closing the field overlay left another modal panel active.")
 	_expect(player.interactor.is_processing(), "World interaction did not resume after closing UI.")
+	player.inventory.remove_one(&"ingredient.mooncap")
+	_expect(is_equal_approx(player.inventory.count(&"ingredient.mooncap"), 1.0), "Removing one stacked sample removed the whole stack.")
 	hud.call("_on_biome_hazard_state_changed", BiomeHazardOrchestrator.State.ACTIVE, "ЯВЛЕНИЕ", "ИНСТРУКЦИЯ")
 	hud.call("_on_spore_tide_state_changed", SporeTideOrchestrator.State.SURGE, "СПОРОВЫЙ ПРИЛИВ")
 	hud.show_notice("ПРОВЕРКА НАРРАТИВНОГО СООБЩЕНИЯ")

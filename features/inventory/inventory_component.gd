@@ -45,10 +45,15 @@ func remove_one(definition_id: StringName) -> ItemInstance:
 		var item := items[index]
 		if item.definition_id != definition_id:
 			continue
-		items.remove_at(index)
-		item_removed.emit(item)
+		var removed := ItemInstance.from_save_data(item.to_save_data())
+		removed.quantity = 1.0
+		if item.quantity > 1.0:
+			item.quantity -= 1.0
+		else:
+			items.remove_at(index)
+		item_removed.emit(removed)
 		changed.emit()
-		return item
+		return removed
 	return null
 
 
@@ -59,12 +64,41 @@ func use_first_consumable() -> bool:
 		if not definition is ConsumableDefinition:
 			continue
 		var consumable := definition as ConsumableDefinition
-		items.remove_at(index)
-		item_removed.emit(item)
-		changed.emit()
-		consumable_used.emit(consumable.effect_ids, consumable.display_name)
-		return true
+		return use_consumable(item.definition_id)
 	return false
+
+
+func use_consumable(definition_id: StringName) -> bool:
+	var definition := ContentDB.get_definition(definition_id)
+	if not definition is ConsumableDefinition:
+		return false
+	var removed := remove_one(definition_id)
+	if removed == null:
+		return false
+	var consumable := definition as ConsumableDefinition
+	consumable_used.emit(consumable.effect_ids, consumable.display_name)
+	return true
+
+
+func get_stacks() -> Array[Dictionary]:
+	var stacks: Dictionary[StringName, Dictionary] = {}
+	for item: ItemInstance in items:
+		if not stacks.has(item.definition_id):
+			stacks[item.definition_id] = {"definition_id": item.definition_id, "quantity": 0.0, "best_quality": 0.0}
+		var stack: Dictionary = stacks[item.definition_id]
+		stack["quantity"] = float(stack["quantity"]) + item.quantity
+		stack["best_quality"] = maxf(float(stack["best_quality"]), item.quality)
+		stacks[item.definition_id] = stack
+	var result: Array[Dictionary] = []
+	result.assign(stacks.values())
+	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var a_definition := ContentDB.get_definition(a["definition_id"])
+		var b_definition := ContentDB.get_definition(b["definition_id"])
+		var a_name := a_definition.display_name if a_definition != null else String(a["definition_id"])
+		var b_name := b_definition.display_name if b_definition != null else String(b["definition_id"])
+		return a_name.naturalnocasecmp_to(b_name) < 0
+	)
+	return result
 
 
 func get_display_lines() -> PackedStringArray:

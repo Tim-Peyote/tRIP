@@ -18,6 +18,7 @@ var _body: Node3D
 var _head: Node3D
 var _limbs: Array[Node3D] = []
 var _home: Vector3
+var _awareness_time: float = 0.0
 
 
 func setup(value: CreatureArchetypeDefinition, player: Node3D, terrain: ExpeditionTerrain, spawn_seed: int) -> void:
@@ -45,13 +46,15 @@ func _physics_process(delta: float) -> void:
 	var to_player := _player.global_position - global_position
 	to_player.y = 0.0
 	var distance := to_player.length()
+	_awareness_time = _awareness_time + delta if distance <= definition.awareness_distance else maxf(_awareness_time - delta * 2.0, 0.0)
 	_update_awareness(distance, to_player)
 	var desired_velocity := Vector3.ZERO
 	match state:
 		State.FLEE:
 			desired_velocity = -to_player.normalized() * definition.move_speed * 1.35
 		State.STALK:
-			desired_velocity = to_player.normalized() * definition.move_speed * (0.72 if distance > definition.flee_distance else 0.0)
+			var stand_off := maxf(definition.flee_distance, 9.0)
+			desired_velocity = to_player.normalized() * definition.move_speed * (0.62 if distance > stand_off else 0.0)
 		State.WANDER, State.FORAGE:
 			desired_velocity = _heading * definition.move_speed * (0.42 if state == State.FORAGE else 0.68)
 		State.OBSERVE:
@@ -82,9 +85,15 @@ func _update_awareness(distance: float, to_player: Vector3) -> void:
 		CreatureArchetypeDefinition.Temperament.SHY:
 			if distance < definition.flee_distance: _choose_state(State.FLEE)
 		CreatureArchetypeDefinition.Temperament.PREDATORY:
-			if state != State.STALK and state != State.FLEE: _choose_state(State.STALK)
+			# A predator first reveals itself and watches. It only closes distance
+			# after sustained proximity, instead of homing in from the chunk edge.
+			var commitment_distance := minf(definition.flee_distance * 1.55, 16.0)
+			if distance <= commitment_distance and _awareness_time >= 3.0:
+				if state != State.STALK: _choose_state(State.STALK)
+			elif state not in [State.OBSERVE, State.STALK]:
+				_choose_state(State.OBSERVE)
 		CreatureArchetypeDefinition.Temperament.TERRITORIAL:
-			_choose_state(State.OBSERVE if distance > definition.flee_distance else State.STALK)
+			_choose_state(State.OBSERVE if distance > definition.flee_distance or _awareness_time < 2.0 else State.STALK)
 		CreatureArchetypeDefinition.Temperament.CURIOUS, CreatureArchetypeDefinition.Temperament.MYTHIC:
 			_choose_state(State.OBSERVE)
 		_:

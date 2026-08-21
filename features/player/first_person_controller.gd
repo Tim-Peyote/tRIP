@@ -103,6 +103,10 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		capture_mouse()
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed(&"inventory"):
 		inventory_requested.emit()
 		get_viewport().set_input_as_handled()

@@ -508,44 +508,108 @@ autowrap_mode = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 26.0
-offset_top = -292.0
-offset_right = 356.0
-offset_bottom = -62.0
-grow_vertical = 0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -440.0
+offset_top = -270.0
+offset_right = 440.0
+offset_bottom = 270.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
 
 [node name="Margin" type="MarginContainer" parent="InventoryPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 15
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 15
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
 
 [node name="Layout" type="VBoxContainer" parent="InventoryPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 14
 
 [node name="Title" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
-theme_override_font_sizes/font_size = 20
-text = "Сумка"
+theme_override_font_sizes/font_size = 26
+text = "ПОЛЕВАЯ СУМКА"
 
-[node name="InventoryContents" type="Label" parent="InventoryPanel/Margin/Layout"]
+[node name="InventoryCapacityLabel" type="Label" parent="InventoryPanel/Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "МАССА  0 / 12 кг     ОБЪЁМ  0 / 8 л"
+
+[node name="CapacityBars" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="InventoryMassBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/CapacityBars"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="InventoryVolumeBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/CapacityBars"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="Body" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="ListScroll" type="ScrollContainer" parent="InventoryPanel/Margin/Layout/Body"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="InventoryList" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body/ListScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 7
+
+[node name="Detail" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="InventoryDetailTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.76, 0.83, 0.66, 1)
+theme_override_font_sizes/font_size = 21
+text = "Образец"
+
+[node name="InventoryDetailBody" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-text = "Сумка пуста"
+text = "Выберите предмет слева."
 autowrap_mode = 2
+
+[node name="InventoryUseButton" type="Button" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+unique_name_in_owner = true
+layout_mode = 2
+disabled = true
+text = "Нельзя применить напрямую"
 
 [node name="Hint" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.46, 0.52, 0.44, 1)
 theme_override_font_sizes/font_size = 13
-text = "[1] применить первый готовый состав"
+text = "[B] закрыть  ·  [1] быстро принять первый готовый состав  ·  выбор мышью или геймпадом"
 
 [node name="JournalPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true

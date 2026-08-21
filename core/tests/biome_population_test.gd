@@ -33,6 +33,27 @@ func _run() -> void:
 	]:
 		_expect(int(phase_counts.get(phase_id, 0)) >= 2, "World has fewer than two authored fauna contracts: %s" % phase_id)
 
+	# Predators must reveal and observe before committing; entering the broad
+	# awareness radius is not an automatic homing command.
+	var wolf := ContentDB.get_definition(&"creature.altai_wolf") as CreatureArchetypeDefinition
+	var probe_terrain := ExpeditionTerrain.new()
+	var probe_player := Node3D.new()
+	var probe_actor := BiomeCreatureActor.new()
+	add_child(probe_terrain)
+	add_child(probe_player)
+	add_child(probe_actor)
+	probe_actor.setup(wolf, probe_player, probe_terrain, 171)
+	probe_actor.set_physics_process(false)
+	probe_actor.call("_update_awareness", 20.0, Vector3(0.0, 0.0, 20.0))
+	_expect(probe_actor.state == BiomeCreatureActor.State.OBSERVE, "Predator skipped its readable observation state.")
+	probe_actor.set("_awareness_time", 3.2)
+	probe_actor.call("_update_awareness", 12.0, Vector3(0.0, 0.0, 12.0))
+	_expect(probe_actor.state == BiomeCreatureActor.State.STALK, "Sustained close predator awareness never committed to stalk.")
+	probe_actor.queue_free()
+	probe_player.queue_free()
+	probe_terrain.queue_free()
+	await get_tree().process_frame
+
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	main.call("_on_game_requested", 517, true)

@@ -20,6 +20,19 @@ func _run() -> void:
 	_player.landed.connect(func(impact: float) -> void: _landed_impacts.append(impact))
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	await _physics_frames(10)
+	var first_person_arms := _player.get_node("CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms")
+	var arm_skeleton := first_person_arms.find_child("Skeleton3D", true, false) as Skeleton3D
+	_expect(arm_skeleton != null and arm_skeleton.get_bone_count() >= 40, "Rigged CC0 first-person arms were not installed.")
+	_expect(not (_player.get_node("CameraRig/Camera3D/ViewModel/KnifeViewModel/GripHand") as MeshInstance3D).visible, "Legacy primitive grip hand is still visible.")
+
+	# Exercise a real physical key event, not Input.action_press(), so broken
+	# device-specific project bindings cannot hide behind the test harness.
+	var keyboard_start := _player.global_position
+	_emit_physical_key(KEY_W, true)
+	await _physics_frames(22)
+	_emit_physical_key(KEY_W, false)
+	_expect(_player.global_position.distance_to(keyboard_start) > 0.2, "Physical W key did not reach first-person movement.")
+	await _physics_frames(18)
 
 	# Analog input must preserve magnitude instead of snapping every stick tilt to full speed.
 	Input.action_press(&"move_forward", 0.35)
@@ -150,6 +163,14 @@ func _physics_frames(count: int) -> void:
 func _release_inputs() -> void:
 	for action: StringName in [&"move_forward", &"move_back", &"move_left", &"move_right", &"sprint", &"crouch", &"jump"]:
 		Input.action_release(action)
+
+
+func _emit_physical_key(keycode: Key, pressed: bool) -> void:
+	var event := InputEventKey.new()
+	event.device = -1
+	event.physical_keycode = keycode
+	event.pressed = pressed
+	Input.parse_input_event(event)
 
 
 func _expect(condition: bool, message: String) -> void:

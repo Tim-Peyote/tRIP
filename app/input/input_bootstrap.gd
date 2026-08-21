@@ -1,6 +1,26 @@
 class_name InputBootstrap
 extends RefCounted
 
+const KEY_BINDINGS: Dictionary = {
+	&"move_left": KEY_A,
+	&"move_right": KEY_D,
+	&"move_forward": KEY_W,
+	&"move_back": KEY_S,
+	&"interact": KEY_E,
+	&"inspect": KEY_F,
+	&"inventory": KEY_B,
+	&"journal": KEY_J,
+	&"map": KEY_M,
+	&"pause": KEY_ESCAPE,
+	&"sprint": KEY_SHIFT,
+	&"crouch": KEY_C,
+	&"jump": KEY_SPACE,
+	&"quick_use": KEY_1,
+	&"quick_tool": KEY_Q,
+	&"throw_distraction": KEY_G,
+	&"road_laboratory": KEY_L,
+}
+
 const JOY_MOTION_BINDINGS: Dictionary = {
 	&"move_left": [JOY_AXIS_LEFT_X, -1.0],
 	&"move_right": [JOY_AXIS_LEFT_X, 1.0],
@@ -30,6 +50,16 @@ const JOY_BUTTON_BINDINGS: Dictionary = {
 
 
 static func ensure_defaults() -> void:
+	# Some early project bindings were recorded by the embedded editor as device
+	# 16. Those work in that one session but do not match a normal keyboard.
+	# Always install a device-agnostic physical-key binding as the durable source.
+	for action: StringName in KEY_BINDINGS:
+		_ensure_action(action)
+		if not _has_universal_key(action, KEY_BINDINGS[action]):
+			var event := InputEventKey.new()
+			event.device = -1
+			event.physical_keycode = KEY_BINDINGS[action]
+			InputMap.action_add_event(action, event)
 	for action: StringName in JOY_MOTION_BINDINGS:
 		_ensure_action(action)
 		if not _has_joy_motion(action):
@@ -62,4 +92,13 @@ static func _has_joy_button(action: StringName) -> bool:
 	for event: InputEvent in InputMap.action_get_events(action):
 		if event is InputEventJoypadButton:
 			return true
+	return false
+
+
+static func _has_universal_key(action: StringName, physical_keycode: Key) -> bool:
+	for event: InputEvent in InputMap.action_get_events(action):
+		if event is InputEventKey:
+			var key := event as InputEventKey
+			if key.device < 0 and key.physical_keycode == physical_keycode:
+				return true
 	return false
