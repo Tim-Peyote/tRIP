@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://app/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://features/frontend/frontend_orchestrator.gd" id="2_frontend"]
@@ -12,17 +12,52 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_perception"]
 shader = ExtResource("8_screen_shader")
 
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_trip"]
+sky_top_color = Color(0.015, 0.055, 0.09, 1)
+sky_horizon_color = Color(0.42, 0.22, 0.09, 1)
+sky_curve = 0.18
+sky_energy_multiplier = 0.8
+ground_bottom_color = Color(0.015, 0.022, 0.018, 1)
+ground_horizon_color = Color(0.18, 0.12, 0.065, 1)
+ground_curve = 0.12
+sun_angle_max = 18.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_trip"]
+sky_material = SubResource("SkyMaterial_trip")
+
 [sub_resource type="Environment" id="Environment_trip"]
-background_mode = 1
+background_mode = 2
 background_color = Color(0.008, 0.025, 0.018, 1)
+sky = SubResource("Sky_trip")
 ambient_light_source = 3
 ambient_light_color = Color(0.12, 0.16, 0.13, 1)
 ambient_light_energy = 0.55
 tonemap_mode = 2
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.65
+glow_strength = 0.85
+glow_bloom = 0.08
+ssao_enabled = true
+ssao_radius = 1.65
+ssao_intensity = 2.1
+ssao_power = 1.25
+ssao_detail = 0.7
+ssil_enabled = true
+ssil_radius = 3.0
+ssil_intensity = 0.7
 fog_enabled = true
 fog_light_color = Color(0.07, 0.13, 0.09, 1)
 fog_light_energy = 0.55
 fog_density = 0.012
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.012
+volumetric_fog_albedo = Color(0.38, 0.5, 0.4, 1)
+volumetric_fog_emission = Color(0.006, 0.018, 0.009, 1)
+volumetric_fog_length = 52.0
+volumetric_fog_detail_spread = 0.75
+volumetric_fog_ambient_inject = 0.8
 
 [node name="Main" type="Node"]
 process_mode = 3

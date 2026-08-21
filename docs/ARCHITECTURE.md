@@ -359,6 +359,8 @@ World state + Effect snapshot + Accessibility settings
 - Shader Global Parameters используются для небольшого стабильного набора общих каналов восприятия.
 - Массовая растительность строится кластерами/MultiMesh; уникальные интерактивные растения остаются сценами.
 - `VegetationScatter` создаёт детерминированные MultiMesh-слои по seed, а деревья и крупные ориентиры остаются переиспользуемыми PackedScene.
+- `BiomeDressingScatter` держит отдельные GPU-пулы для семейств силуэтов (conifer, broadleaf, snag, rock, log, terrain mass). Он получает session `world_seed`, но не перемещает authored landmarks, interactables или порталы.
+- Seed хранится в `GameLoopOrchestrator` и применяется уровнем после new/load; одинаковый save восстанавливает декоративную композицию без сериализации тысяч transform.
 - Presentation имеет scalable quality tiers и не определяет gameplay truth.
 
 ## 12. Audio pipeline

@@ -22,6 +22,7 @@ var counteragent_brewed: bool = false
 var spore_quiet_active: bool = false
 var root_well_plan: StringName = &""
 var root_well_entered: bool = false
+var world_seed: int = 0
 var _objective: ExpeditionObjectiveOrchestrator
 var _cooking: CookingOrchestrator
 var _clock: ExpeditionClock
@@ -141,6 +142,10 @@ func record_root_well_entered(_actor: Node = null) -> void:
 	autosave_requested.emit(&"root_well_entered")
 
 
+func initialize_world_seed(value: int) -> void:
+	world_seed = value if value != 0 else 1
+
+
 func set_spore_vision_active(value: bool) -> void:
 	if spore_vision_active == value:
 		return
@@ -192,6 +197,7 @@ func to_save_data() -> Dictionary:
 		"counteragent_brewed": counteragent_brewed,
 		"root_well_plan": String(root_well_plan),
 		"root_well_entered": root_well_entered,
+		"world_seed": world_seed,
 	}
 
 
@@ -209,6 +215,7 @@ func apply_save_data(data: Dictionary) -> void:
 	var loaded_plan := StringName(data.get("root_well_plan", ""))
 	root_well_plan = loaded_plan if loaded_plan in [&"warded_descent", &"resonant_descent"] else &""
 	root_well_entered = bool(data.get("root_well_entered", false)) and root_well_plan != &""
+	world_seed = int(data.get("world_seed", 1))
 	route_unlock_changed.emit(route_unlocked)
 	root_well_plan_changed.emit(root_well_plan, "")
 	_emit_state()

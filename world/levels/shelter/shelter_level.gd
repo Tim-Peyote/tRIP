@@ -118,6 +118,12 @@ func get_root_pressure() -> RootPressureOrchestrator:
 	return root_well.pressure
 
 
+func apply_world_seed(value: int) -> void:
+	for node: Node in find_children("*", "Node3D", true, false):
+		if is_instance_valid(node) and node.has_method("set_run_seed"):
+			node.call("set_run_seed", value)
+
+
 func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	biome_visual_controller.setup(world_environment)
 

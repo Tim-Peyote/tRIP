@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://world/levels/forest_trail/forest_trail_chunk.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/props/forest/gnarled_tree.tscn" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://features/narrative/narrative_clue.tscn" id="5"]
 [ext_resource type="Script" path="res://presentation/audio/spatial_forest_emitter.gd" id="6"]
 [ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="7"]
+[ext_resource type="Script" path="res://world/props/forest/biome_dressing_scatter.gd" id="8_dressing"]
 
 [sub_resource type="StandardMaterial3D" id="GroundMat"]
 albedo_color = Color(0.38, 0.46, 0.34, 1)
@@ -132,6 +133,25 @@ grass_count = 430
 fern_count = 96
 random_seed = 98122
 
+[node name="BiomeDressingScatter" type="Node3D" parent="."]
+script = ExtResource("8_dressing")
+area_size = Vector2(38, 52)
+base_seed = 22067
+conifer_count = 52
+broadleaf_count = 11
+snag_count = 19
+rock_count = 58
+log_count = 17
+distant_ridge_count = 0
+trail_half_width = 4.0
+landmark_clear_radius = 3.5
+ground_color = Color(0.055, 0.13, 0.085, 1)
+bark_color = Color(0.18, 0.075, 0.035, 1)
+canopy_dark = Color(0.035, 0.16, 0.095, 1)
+canopy_light = Color(0.11, 0.34, 0.15, 1)
+stone_dark = Color(0.13, 0.18, 0.17, 1)
+stone_light = Color(0.28, 0.38, 0.31, 1)
+
 [node name="TreeA" parent="." instance=ExtResource("2")]
 position = Vector3(-6.7, 0.12, -10.2)
 scale = Vector3(1.25, 1.3, 1.25)
@@ -241,4 +261,3 @@ script = ExtResource("6")
 voice = "drip"
 intensity = 0.36
 seed = 177
-

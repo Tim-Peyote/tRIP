@@ -35,6 +35,10 @@ func setup(level: ShelterLevel, game_loop: GameLoopOrchestrator, value_slot_id: 
 
 func initialize_new() -> void:
 	_collected_spawn_ids.clear()
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	_loop.initialize_world_seed(rng.randi_range(1, 2147483646))
+	_level.apply_world_seed(_loop.world_seed)
 	save_now(&"new_game")
 
 
@@ -93,6 +97,7 @@ func apply_save_data(data: Dictionary) -> void:
 		if _collected_spawn_ids.has(ingredient.get_spawn_id()):
 			ingredient.queue_free()
 	_loop.apply_save_data(data.get("game_loop", {}) as Dictionary)
+	_level.apply_world_seed(_loop.world_seed)
 	var player_data := data.get("player", {}) as Dictionary
 	var position_data: Array = player_data.get("position", []) as Array
 	if position_data.size() == 3:

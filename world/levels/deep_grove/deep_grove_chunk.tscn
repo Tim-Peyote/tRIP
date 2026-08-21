@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://world/levels/deep_grove/deep_grove_chunk.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="2"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="8"]
 [ext_resource type="Script" path="res://features/hazards/spore_tide_orchestrator.gd" id="9"]
 [ext_resource type="PackedScene" path="res://features/hazards/spore_shelter_zone.tscn" id="10"]
+[ext_resource type="Script" path="res://world/props/forest/biome_dressing_scatter.gd" id="11_dressing"]
 
 [sub_resource type="StandardMaterial3D" id="GroundMat"]
 albedo_color = Color(0.29, 0.38, 0.28, 1)
@@ -207,6 +208,25 @@ grass_count = 650
 fern_count = 145
 random_seed = 73301
 trail_half_width = 1.6
+
+[node name="BiomeDressingScatter" type="Node3D" parent="."]
+script = ExtResource("11_dressing")
+area_size = Vector2(50, 50)
+base_seed = 33091
+conifer_count = 16
+broadleaf_count = 30
+snag_count = 24
+rock_count = 82
+log_count = 20
+distant_ridge_count = 0
+trail_half_width = 7.0
+landmark_clear_radius = 5.5
+ground_color = Color(0.045, 0.11, 0.07, 1)
+bark_color = Color(0.2, 0.065, 0.045, 1)
+canopy_dark = Color(0.085, 0.12, 0.11, 1)
+canopy_light = Color(0.28, 0.34, 0.14, 1)
+stone_dark = Color(0.14, 0.15, 0.19, 1)
+stone_light = Color(0.34, 0.4, 0.42, 1)
 
 [node name="TreeA" parent="." instance=ExtResource("3")]
 position = Vector3(-11.5, 0.15, -10.5)

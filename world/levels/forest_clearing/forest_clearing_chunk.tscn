@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=37 format=3]
 
 [ext_resource type="PackedScene" path="res://features/ingredients/mooncap_world.tscn" id="1_mooncap"]
 [ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="2_portal"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="7_ground_texture"]
 [ext_resource type="PackedScene" path="res://world/props/forest/gnarled_tree.tscn" id="8_tree"]
 [ext_resource type="Script" path="res://world/props/forest/vegetation_scatter.gd" id="9_scatter"]
+[ext_resource type="Script" path="res://world/props/forest/biome_dressing_scatter.gd" id="10_dressing"]
 
 [sub_resource type="StandardMaterial3D" id="Material_ground"]
 albedo_color = Color(0.52, 0.58, 0.48, 1)
@@ -246,6 +247,24 @@ script = ExtResource("9_scatter")
 grass_count = 280
 fern_count = 64
 
+[node name="BiomeDressingScatter" type="Node3D" parent="."]
+script = ExtResource("10_dressing")
+area_size = Vector2(42, 42)
+base_seed = 11031
+conifer_count = 32
+broadleaf_count = 25
+snag_count = 10
+rock_count = 64
+log_count = 14
+trail_half_width = 4.4
+landmark_clear_radius = 4.5
+ground_color = Color(0.09, 0.17, 0.065, 1)
+bark_color = Color(0.28, 0.12, 0.04, 1)
+canopy_dark = Color(0.075, 0.24, 0.075, 1)
+canopy_light = Color(0.34, 0.5, 0.12, 1)
+stone_dark = Color(0.2, 0.23, 0.22, 1)
+stone_light = Color(0.46, 0.48, 0.38, 1)
+
 [node name="StoneA" type="MeshInstance3D" parent="."]
 position = Vector3(-2.4, 0.34, 1.0)
 scale = Vector3(1.2, 0.55, 0.8)
@@ -307,10 +326,14 @@ locked_prompt = "Корни не расходятся. Сначала нужно
 
 [node name="ForestLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-rotation = Vector3(-0.82, 0.38, 0)
-light_color = Color(0.27, 0.48, 0.32, 1)
-light_energy = 1.25
+rotation = Vector3(-0.72, -0.78, 0.12)
+light_color = Color(1, 0.58, 0.27, 1)
+light_energy = 2.15
 shadow_enabled = true
+directional_shadow_max_distance = 55.0
+directional_shadow_fade_start = 0.72
+shadow_blur = 1.8
+shadow_opacity = 0.7
 
 [node name="SporeGlow" type="OmniLight3D" parent="."]
 unique_name_in_owner = true

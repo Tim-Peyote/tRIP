@@ -41,6 +41,10 @@ func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void
 		_tween.tween_property(_environment, "fog_light_color", profile.fog_color, 0.65)
 		_tween.tween_property(_environment, "fog_density", profile.fog_density, 0.65)
 		_tween.tween_property(_environment, "fog_light_energy", profile.fog_light_energy, 0.65)
+		_tween.tween_property(_environment, "volumetric_fog_density", profile.volumetric_density, 0.65)
+		_tween.tween_property(_environment, "volumetric_fog_albedo", profile.volumetric_albedo, 0.65)
+		_tween.tween_property(_environment, "volumetric_fog_emission", profile.volumetric_emission, 0.65)
+		_tween.tween_property(_environment, "volumetric_fog_length", profile.volumetric_length, 0.65)
 	profile_changed.emit(profile.id)
 
 
@@ -51,4 +55,7 @@ func _set_values(profile: BiomeVisualProfile) -> void:
 	_environment.fog_light_color = profile.fog_color
 	_environment.fog_density = profile.fog_density
 	_environment.fog_light_energy = profile.fog_light_energy
-
+	_environment.volumetric_fog_density = profile.volumetric_density
+	_environment.volumetric_fog_albedo = profile.volumetric_albedo
+	_environment.volumetric_fog_emission = profile.volumetric_emission
+	_environment.volumetric_fog_length = profile.volumetric_length
