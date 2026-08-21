@@ -216,3 +216,7 @@ func _find_recipe_by_id(recipe_id: StringName) -> RecipeDefinition:
 	if recipe != null and recipe.id == recipe_id:
 		return recipe
 	return null
+
+
+func find_recipe_by_id(recipe_id: StringName) -> RecipeDefinition:
+	return _find_recipe_by_id(recipe_id)

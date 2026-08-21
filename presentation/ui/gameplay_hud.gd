@@ -16,6 +16,7 @@ signal main_menu_requested
 
 var _player: FirstPersonController
 var _cooking: CookingOrchestrator
+var _recipe_knowledge: RecipeKnowledgeOrchestrator
 var _knowledge: KnowledgeOrchestrator
 var _objective: ExpeditionObjectiveOrchestrator
 var _clock: ExpeditionClock
@@ -66,6 +67,12 @@ func setup_cooking(cooking: CookingOrchestrator) -> void:
 	cooking.vessel_state_changed.connect(_on_vessel_state_changed)
 	cooking.physical_action_recorded.connect(_on_physical_cooking_action)
 	_on_vessel_state_changed(cooking.vessel)
+
+
+func setup_recipe_knowledge(recipe_knowledge: RecipeKnowledgeOrchestrator) -> void:
+	_recipe_knowledge = recipe_knowledge
+	recipe_knowledge.recipe_learned.connect(_on_recipe_learned)
+	_update_journal()
 
 
 func setup_knowledge(knowledge: KnowledgeOrchestrator) -> void:
@@ -249,6 +256,11 @@ func _on_hypothesis_updated(_hypothesis_id: StringName, is_verified: bool) -> vo
 		show_notice("Гипотеза подтверждена · новый рецепт обоснован")
 
 
+func _on_recipe_learned(_recipe_id: StringName, display_name: String) -> void:
+	_update_journal()
+	show_notice("ФОРМУЛА ЗАПИСАНА · %s" % display_name.to_upper())
+
+
 func _on_objective_updated(text: String) -> void:
 	%ObjectiveLabel.text = text
 
@@ -398,4 +410,8 @@ func _update_journal() -> void:
 		var hypothesis_lines := _hypotheses.get_display_lines()
 		if not hypothesis_lines.is_empty():
 			sections.append("ГИПОТЕЗЫ\n" + "\n".join(hypothesis_lines))
+	if _recipe_knowledge != null:
+		var recipe_lines := _recipe_knowledge.get_display_lines()
+		if not recipe_lines.is_empty():
+			sections.append("ФОРМУЛЫ\n" + "\n\n".join(recipe_lines))
 	%JournalContents.text = "\n\n".join(sections)

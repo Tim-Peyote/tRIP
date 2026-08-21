@@ -5,6 +5,7 @@ uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_n
 global uniform float trip_visual_intensity;
 global uniform float trip_perception;
 global uniform float trip_toxicity;
+global uniform float trip_danger;
 global uniform float trip_world_transition;
 global uniform float trip_world_family;
 global uniform vec4 trip_world_color;
@@ -16,6 +17,7 @@ float hash(vec2 p) {
 void fragment() {
 	float strength = clamp(trip_perception * trip_visual_intensity, 0.0, 1.0);
 	float quiet = clamp(trip_toxicity * trip_visual_intensity, 0.0, 1.0);
+	float danger = clamp(trip_danger * trip_visual_intensity, 0.0, 1.0);
 	float metamorph = clamp(trip_world_transition * trip_visual_intensity, 0.0, 1.0);
 	vec2 uv = SCREEN_UV;
 	vec2 centered = uv - vec2(0.5);
@@ -49,11 +51,14 @@ void fragment() {
 	color = mix(color, quiet_grade, quiet * 0.42);
 	color *= 1.0 - smoothstep(0.18, 0.72, radius) * 0.52 * quiet;
 	color += vec3(0.16, 0.015, 0.005) * sin(TIME * 2.4) * 0.035 * quiet;
+	float heartbeat = pow(max(sin(TIME * 5.4), 0.0), 8.0) * danger;
+	color += vec3(0.28, -0.035, -0.045) * (0.08 + heartbeat * 0.13) * danger;
+	color *= 1.0 - smoothstep(0.2, 0.74, radius) * danger * (0.22 + heartbeat * 0.18);
 	float transition_ring = smoothstep(0.08, 0.0, abs(radius - (0.68 - metamorph * 0.56)));
 	float cellular = step(0.68, sin((uv.x + uv.y) * 72.0 + spiral * 3.0)) * metamorph;
 	color = mix(color, color * 0.3 + trip_world_color.rgb * (0.48 + transition_ring), metamorph * 0.72);
 	color += trip_world_color.rgb * cellular * 0.11;
 	color += vec3(1.0) * pow(metamorph, 8.0) * 0.38;
 	color *= 1.0 - smoothstep(0.18, 0.76, radius) * metamorph * 0.58;
-	COLOR = vec4(color, max(max(strength * 0.92, quiet * 0.72), metamorph));
+	COLOR = vec4(color, max(max(max(strength * 0.92, quiet * 0.72), danger * 0.32), metamorph));
 }

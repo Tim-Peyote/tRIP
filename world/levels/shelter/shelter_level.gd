@@ -3,6 +3,7 @@ extends Node3D
 
 @onready var player: FirstPersonController = %Player
 @onready var cooking_orchestrator: CookingOrchestrator = %CookingOrchestrator
+@onready var recipe_knowledge_orchestrator: RecipeKnowledgeOrchestrator = %RecipeKnowledgeOrchestrator
 @onready var hidden_mycelium: Node3D = %HiddenMycelium
 @onready var cooking_station_visuals: CookingStationVisuals = %CookingStationVisuals
 @onready var knowledge_orchestrator: KnowledgeOrchestrator = %KnowledgeOrchestrator
@@ -37,6 +38,7 @@ func _ready() -> void:
 		(node as PhysicalCookingStationComponent).setup(cooking_orchestrator)
 	cooking_station_visuals.setup(cooking_orchestrator)
 	cooking_station_audio.setup(cooking_orchestrator)
+	recipe_knowledge_orchestrator.setup(cooking_orchestrator)
 	hypothesis_orchestrator.setup(knowledge_orchestrator)
 	game_loop_orchestrator.setup(objective_orchestrator, cooking_orchestrator, expedition_clock, knowledge_orchestrator)
 	game_loop_orchestrator.route_unlock_changed.connect(_on_route_unlock_changed)
@@ -81,6 +83,10 @@ func get_player() -> FirstPersonController:
 
 func get_cooking_orchestrator() -> CookingOrchestrator:
 	return cooking_orchestrator
+
+
+func get_recipe_knowledge_orchestrator() -> RecipeKnowledgeOrchestrator:
+	return recipe_knowledge_orchestrator
 
 
 func get_knowledge_orchestrator() -> KnowledgeOrchestrator:
@@ -147,6 +153,7 @@ func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
 	hidden_mycelium.visible = spore_vision_active
 	player.set_spore_vision_active(spore_vision_active)
 	player.set_spore_resistance(float(channels.get(&"spore_resistance", 0.0)))
+	player.set_crimson_drive(float(channels.get(&"crimson_drive", 0.0)))
 	forest_trail.set_spore_vision_active(spore_vision_active)
 	root_well.set_spore_vision_active(spore_vision_active)
 	deep_grove.set_spore_vision_active(spore_vision_active)

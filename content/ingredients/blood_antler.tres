@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ingredient.blood_antler"
+display_name = "Кровавый роговик"
+description = "Ветвистый гриб, возникающий на месте старых звериных троп только в Мицелиальном хоре. На срезе пахнет железом и мокрой шерстью."
+tags = Array[StringName]([&"fungus", &"marrow", &"crimson_drive", &"predator_scent"])
+harvest_parts = Array[int]([1, 2, 0])
+unit_mass = 0.24
+unit_volume = 0.31
+freshness_hours = 9.0
+biome_tags = Array[StringName]([&"mycelial_choir", &"animal_trail"])
+allowed_operations = Array[StringName]([&"slice", &"grind", &"heat"])
+trait_channels = {&"crimson_drive": 0.85, &"toxicity": 0.42, &"predator_scent": 0.8}

@@ -49,6 +49,7 @@ var _viewmodel_rest_position: Vector3
 var _viewmodel_look_offset: Vector2 = Vector2.ZERO
 var _spore_vision_active: bool = false
 var _spore_resistance: float = 0.0
+var _crimson_drive_amount: float = 0.0
 var _consumption_tween: Tween
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
@@ -140,8 +141,9 @@ func get_stealth_exposure() -> float:
 	var movement_exposure := remap(clampf(planar_speed, 0.0, sprint_speed), 0.0, sprint_speed, 0.72, 1.35)
 	var stance_exposure := 0.48 if _is_crouched else 1.0
 	var perception_price := 1.28 if _spore_vision_active else 1.0
+	var crimson_price := lerpf(1.0, 1.45, _crimson_drive_amount)
 	var quieting := lerpf(1.0, 0.72, _spore_resistance)
-	return clampf(movement_exposure * stance_exposure * perception_price * quieting, 0.25, 1.55)
+	return clampf(movement_exposure * stance_exposure * perception_price * crimson_price * quieting, 0.25, 1.9)
 
 
 func set_spore_vision_active(value: bool) -> void:
@@ -150,6 +152,10 @@ func set_spore_vision_active(value: bool) -> void:
 
 func set_spore_resistance(value: float) -> void:
 	_spore_resistance = clampf(value, 0.0, 1.0)
+
+
+func set_crimson_drive(value: float) -> void:
+	_crimson_drive_amount = clampf(value, 0.0, 1.0)
 
 
 func play_consumption_animation(_effect_ids: Array[StringName], _display_name: String) -> void:
@@ -190,11 +196,12 @@ func _update_gamepad_look(delta: float) -> void:
 
 
 func _get_target_speed() -> float:
+	var drive_multiplier := lerpf(1.0, 1.22, _crimson_drive_amount)
 	if _is_crouched:
-		return crouch_speed
+		return crouch_speed * drive_multiplier
 	if Input.is_action_pressed(&"sprint"):
-		return sprint_speed
-	return walk_speed
+		return sprint_speed * drive_multiplier
+	return walk_speed * drive_multiplier
 
 
 func _update_stance(delta: float) -> void:

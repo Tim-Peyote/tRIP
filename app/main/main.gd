@@ -52,6 +52,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	world_metamorphosis_director.setup(_active_level.world_phase_orchestrator)
 	gameplay_hud.setup(_active_player)
 	gameplay_hud.setup_cooking(_active_level.get_cooking_orchestrator())
+	gameplay_hud.setup_recipe_knowledge(_active_level.get_recipe_knowledge_orchestrator())
 	gameplay_hud.setup_knowledge(_active_level.get_knowledge_orchestrator())
 	gameplay_hud.setup_objective(_active_level.get_objective_orchestrator())
 	gameplay_hud.setup_clock(_active_level.get_expedition_clock())
@@ -121,7 +122,7 @@ func _on_effect_gameplay_channels_changed(channels: Dictionary[StringName, float
 		return
 	if float(channels.get(&"spore_resistance", 0.0)) > 0.1:
 		audio_director.set_snapshot(&"spore_quiet")
-	elif float(channels.get(&"spore_vision", 0.0)) > 0.1:
+	elif float(channels.get(&"spore_vision", 0.0)) > 0.1 or float(channels.get(&"crimson_drive", 0.0)) > 0.1:
 		audio_director.set_snapshot(&"danger")
 	else:
 		audio_director.set_snapshot(&"default")

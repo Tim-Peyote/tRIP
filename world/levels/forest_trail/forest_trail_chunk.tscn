@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://world/levels/forest_trail/forest_trail_chunk.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/props/forest/gnarled_tree.tscn" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://presentation/audio/spatial_forest_emitter.gd" id="6"]
 [ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="7"]
 [ext_resource type="Script" path="res://world/props/forest/biome_dressing_scatter.gd" id="8_dressing"]
+[ext_resource type="PackedScene" path="res://features/ingredients/blood_antler_world.tscn" id="9_blood_antler"]
 
 [sub_resource type="StandardMaterial3D" id="GroundMat"]
 albedo_color = Color(0.38, 0.46, 0.34, 1)
@@ -235,6 +236,11 @@ portal_name = "Дышащая тропа"
 portal_description = "Поток спор складывается в проход, которого не существовало без настоя."
 locked = true
 locked_prompt = "Тропа видна только под спорозрением"
+
+[node name="BloodAntler" parent="SporeRoute" instance=ExtResource("9_blood_antler")]
+unique_name_in_owner = true
+position = Vector3(-3.35, 0.08, 7.9)
+rotation = Vector3(0, 0.55, 0)
 
 [node name="LowFogA" type="MeshInstance3D" parent="."]
 position = Vector3(-3, 1.2, 2)

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ConsumableDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/consumable_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"item.crimson_marrow_stew"
+display_name = "Багряный костный отвар"
+description = "Густой тёмный состав. Даже в закрытой склянке отзывается на пульс."
+tags = Array[StringName]([&"brew", &"consumable", &"world_key", &"crimson"])
+mass = 0.42
+volume = 0.34
+max_stack = 1
+effect_ids = Array[StringName]([&"effect.crimson_drive"])
+doses = 1

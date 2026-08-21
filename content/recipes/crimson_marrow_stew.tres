@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1"]
+[ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="Step_grind"]
+script = ExtResource("2")
+operation = &"grind"
+ingredient_tag = &"part_cap"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 10.0
+maximum_temperature = 28.0
+minimum_duration = 6.0
+maximum_duration = 10.0
+player_hint = "Отделить верхние развилки и раздавить до появления железного запаха."
+
+[sub_resource type="Resource" id="Step_heat"]
+script = ExtResource("2")
+operation = &"heat"
+ingredient_tag = &"crimson_drive"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 78.0
+maximum_temperature = 86.0
+minimum_duration = 20.0
+maximum_duration = 29.0
+minimum_stirs = 3
+minimum_homogeneity = 0.74
+maximum_overheat_duration = 2.0
+player_hint = "Трижды перемешать против часовой стрелки и снять при первом глухом ударе."
+
+[resource]
+script = ExtResource("1")
+id = &"recipe.crimson_marrow_stew"
+display_name = "Багряный костный отвар"
+description = "Формула перехода из Мицелиального хора в слой хищных следов."
+tags = Array[StringName]([&"brew", &"world_key", &"crimson"])
+primary_ingredient_id = &"ingredient.blood_antler"
+steps = Array[ExtResource("2")]([SubResource("Step_grind"), SubResource("Step_heat")])
+result_item_id = &"item.crimson_marrow_stew"
+effect_ids = Array[StringName]([&"effect.crimson_drive"])
+acceptable_error = 0.2
+field_notes = "Роговик виден только после настоя спорозрения. Красный пар не должен перейти в чёрный."

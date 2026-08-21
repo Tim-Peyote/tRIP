@@ -1,4 +1,4 @@
-[gd_scene load_steps=73 format=3]
+[gd_scene load_steps=75 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -35,6 +35,8 @@
 [ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/mycelial_visual_profile.tres" id="33_mycelial_profile"]
 [ext_resource type="Script" path="res://features/environment/world_phase_orchestrator.gd" id="34_phase_orchestrator"]
 [ext_resource type="Script" path="res://features/developer/world_phase_developer_panel.gd" id="35_phase_developer"]
+[ext_resource type="RecipeDefinition" path="res://content/recipes/crimson_marrow_stew.tres" id="36_crimson_recipe"]
+[ext_resource type="Script" path="res://features/cooking/recipe_knowledge_orchestrator.gd" id="37_recipe_knowledge"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -261,7 +263,11 @@ rotation = Vector3(0, -1.5708, 0)
 unique_name_in_owner = true
 script = ExtResource("5_cooking")
 recipe = ExtResource("8_recipe")
-recipes = Array[ExtResource("29_recipe_script")]([ExtResource("8_recipe"), ExtResource("28_ember_recipe")])
+recipes = Array[ExtResource("29_recipe_script")]([ExtResource("8_recipe"), ExtResource("28_ember_recipe"), ExtResource("36_crimson_recipe")])
+
+[node name="RecipeKnowledgeOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("37_recipe_knowledge")
 
 [node name="CookingStationVisuals" type="Node3D" parent="."]
 unique_name_in_owner = true
@@ -473,7 +479,7 @@ amount = 1.0
 temperature = 20.0
 duration = 8.0
 required_item_id = &"ingredient.mooncap"
-candidate_ingredient_ids = Array[StringName]([&"ingredient.mooncap", &"ingredient.emberberry"])
+candidate_ingredient_ids = Array[StringName]([&"ingredient.mooncap", &"ingredient.emberberry", &"ingredient.blood_antler"])
 
 [node name="Cauldron" type="StaticBody3D" parent="."]
 position = Vector3(0.72, 1.08, -2.35)

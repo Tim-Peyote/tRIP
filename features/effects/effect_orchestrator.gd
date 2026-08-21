@@ -76,6 +76,7 @@ func _rebuild_channels() -> void:
 		snapshot.visual_intensity = float(SettingsService.get_value(&"accessibility", &"visual_intensity", 1.0))
 		snapshot.perception = float(presentation.get(&"perception", 0.0))
 		snapshot.toxicity = maxf(float(gameplay.get(&"toxicity", 0.0)), float(presentation.get(&"toxicity", 0.0)))
+		snapshot.danger = float(presentation.get(&"danger", 0.0))
 		_presentation.apply_snapshot(snapshot)
 
 
