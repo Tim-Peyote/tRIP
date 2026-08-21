@@ -21,6 +21,7 @@ var second_expedition_complete: bool = false
 var counteragent_brewed: bool = false
 var spore_quiet_active: bool = false
 var root_well_plan: StringName = &""
+var root_well_entered: bool = false
 var _objective: ExpeditionObjectiveOrchestrator
 var _cooking: CookingOrchestrator
 var _clock: ExpeditionClock
@@ -55,6 +56,10 @@ func get_objective_text() -> String:
 		Stage.REWARD:
 			return "ЦИКЛ ЗАВЕРШЁН · разобрать результаты"
 		_:
+			if mycologist_clues.has(&"mycologist.well.voice"):
+				return "МИКОЛОГ ЖИВ · найти настоящий путь ниже ложного сердца"
+			if root_well_entered:
+				return "КОРНЕВОЙ КОЛОДЕЦ · спуститься к голосу у ложного сердца"
 			if mycologist_clues.has(&"mycologist.ring.surge_trace"):
 				match root_well_plan:
 					&"warded_descent":
@@ -104,7 +109,7 @@ func record_trail_clue(clue_id: StringName, title: String, text: String) -> void
 
 
 func can_choose_root_well_plan() -> bool:
-	return stage == Stage.DEEP_GROVE and mycologist_clues.has(&"mycologist.ring.surge_trace") and counteragent_brewed
+	return stage == Stage.DEEP_GROVE and not root_well_entered and mycologist_clues.has(&"mycologist.ring.surge_trace") and counteragent_brewed
 
 
 func select_root_well_plan(plan_id: StringName) -> bool:
@@ -125,6 +130,15 @@ func select_root_well_plan(plan_id: StringName) -> bool:
 	_emit_state()
 	autosave_requested.emit(&"root_well_plan")
 	return true
+
+
+func record_root_well_entered(_actor: Node = null) -> void:
+	if root_well_plan == &"" or root_well_entered:
+		return
+	root_well_entered = true
+	narrative_notice_requested.emit("КОРНЕВОЙ КОЛОДЕЦ", "Грибница реагирует на шаги как единый слуховой орган. Двигайся между импульсами и не доверяй голосу впереди.")
+	_emit_state()
+	autosave_requested.emit(&"root_well_entered")
 
 
 func set_spore_vision_active(value: bool) -> void:
@@ -177,6 +191,7 @@ func to_save_data() -> Dictionary:
 		"second_expedition_complete": second_expedition_complete,
 		"counteragent_brewed": counteragent_brewed,
 		"root_well_plan": String(root_well_plan),
+		"root_well_entered": root_well_entered,
 	}
 
 
@@ -191,7 +206,9 @@ func apply_save_data(data: Dictionary) -> void:
 	emberberry_collected = bool(data.get("emberberry_collected", false))
 	second_expedition_complete = bool(data.get("second_expedition_complete", false))
 	counteragent_brewed = bool(data.get("counteragent_brewed", false))
-	root_well_plan = StringName(data.get("root_well_plan", ""))
+	var loaded_plan := StringName(data.get("root_well_plan", ""))
+	root_well_plan = loaded_plan if loaded_plan in [&"warded_descent", &"resonant_descent"] else &""
+	root_well_entered = bool(data.get("root_well_entered", false)) and root_well_plan != &""
 	route_unlock_changed.emit(route_unlocked)
 	root_well_plan_changed.emit(root_well_plan, "")
 	_emit_state()

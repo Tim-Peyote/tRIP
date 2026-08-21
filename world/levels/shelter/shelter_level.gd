@@ -18,9 +18,11 @@ extends Node3D
 @onready var biome_visual_controller: BiomeVisualController = %BiomeVisualController
 @onready var forest_trail: Node3D = $ForestTrail
 @onready var deep_grove: Node3D = $DeepGrove
+@onready var root_well: RootWellChunk = $RootWell
 @onready var shelter_progression_visuals: ShelterProgressionVisuals = %ShelterProgressionVisuals
 @onready var investigation_board: InvestigationBoard = %InvestigationBoard
 @onready var spore_tide: SporeTideOrchestrator = deep_grove.get_node("SporeTideOrchestrator") as SporeTideOrchestrator
+@onready var root_well_gate: SimplePortal = deep_grove.get_node("RootWellGate") as SimplePortal
 
 
 func _ready() -> void:
@@ -36,7 +38,9 @@ func _ready() -> void:
 	shelter_progression_visuals.setup(game_loop_orchestrator)
 	investigation_board.setup(game_loop_orchestrator)
 	spore_tide.setup(player)
+	root_well.setup(game_loop_orchestrator, player)
 	_on_route_unlock_changed(game_loop_orchestrator.route_unlocked)
+	_on_root_well_plan_changed(game_loop_orchestrator.root_well_plan, "")
 	for node: Node in find_children("*", "HarvestableIngredient", true, false):
 		var ingredient := node as HarvestableIngredient
 		ingredient.observed.connect(knowledge_orchestrator.observe)
@@ -55,7 +59,11 @@ func _ready() -> void:
 		clue.discovered.connect(game_loop_orchestrator.record_trail_clue)
 	for clue: Node in deep_grove.get_narrative_clues():
 		clue.discovered.connect(game_loop_orchestrator.record_trail_clue)
+	for clue: Node in root_well.get_narrative_clues():
+		clue.discovered.connect(game_loop_orchestrator.record_trail_clue)
 	(forest_trail.get_node("SporeRoute/VisionGate") as SimplePortal).traversed.connect(game_loop_orchestrator.record_grove_entered)
+	root_well_gate.traversed.connect(game_loop_orchestrator.record_root_well_entered)
+	game_loop_orchestrator.root_well_plan_changed.connect(_on_root_well_plan_changed)
 	forest_trail.set_spore_vision_active(false)
 	expedition_clock.phase_changed.connect(forest_clearing.apply_phase)
 	stealth_orchestrator.setup(player, [forest_clearing.listener])
@@ -106,6 +114,10 @@ func get_investigation_board() -> InvestigationBoard:
 	return investigation_board
 
 
+func get_root_pressure() -> RootPressureOrchestrator:
+	return root_well.pressure
+
+
 func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	biome_visual_controller.setup(world_environment)
 
@@ -124,6 +136,11 @@ func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
 	player.set_spore_vision_active(spore_vision_active)
 	player.set_spore_resistance(float(channels.get(&"spore_resistance", 0.0)))
 	forest_trail.set_spore_vision_active(spore_vision_active)
+	root_well.set_spore_vision_active(spore_vision_active)
 	deep_grove.set_spore_vision_active(spore_vision_active)
 	game_loop_orchestrator.set_effect_channels(channels)
 	spore_tide.apply_gameplay_channels(channels)
+
+
+func _on_root_well_plan_changed(plan_id: StringName, _title: String) -> void:
+	root_well_gate.set_locked(plan_id == &"")

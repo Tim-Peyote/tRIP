@@ -1,0 +1,55 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://features/hazards/root_ward_zone.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="MembraneMat"]
+transparency = 1
+albedo_color = Color(0.72, 0.18, 0.04, 0.33)
+emission_enabled = true
+emission = Color(0.65, 0.06, 0.01, 1)
+emission_energy_multiplier = 2.1
+cull_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="RibMat"]
+albedo_color = Color(0.24, 0.08, 0.035, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="MembraneMesh"]
+radius = 1.7
+height = 2.0
+radial_segments = 12
+rings = 6
+
+[sub_resource type="TorusMesh" id="RibMesh"]
+inner_radius = 1.45
+outer_radius = 1.55
+rings = 14
+ring_segments = 6
+
+[node name="RootWardZone" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Membrane" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.0, 0)
+scale = Vector3(1, 1.3, 1)
+mesh = SubResource("MembraneMesh")
+material_override = SubResource("MembraneMat")
+
+[node name="RibA" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.0, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("RibMesh")
+material_override = SubResource("RibMat")
+
+[node name="RibB" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.0, 0)
+rotation = Vector3(1.5708, 0.8, 0)
+mesh = SubResource("RibMesh")
+material_override = SubResource("RibMat")
+
+[node name="Glow" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.0, 0)
+light_color = Color(0.92, 0.18, 0.045, 1)
+light_energy = 1.2
+omni_range = 4.0
+shadow_enabled = false

@@ -308,6 +308,8 @@ Harvestable использует стабильный `spawn_id`; после з�
 
 Физическая `InvestigationBoard` является world-space adapter: она читает stable clue IDs и отправляет выбранный semantic plan ID обратно в `GameLoopOrchestrator`. Геометрия карточек, нитей и маркеров не является источником истины. Будущий chunk корневого колодца получает `root_well_plan` через setup-контракт и не ищет доску по NodePath.
 
+`RootWellChunk` реализует этот входной контракт: semantic plan ID включает соответствующие visual/collision subtrees, а `RootPressureOrchestrator` независимо рассчитывает циклическую угрозу. Защитные мембраны предоставляют тот же минимальный spatial contract `get_protection_at(world_position)`, поэтому hazard не зависит от их mesh, материалов или NodePath. HUD подписан только на typed state/pressure/ward/area signals.
+
 Поиск миколога расширяет тот же макроцикл stable clue IDs. `NarrativeClue` сообщает только факт обнаружения, `GameLoopOrchestrator` хранит прогресс и формирует следующую цель, а chunk управляет видимостью своей геометрии. Эффект спорозрения передаёт semantic gameplay channel: он одновременно проявляет маршрут, меняет stealth exposure и создаёт presentation snapshot, но shader сам не открывает проход.
 
 ## 10. UI architecture

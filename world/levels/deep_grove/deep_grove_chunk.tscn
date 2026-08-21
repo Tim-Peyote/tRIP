@@ -281,6 +281,16 @@ text = "В пульсе кольца проступает отпечаток л�
 requires_spore_vision = true
 required_world_state = &"surge"
 
+[node name="RootWellGate" parent="." instance=ExtResource("2")]
+position = Vector3(-2.5, 0.15, -5.35)
+rotation = Vector3(0, 3.14159, 0)
+target_position = Vector3(60, 0.2, 26)
+target_yaw = 3.14159
+portal_name = "Корневой колодец"
+portal_description = "Кольцо раскрылось в живой вертикальный тоннель. Из глубины доносится голос."
+locked = true
+locked_prompt = "Кольцо не раскрывается без плана спуска"
+
 [node name="ShelterLower" parent="." instance=ExtResource("10")]
 position = Vector3(-6.8, 0.15, -5.2)
 shelter_name = "нижний грибной навес"

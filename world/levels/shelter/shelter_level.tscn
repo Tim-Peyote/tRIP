@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3]
+[gd_scene load_steps=69 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -30,6 +30,7 @@
 [ext_resource type="RecipeDefinition" path="res://content/recipes/emberberry_tonic.tres" id="28_ember_recipe"]
 [ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="29_recipe_script"]
 [ext_resource type="PackedScene" path="res://features/investigation/investigation_board.tscn" id="30_board"]
+[ext_resource type="PackedScene" path="res://world/levels/root_well/root_well_chunk.tscn" id="31_root_well"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -675,3 +676,6 @@ position = Vector3(0, 0, 35)
 
 [node name="DeepGrove" parent="." instance=ExtResource("21_deep_grove")]
 position = Vector3(25, 0, 15)
+
+[node name="RootWell" parent="." instance=ExtResource("31_root_well")]
+position = Vector3(60, 0, 15)

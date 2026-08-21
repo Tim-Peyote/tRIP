@@ -24,6 +24,8 @@ var _hypotheses: HypothesisOrchestrator
 var _game_loop: GameLoopOrchestrator
 var _persistence: SessionPersistenceOrchestrator
 var _spore_tide: SporeTideOrchestrator
+var _root_pressure: RootPressureOrchestrator
+var _inside_root_well: bool = false
 
 
 func _ready() -> void:
@@ -120,6 +122,15 @@ func setup_spore_tide(spore_tide: SporeTideOrchestrator) -> void:
 	spore_tide.overwhelmed.connect(func() -> void: show_notice("Споры забили дыхание. Роща вытолкнула тебя ко входу."))
 
 
+func setup_root_pressure(root_pressure: RootPressureOrchestrator) -> void:
+	_root_pressure = root_pressure
+	root_pressure.state_changed.connect(_on_root_pressure_state_changed)
+	root_pressure.pressure_changed.connect(_on_root_pressure_changed)
+	root_pressure.ward_changed.connect(_on_root_ward_changed)
+	root_pressure.area_changed.connect(_on_root_area_changed)
+	root_pressure.overwhelmed.connect(func() -> void: show_notice("Корни нашли твой ритм и вытолкнули ко входу в колодец."))
+
+
 func clear() -> void:
 	_player = null
 	_cooking = null
@@ -131,6 +142,8 @@ func clear() -> void:
 	_game_loop = null
 	_persistence = null
 	_spore_tide = null
+	_root_pressure = null
+	_inside_root_well = false
 	prompt_label.text = ""
 	hold_progress.visible = false
 	notice_label.visible = false
@@ -305,6 +318,29 @@ func _on_spore_exposure_changed(value: float) -> void:
 func _on_spore_shelter_changed(is_sheltered: bool, shelter_name: String) -> void:
 	%SporeShelterLabel.visible = is_sheltered
 	%SporeShelterLabel.text = "УКРЫТИЕ · %s" % shelter_name.to_upper()
+
+
+func _on_root_area_changed(is_inside: bool) -> void:
+	_inside_root_well = is_inside
+	%RootPressureLabel.visible = is_inside
+	%RootPressureBar.visible = is_inside
+	if not is_inside:
+		%RootWardLabel.visible = false
+
+
+func _on_root_pressure_state_changed(_state: int, label: String) -> void:
+	%RootPressureLabel.text = label
+	%RootPressureLabel.visible = _inside_root_well
+
+
+func _on_root_pressure_changed(value: float) -> void:
+	%RootPressureBar.value = value * 100.0
+	%RootPressureBar.visible = _inside_root_well
+
+
+func _on_root_ward_changed(is_warded: bool, ward_name: String) -> void:
+	%RootWardLabel.visible = _inside_root_well and is_warded
+	%RootWardLabel.text = "МЕМБРАНА · %s" % ward_name.to_upper()
 
 
 func _on_inspection_requested(title: String, description: String) -> void:
