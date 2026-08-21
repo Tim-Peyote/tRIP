@@ -41,6 +41,7 @@ func _ready() -> void:
 	level.world_phase_orchestrator.set_developer_phase(&"phase.mycelial_choir")
 	terrain.call("_set_phase_amount", 1.0)
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.mycelial_profile, true)
+	_reground_viewpoint(level, terrain)
 	for _frame in 6:
 		await get_tree().process_frame
 	var altered := get_viewport().get_texture().get_image()
@@ -77,6 +78,15 @@ func _capture_phase(level: ShelterLevel, terrain: ExpeditionTerrain, phase_id: S
 	level.world_phase_orchestrator.set_developer_phase(phase_id)
 	terrain.call("_set_phase_amount", 1.0)
 	level.biome_visual_controller.apply_profile(level.world_phase_orchestrator.get_current().visual_profile, true)
-	for _frame in 3:
+	_reground_viewpoint(level, terrain)
+	for _frame in 8:
 		await get_tree().process_frame
 	return get_viewport().get_texture().get_image().save_png(path)
+
+
+func _reground_viewpoint(level: ShelterLevel, terrain: ExpeditionTerrain) -> void:
+	var viewpoint := level.player.global_position
+	viewpoint.y = terrain.get_height_at_global(viewpoint) + 0.12
+	terrain.ensure_area_at(viewpoint)
+	level.player.global_position = viewpoint
+	level.player.velocity = Vector3.ZERO

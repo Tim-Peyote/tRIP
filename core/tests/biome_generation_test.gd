@@ -104,6 +104,10 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 	var key_lights: Dictionary[Color, bool] = {}
 	var motion_signatures: Dictionary[String, bool] = {}
 	var route_signatures: Dictionary[String, bool] = {}
+	var expected_poi_focal_nodes := [
+		"WeatheredCedarMarker", "ListeningBellCap", "WarmBoneWithoutBeast", "FrozenMemorySlab_00",
+		"HalfErasedTentSkin", "StillWaterEye", "RootMouthDarkness", "BrotherArc_-1",
+	]
 	for path: String in phase_paths:
 		var phase := load(path) as WorldPhaseDefinition
 		var pack := phase.content_pack
@@ -126,6 +130,42 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 		_expect(composition != null and composition.get_meta(&"composition_family", &"") == pack.composition_family, "%s did not build its authored composition." % pack.id)
 		_expect(composition != null and composition.get_child_count() >= 5, "%s composition is too weak to form a readable silhouette." % pack.id)
 		body.free()
+		var found_primary_crowns := false
+		var found_secondary_crowns := false
+		var found_primary_geology := false
+		var found_secondary_geology := false
+		# Patch noise may deliberately leave one chunk open. Sample several authored
+		# landscape beats so the test checks the biome vocabulary, not carpet density.
+		for sample_index: int in 4:
+			var scatter_body := StaticBody3D.new()
+			terrain.add_child(scatter_body)
+			var scatter_rng := RandomNumberGenerator.new()
+			scatter_rng.seed = 19271 + pack.ecology_family * 313 + sample_index * 917
+			var sample_coordinate := Vector2i(pack.ecology_family + sample_index * 3 - 3, 7 + sample_index * 2)
+			terrain.call("_add_tree_multimeshes", scatter_body, sample_coordinate, scatter_rng, 36)
+			terrain.call("_add_rock_multimesh", scatter_body, sample_coordinate, scatter_rng, 28)
+			_expect(scatter_body.get_child_count() <= 5, "%s scatter escaped its bounded MultiMesh draw-pool budget." % pack.id)
+			var primary_crowns := scatter_body.get_node_or_null("VegetationCrownsPrimary_%d" % pack.vegetation_family) as MultiMeshInstance3D
+			var secondary_crowns := scatter_body.get_node_or_null("VegetationCrownsSecondary_%d" % pack.vegetation_family) as MultiMeshInstance3D
+			var primary_geology := scatter_body.get_node_or_null("GeologyPrimary_%d" % pack.geology_family) as MultiMeshInstance3D
+			var secondary_geology := scatter_body.get_node_or_null("GeologySecondary_%d" % pack.geology_family) as MultiMeshInstance3D
+			found_primary_crowns = found_primary_crowns or (primary_crowns != null and primary_crowns.multimesh.instance_count > 0)
+			found_secondary_crowns = found_secondary_crowns or (secondary_crowns != null and secondary_crowns.multimesh.instance_count > 0)
+			found_primary_geology = found_primary_geology or (primary_geology != null and primary_geology.multimesh.instance_count > 0)
+			found_secondary_geology = found_secondary_geology or (secondary_geology != null and secondary_geology.multimesh.instance_count > 0)
+			scatter_body.free()
+		_expect(found_primary_crowns, "%s lost its primary vegetation silhouette family." % pack.id)
+		_expect(found_secondary_crowns, "%s has no secondary vegetation silhouette family." % pack.id)
+		_expect(found_primary_geology, "%s lost its primary geology silhouette family." % pack.id)
+		_expect(found_secondary_geology, "%s has no secondary geology silhouette family." % pack.id)
+		var poi_body := StaticBody3D.new()
+		terrain.add_child(poi_body)
+		var poi_rng := RandomNumberGenerator.new()
+		poi_rng.seed = 70123 + pack.ecology_family * 577
+		terrain.call("_add_point_of_interest", poi_body, Vector2i(pack.ecology_family - 3, 9), poi_rng)
+		var expected_focal_name: String = expected_poi_focal_nodes[pack.ecology_family]
+		_expect(poi_body.find_child(expected_focal_name, true, false) != null, "%s still lacks a unique authored POI focal scene." % pack.id)
+		poi_body.free()
 	_expect(families.size() == phase_paths.size(), "Worlds reuse ecology compositions instead of owning distinct spatial motifs.")
 	_expect(key_lights.size() == phase_paths.size(), "Worlds reuse the same key light instead of owning distinct lighting direction and color.")
 	_expect(motion_signatures.size() == phase_paths.size(), "Worlds reuse one vegetation motion profile.")

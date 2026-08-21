@@ -50,7 +50,7 @@ func _run() -> void:
 		if definition.content_pack != null:
 			var terrain_signature := terrain.get_loaded_ecology_signature()
 			_expect(terrain_signature.contains("VegetationTrunks_%d" % definition.content_pack.vegetation_family), "Terrain did not instantiate the phase vegetation family.")
-			_expect(terrain_signature.contains("Geology_%d" % definition.content_pack.geology_family), "Terrain did not instantiate the phase geology family.")
+			_expect(terrain_signature.contains("GeologyPrimary_%d" % definition.content_pack.geology_family), "Terrain did not instantiate the phase geology family.")
 			_expect(terrain_signature.contains("Groundcover_%d" % definition.content_pack.ecology_family), "Every world must instantiate its own groundcover family.")
 			_expect(terrain.get_node_or_null("BiomeHorizon") != null, "World phase did not build a distant horizon layer.")
 			_expect(terrain.get_node_or_null("BiomeAtmosphere") != null, "World phase did not build an atmospheric particle layer.")

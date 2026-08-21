@@ -36,6 +36,31 @@ static func create_conifer_crown() -> ArrayMesh:
 	return surface.commit()
 
 
+static func create_conifer_crown_windformed() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# An asymmetric high-altitude cedar: the prevailing wind leaves one heavy side
+	# and a visible bare shoulder instead of another perfect Christmas-tree cone.
+	var centers := [Vector3(0.0, 0.0, 0.0), Vector3(0.34, 1.0, -0.08), Vector3(0.62, 1.95, -0.16)]
+	var radii := [1.65, 1.28, 0.82]
+	for layer: int in centers.size():
+		var center: Vector3 = centers[layer]
+		var radius: float = radii[layer]
+		for side: int in 8:
+			var next := (side + 1) % 8
+			var angle_a := TAU * float(side) / 8.0 + 0.2 * float(layer)
+			var angle_b := TAU * float(next) / 8.0 + 0.2 * float(layer)
+			var compression_a := 0.54 if cos(angle_a) < -0.25 else 1.0
+			var compression_b := 0.54 if cos(angle_b) < -0.25 else 1.0
+			var a := center + Vector3(cos(angle_a) * radius * compression_a, 0.0, sin(angle_a) * radius)
+			var b := center + Vector3(cos(angle_b) * radius * compression_b, 0.0, sin(angle_b) * radius)
+			var tip := center + Vector3(0.34, 0.68 if layer < 2 else 0.9, 0.0)
+			_add_triangle(surface, a, b, tip)
+			_add_triangle(surface, b, a, center + Vector3.UP * 0.06)
+	surface.generate_normals()
+	return surface.commit()
+
+
 static func create_fungus_stem() -> ArrayMesh:
 	return _create_tapered_form(5.4, 0.52, 0.34, 9, 5, 0.28, 1.13)
 
@@ -73,6 +98,27 @@ static func create_fungus_cap() -> ArrayMesh:
 	return surface.commit()
 
 
+static func create_fungus_cap_bell() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rings := [Vector2(0.0, 0.34), Vector2(0.38, 0.78), Vector2(0.86, 1.18), Vector2(1.42, 0.72)]
+	for ring_index: int in rings.size() - 1:
+		var lower: Vector2 = rings[ring_index]
+		var upper: Vector2 = rings[ring_index + 1]
+		for side: int in 10:
+			var next := (side + 1) % 10
+			var angle_a := TAU * float(side) / 10.0
+			var angle_b := TAU * float(next) / 10.0
+			var a := Vector3(cos(angle_a) * lower.y, lower.x, sin(angle_a) * lower.y)
+			var b := Vector3(cos(angle_b) * lower.y, lower.x, sin(angle_b) * lower.y)
+			var c := Vector3(cos(angle_a) * upper.y, upper.x, sin(angle_a) * upper.y)
+			var d := Vector3(cos(angle_b) * upper.y, upper.x, sin(angle_b) * upper.y)
+			_add_triangle(surface, a, b, c)
+			_add_triangle(surface, b, d, c)
+	surface.generate_normals()
+	return surface.commit()
+
+
 static func create_granite_boulder() -> ArrayMesh:
 	return _create_tapered_form(1.55, 1.0, 0.42, 7, 2, 0.28, 2.41)
 
@@ -94,6 +140,19 @@ static func create_antler_crown() -> ArrayMesh:
 	]
 	for branch: Array in branches:
 		_add_tube_segment(surface, branch[0], branch[1], branch[2], branch[3], 5)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_antler_crown_swept() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var spine := [Vector3(0, 0, 0), Vector3(0.28, 0.85, 0.08), Vector3(0.72, 1.65, -0.06), Vector3(1.22, 2.35, 0.16)]
+	for index: int in spine.size() - 1:
+		_add_tube_segment(surface, spine[index], spine[index + 1], 0.17 - index * 0.035, 0.12 - index * 0.03, 5)
+	_add_tube_segment(surface, spine[1], Vector3(-0.72, 1.45, 0.42), 0.11, 0.025, 5)
+	_add_tube_segment(surface, spine[2], Vector3(0.15, 2.45, -0.38), 0.09, 0.022, 5)
+	_add_tube_segment(surface, spine[2], Vector3(1.5, 2.15, 0.5), 0.08, 0.018, 5)
 	surface.generate_normals()
 	return surface.commit()
 
@@ -126,6 +185,17 @@ static func create_crystal_cluster() -> ArrayMesh:
 	return surface.commit()
 
 
+static func create_ice_lattice() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_tube_segment(surface, Vector3(-1.0, 0, 0), Vector3(0.0, 2.35, 0.12), 0.18, 0.09, 5)
+	_add_tube_segment(surface, Vector3(1.0, 0, 0), Vector3(0.0, 2.35, 0.12), 0.18, 0.09, 5)
+	_add_crystal(surface, Vector3(-0.62, 0, 0.18), 0.22, 1.2, -0.4)
+	_add_crystal(surface, Vector3(0.66, 0, -0.16), 0.2, 1.05, 0.45)
+	surface.generate_normals()
+	return surface.commit()
+
+
 static func create_burnt_crown() -> ArrayMesh:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -136,16 +206,60 @@ static func create_burnt_crown() -> ArrayMesh:
 	return surface.commit()
 
 
+static func create_burnt_crown_fork() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_tube_segment(surface, Vector3(0, 0, 0), Vector3(0.05, 1.0, 0), 0.2, 0.13, 6)
+	_add_tube_segment(surface, Vector3(0.05, 0.88, 0), Vector3(-0.86, 2.0, 0.22), 0.13, 0.025, 5)
+	_add_tube_segment(surface, Vector3(0.05, 0.88, 0), Vector3(0.74, 2.34, -0.32), 0.12, 0.02, 5)
+	_add_tube_segment(surface, Vector3(-0.45, 1.46, 0.1), Vector3(-1.12, 1.72, -0.24), 0.07, 0.015, 4)
+	surface.generate_normals()
+	return surface.commit()
+
+
 static func create_reed_head() -> ArrayMesh:
 	return _create_tapered_form(0.86, 0.12, 0.055, 6, 3, 0.06, 1.7)
+
+
+static func create_reed_fan() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for index: int in 5:
+		var x := float(index - 2) * 0.21
+		var height := 0.9 + float(index % 3) * 0.3
+		_add_tube_segment(surface, Vector3(x * 0.3, 0, 0), Vector3(x, height, 0.08 * sin(index)), 0.055, 0.018, 5)
+	surface.generate_normals()
+	return surface.commit()
 
 
 static func create_root_loop() -> ArrayMesh:
 	return _create_loop_form(Vector2(0.95, 1.35), 0.14, 11, 0.32)
 
 
+static func create_root_spire() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_tube_segment(surface, Vector3(-0.65, 0, 0), Vector3(-0.2, 1.4, 0.32), 0.23, 0.12, 6)
+	_add_tube_segment(surface, Vector3(0.66, 0, 0.1), Vector3(-0.2, 1.4, 0.32), 0.2, 0.1, 6)
+	_add_tube_segment(surface, Vector3(-0.2, 1.4, 0.32), Vector3(0.24, 2.8, -0.16), 0.13, 0.025, 6)
+	surface.generate_normals()
+	return surface.commit()
+
+
 static func create_heart_loop() -> ArrayMesh:
 	return _create_loop_form(Vector2(1.35, 1.58), 0.11, 13, 0.58)
+
+
+static func create_heart_branch() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_tube_segment(surface, Vector3(0, 0, 0), Vector3(0, 1.45, 0), 0.14, 0.09, 6)
+	_add_tube_segment(surface, Vector3(0, 1.0, 0), Vector3(-1.15, 2.2, 0.3), 0.1, 0.02, 5)
+	_add_tube_segment(surface, Vector3(0, 1.0, 0), Vector3(1.15, 2.2, -0.3), 0.1, 0.02, 5)
+	_add_tube_segment(surface, Vector3(-0.74, 1.76, 0.2), Vector3(-0.05, 2.72, 0), 0.055, 0.018, 5)
+	_add_tube_segment(surface, Vector3(0.74, 1.76, -0.2), Vector3(0.05, 2.72, 0), 0.055, 0.018, 5)
+	surface.generate_normals()
+	return surface.commit()
 
 
 static func create_red_scree() -> ArrayMesh:
@@ -158,12 +272,44 @@ static func create_red_scree() -> ArrayMesh:
 	return surface.commit()
 
 
+static func create_granite_slab() -> ArrayMesh:
+	return _create_tapered_form(1.2, 1.35, 0.78, 6, 2, 0.12, 0.91)
+
+
+static func create_karst_stack() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_irregular_disc(surface, 1.05, 0.0, 7, 0.2)
+	_add_irregular_disc(surface, 0.82, 0.72, 7, 0.9)
+	_add_irregular_disc(surface, 0.58, 1.46, 6, 1.7)
+	_add_crystal(surface, Vector3(0.12, 1.46, 0), 0.31, 1.2, 0.24)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_red_monolith() -> ArrayMesh:
+	return _create_tapered_form(2.45, 0.72, 0.12, 5, 3, 0.32, 1.85)
+
+
 static func create_ice_geology() -> ArrayMesh:
 	return create_crystal_cluster()
 
 
+static func create_ice_arch() -> ArrayMesh:
+	return _create_loop_form(Vector2(1.2, 1.6), 0.22, 10, 0.12)
+
+
 static func create_ash_column() -> ArrayMesh:
 	return _create_tapered_form(3.1, 0.78, 0.22, 5, 3, 0.14, 2.2)
+
+
+static func create_ash_cairn() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for layer: int in 4:
+		_add_irregular_disc(surface, 1.0 - float(layer) * 0.17, float(layer) * 0.42, 6, float(layer) * 1.1)
+	surface.generate_normals()
+	return surface.commit()
 
 
 static func create_wetland_shelf() -> ArrayMesh:
@@ -176,8 +322,22 @@ static func create_wetland_shelf() -> ArrayMesh:
 	return surface.commit()
 
 
+static func create_wetland_stone() -> ArrayMesh:
+	return _create_tapered_form(0.72, 1.25, 0.82, 8, 2, 0.08, 2.7)
+
+
 static func create_root_nodule() -> ArrayMesh:
 	return _create_tapered_form(1.8, 1.15, 0.32, 8, 3, 0.5, 1.26)
+
+
+static func create_root_bulb_cluster() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_crystal(surface, Vector3(-0.48, 0, 0.16), 0.66, 1.42, -0.8)
+	_add_crystal(surface, Vector3(0.42, 0, -0.2), 0.75, 1.68, 0.7)
+	_add_tube_segment(surface, Vector3(-0.6, 0.2, 0), Vector3(0.64, 0.16, 0.12), 0.22, 0.18, 6)
+	surface.generate_normals()
+	return surface.commit()
 
 
 static func create_floating_strata() -> ArrayMesh:
@@ -187,6 +347,15 @@ static func create_floating_strata() -> ArrayMesh:
 		var y := float(layer) * 0.48
 		var radius := 1.3 - float(layer) * 0.22
 		_add_irregular_disc(surface, radius, y, 7, float(layer) * 0.7)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_floating_shard() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_crystal(surface, Vector3.ZERO, 1.05, 2.25, 0.34)
+	_add_irregular_disc(surface, 1.34, 0.42, 7, 0.8)
 	surface.generate_normals()
 	return surface.commit()
 

@@ -105,7 +105,9 @@ func apply_world_phase(definition: WorldPhaseDefinition) -> void:
 	_world_phase = next_phase
 	if _terrain_material != null:
 		_terrain_material.set_shader_parameter(&"phase_low", definition.stone_low)
-		_terrain_material.set_shader_parameter(&"phase_high", definition.beacon_color)
+		# Beacon colour is intentionally a rare navigation accent. Feeding it into the
+		# entire landscape made every altered world read as one emissive colour wash.
+		_terrain_material.set_shader_parameter(&"phase_high", definition.stone_high)
 	var tween := create_tween()
 	tween.tween_method(_set_phase_amount, _phase_amount, 0.0 if definition.is_baseline() else 1.0, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	if should_reground_target:
@@ -705,6 +707,7 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 	var trunk_has_base_origin := false
 	var trunk_color := Color(0.24, 0.095, 0.035)
 	var crown: Mesh
+	var secondary_crown: Mesh
 	var crown_layers := 2
 	var size_low := 0.75
 	var size_high := 1.65
@@ -714,12 +717,14 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			trunk_height = 5.8
 			trunk_has_base_origin = true
 			crown = _cached_biome_mesh(&"conifer_crown", "create_conifer_crown")
+			secondary_crown = _cached_biome_mesh(&"conifer_crown_windformed", "create_conifer_crown_windformed")
 			crown_layers = 1
 		BiomeContentPack.VegetationFamily.GIANT_FUNGI:
 			trunk = _cached_biome_mesh(&"fungus_stem", "create_fungus_stem")
 			trunk_height = 5.4
 			trunk_has_base_origin = true
 			crown = _cached_biome_mesh(&"fungus_cap", "create_fungus_cap")
+			secondary_crown = _cached_biome_mesh(&"fungus_cap_bell", "create_fungus_cap_bell")
 			trunk_color = Color(0.3, 0.18, 0.32)
 			crown_layers = 1
 		BiomeContentPack.VegetationFamily.ANTLER_LARCH:
@@ -727,10 +732,12 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			trunk_height = 5.8
 			trunk_has_base_origin = true
 			crown = _cached_biome_mesh(&"antler_crown", "create_antler_crown")
+			secondary_crown = _cached_biome_mesh(&"antler_crown_swept", "create_antler_crown_swept")
 			trunk_color = Color(0.16, 0.018, 0.012)
 			crown_layers = 1
 		BiomeContentPack.VegetationFamily.ICE_LICHEN:
 			crown = _cached_biome_mesh(&"crystal_cluster", "create_crystal_cluster")
+			secondary_crown = _cached_biome_mesh(&"ice_lattice", "create_ice_lattice")
 			trunk_color = Color(0.08, 0.28, 0.4)
 			crown_layers = 1
 			trunk_shape.height = 3.6
@@ -740,11 +747,13 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			trunk_height = 5.8
 			trunk_has_base_origin = true
 			crown = _cached_biome_mesh(&"burnt_crown", "create_burnt_crown")
+			secondary_crown = _cached_biome_mesh(&"burnt_crown_fork", "create_burnt_crown_fork")
 			trunk_color = Color(0.035, 0.028, 0.025)
 			crown_layers = 1
 			size_low = 0.62
 		BiomeContentPack.VegetationFamily.REED_ISLANDS:
 			crown = _cached_biome_mesh(&"reed_head", "create_reed_head")
+			secondary_crown = _cached_biome_mesh(&"reed_fan", "create_reed_fan")
 			trunk_shape.top_radius = 0.025
 			trunk_shape.bottom_radius = 0.05
 			trunk_shape.height = 2.4
@@ -755,20 +764,27 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			size_high = 1.05
 		BiomeContentPack.VegetationFamily.ROOT_COLUMNS:
 			crown = _cached_biome_mesh(&"root_loop", "create_root_loop")
+			secondary_crown = _cached_biome_mesh(&"root_spire", "create_root_spire")
 			trunk_shape.top_radius = 0.42
 			trunk_shape.bottom_radius = 0.72
 			trunk_color = Color(0.22, 0.07, 0.018)
 			crown_layers = 2
 		_:
 			crown = _cached_biome_mesh(&"heart_loop", "create_heart_loop")
+			secondary_crown = _cached_biome_mesh(&"heart_branch", "create_heart_branch")
 			trunk_color = Color(0.08, 0.12, 0.28)
 			crown_layers = 3
 	_set_mesh_material(trunk, _standard_material(trunk_color))
 	var crown_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.055, 0.24, 0.075)
 	_set_mesh_material(crown, _ecology_motion_material(crown_low, pack, 0.34, 0.14 if _is_altered_phase() else 0.0))
+	_set_mesh_material(secondary_crown, _ecology_motion_material(crown_low, pack, 0.34, 0.14 if _is_altered_phase() else 0.0))
 	var trunks := _new_multimesh(trunk, count)
-	var crowns := _new_multimesh(crown, count * crown_layers)
+	var primary_crowns := _new_multimesh(crown, count * crown_layers)
+	var secondary_crowns := _new_multimesh(secondary_crown, count * crown_layers)
 	var placed := 0
+	var primary_placed := 0
+	var secondary_placed := 0
+	var variant_seed: int = absi(int(_chunk_seed(coordinate)))
 	for _attempt in count * 5:
 		if placed >= count:
 			break
@@ -783,6 +799,10 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 		var trunk_y := ground if trunk_has_base_origin else ground + trunk_height * 0.5 * size
 		trunks.set_instance_transform(placed, Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size)), Vector3(point.x, trunk_y, point.y)))
 		trunks.set_instance_color(placed, Color(0.18, 0.065, 0.025).lerp(Color(0.36, 0.16, 0.05), rng.randf()))
+		# The ratio is deterministic per chunk, so streaming a chunk out and in never
+		# changes its silhouette. Secondary forms are common enough to shape the view,
+		# but primary forms still define the biome at a glance.
+		var use_secondary: bool = (variant_seed + placed * 7) % 5 >= 3
 		for layer in crown_layers:
 			var crown_scale := size * (1.15 - float(layer) * 0.2)
 			var offset := Vector3(0, size * (trunk_height * 0.57 + float(layer) * 1.2), 0)
@@ -795,43 +815,86 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			var crown_rotation := Vector3(0.0, yaw + layer * 0.3, 0.0)
 			if family == BiomeContentPack.VegetationFamily.CONCORDANT_GROVE:
 				crown_rotation.z = float(layer) * 0.52
-			crowns.set_instance_transform(placed * crown_layers + layer, Transform3D(Basis.from_euler(crown_rotation).scaled(Vector3(crown_scale, size, crown_scale)), Vector3(point.x, ground, point.y) + offset))
+			var crown_transform := Transform3D(Basis.from_euler(crown_rotation).scaled(Vector3(crown_scale, size, crown_scale)), Vector3(point.x, ground, point.y) + offset)
 			var ordinary := Color(0.055, 0.24, 0.075).lerp(Color(0.4, 0.55, 0.12), rng.randf_range(0.0, 0.65))
 			var altered_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.15, 0.05, 0.32)
 			var altered_high := _phase_definition.canopy_high if _phase_definition != null else Color(0.95, 0.12, 0.62)
 			var altered := altered_low.lerp(altered_high, rng.randf_range(0.15, 0.8))
-			crowns.set_instance_color(placed * crown_layers + layer, altered if _is_altered_phase() else ordinary)
+			var crown_color := altered if _is_altered_phase() else ordinary
+			if use_secondary:
+				secondary_crowns.set_instance_transform(secondary_placed, crown_transform)
+				secondary_crowns.set_instance_color(secondary_placed, crown_color)
+				secondary_placed += 1
+			else:
+				primary_crowns.set_instance_transform(primary_placed, crown_transform)
+				primary_crowns.set_instance_color(primary_placed, crown_color)
+				primary_placed += 1
 		placed += 1
 	trunks.instance_count = placed
-	crowns.instance_count = placed * crown_layers
+	primary_crowns.instance_count = primary_placed
+	secondary_crowns.instance_count = secondary_placed
 	_add_multimesh_instance(body, "VegetationTrunks_%d" % family, trunks)
-	_add_multimesh_instance(body, "VegetationCrowns_%d" % family, crowns)
+	_add_multimesh_instance(body, "VegetationCrownsPrimary_%d" % family, primary_crowns)
+	_add_multimesh_instance(body, "VegetationCrownsSecondary_%d" % family, secondary_crowns)
 
 
 func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
 	var pack := _get_content_pack()
 	var family := pack.geology_family if pack != null else BiomeContentPack.GeologyFamily.ROUNDED_GRANITE
 	var mesh: Mesh
+	var secondary_mesh: Mesh
+	var primary_height := 1.35
+	var secondary_height := 1.35
 	match family:
 		BiomeContentPack.GeologyFamily.ROUNDED_GRANITE:
 			mesh = _cached_biome_mesh(&"granite_boulder", "create_granite_boulder")
+			secondary_mesh = _cached_biome_mesh(&"granite_slab", "create_granite_slab")
+			primary_height = 1.55
+			secondary_height = 1.2
 		BiomeContentPack.GeologyFamily.ROOT_NODULES:
 			mesh = _cached_biome_mesh(&"root_nodule", "create_root_nodule")
+			secondary_mesh = _cached_biome_mesh(&"root_bulb_cluster", "create_root_bulb_cluster")
+			primary_height = 1.8
+			secondary_height = 1.68
 		BiomeContentPack.GeologyFamily.KARST_RIBS:
 			mesh = _cached_biome_mesh(&"karst_rib", "create_karst_rib")
+			secondary_mesh = _cached_biome_mesh(&"karst_stack", "create_karst_stack")
+			primary_height = 3.5
+			secondary_height = 2.66
 		BiomeContentPack.GeologyFamily.ICE_CRYSTALS:
 			mesh = _cached_biome_mesh(&"ice_geology", "create_ice_geology")
+			secondary_mesh = _cached_biome_mesh(&"ice_arch", "create_ice_arch")
+			primary_height = 3.4
+			secondary_height = 3.2
 		BiomeContentPack.GeologyFamily.FLOATING_STRATA:
 			mesh = _cached_biome_mesh(&"floating_strata", "create_floating_strata")
+			secondary_mesh = _cached_biome_mesh(&"floating_shard", "create_floating_shard")
+			primary_height = 1.44
+			secondary_height = 2.25
 		BiomeContentPack.GeologyFamily.RED_SCREE:
 			mesh = _cached_biome_mesh(&"red_scree", "create_red_scree")
+			secondary_mesh = _cached_biome_mesh(&"red_monolith", "create_red_monolith")
+			primary_height = 1.2
+			secondary_height = 2.45
 		BiomeContentPack.GeologyFamily.ASH_COLUMNS:
 			mesh = _cached_biome_mesh(&"ash_column", "create_ash_column")
+			secondary_mesh = _cached_biome_mesh(&"ash_cairn", "create_ash_cairn")
+			primary_height = 3.1
+			secondary_height = 1.26
 		_:
 			mesh = _cached_biome_mesh(&"wetland_shelf", "create_wetland_shelf")
-	_set_mesh_material(mesh, _standard_material(pack.ground_high if pack != null else Color(0.26, 0.28, 0.24), family == BiomeContentPack.GeologyFamily.ICE_CRYSTALS or family == BiomeContentPack.GeologyFamily.FLOATING_STRATA))
-	var multimesh := _new_multimesh(mesh, count)
+			secondary_mesh = _cached_biome_mesh(&"wetland_stone", "create_wetland_stone")
+			primary_height = 0.58
+			secondary_height = 0.72
+	var luminous := family == BiomeContentPack.GeologyFamily.ICE_CRYSTALS or family == BiomeContentPack.GeologyFamily.FLOATING_STRATA
+	_set_mesh_material(mesh, _standard_material(pack.ground_high if pack != null else Color(0.26, 0.28, 0.24), luminous))
+	_set_mesh_material(secondary_mesh, _standard_material(pack.ground_high if pack != null else Color(0.26, 0.28, 0.24), luminous))
+	var primary_multimesh := _new_multimesh(mesh, count)
+	var secondary_multimesh := _new_multimesh(secondary_mesh, count)
 	var placed := 0
+	var primary_placed := 0
+	var secondary_placed := 0
+	var variant_seed: int = absi(int(_chunk_seed(coordinate)))
 	for _attempt in count * 5:
 		if placed >= count:
 			break
@@ -844,30 +907,27 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 		var ground := _height_at(point.x, point.y)
 		var vertical_scale := size * rng.randf_range(0.45, 0.9)
 		var basis := Basis.from_euler(Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(0.0, TAU), rng.randf_range(-0.2, 0.2))).scaled(Vector3(size * rng.randf_range(0.8, 1.5), vertical_scale, size))
-		var mesh_height := 1.35
-		if mesh is PrismMesh:
-			mesh_height = (mesh as PrismMesh).size.y
-		elif mesh is CylinderMesh:
-			mesh_height = (mesh as CylinderMesh).height
-		else:
-			match family:
-				BiomeContentPack.GeologyFamily.KARST_RIBS: mesh_height = 3.5
-				BiomeContentPack.GeologyFamily.ROUNDED_GRANITE: mesh_height = 1.55
-				BiomeContentPack.GeologyFamily.RED_SCREE: mesh_height = 1.2
-				BiomeContentPack.GeologyFamily.ICE_CRYSTALS: mesh_height = 3.4
-				BiomeContentPack.GeologyFamily.ASH_COLUMNS: mesh_height = 3.1
-				BiomeContentPack.GeologyFamily.WETLAND_SHELVES: mesh_height = 0.58
-				BiomeContentPack.GeologyFamily.ROOT_NODULES: mesh_height = 1.8
-				BiomeContentPack.GeologyFamily.FLOATING_STRATA: mesh_height = 1.44
-		multimesh.set_instance_transform(placed, Transform3D(basis, Vector3(point.x, ground + mesh_height * vertical_scale * 0.42, point.y)))
+		var use_secondary: bool = (variant_seed + placed * 11) % 7 >= 4
+		var mesh_height := secondary_height if use_secondary else primary_height
+		var instance_transform := Transform3D(basis, Vector3(point.x, ground + mesh_height * vertical_scale * 0.42, point.y))
 		var ordinary := Color(0.19, 0.24, 0.2).lerp(Color(0.48, 0.42, 0.28), rng.randf())
 		var altered_low := _phase_definition.stone_low if _phase_definition != null else Color(0.08, 0.32, 0.42)
 		var altered_high := _phase_definition.stone_high if _phase_definition != null else Color(0.7, 0.16, 0.65)
 		var altered := altered_low.lerp(altered_high, rng.randf())
-		multimesh.set_instance_color(placed, altered if _is_altered_phase() else ordinary)
+		var instance_color := altered if _is_altered_phase() else ordinary
+		if use_secondary:
+			secondary_multimesh.set_instance_transform(secondary_placed, instance_transform)
+			secondary_multimesh.set_instance_color(secondary_placed, instance_color)
+			secondary_placed += 1
+		else:
+			primary_multimesh.set_instance_transform(primary_placed, instance_transform)
+			primary_multimesh.set_instance_color(primary_placed, instance_color)
+			primary_placed += 1
 		placed += 1
-	multimesh.instance_count = placed
-	_add_multimesh_instance(body, "Geology_%d" % family, multimesh)
+	primary_multimesh.instance_count = primary_placed
+	secondary_multimesh.instance_count = secondary_placed
+	_add_multimesh_instance(body, "GeologyPrimary_%d" % family, primary_multimesh)
+	_add_multimesh_instance(body, "GeologySecondary_%d" % family, secondary_multimesh)
 
 
 func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
@@ -989,6 +1049,14 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 		_add_predator_shrine_heart(root, center, rng, pack)
 	elif poi_family == &"frozen_archive":
 		_add_frozen_archive_core(root, center, rng, pack)
+	elif poi_family == &"memory_ring":
+		_add_memory_ring_core(root, center, rng, pack)
+	elif poi_family == &"reflection_pool":
+		_add_reflection_pool_core(root, center, rng, pack)
+	elif poi_family == &"root_mouth":
+		_add_root_mouth_core(root, center, rng, pack)
+	elif poi_family == &"brothers_heart":
+		_add_brothers_heart_core(root, center, rng, pack)
 	root.set_meta(&"poi_kind", poi_family)
 	if pack != null and not pack.mystery_ids.is_empty():
 		root.set_meta(&"mystery_id", pack.mystery_ids[abs(int(_chunk_seed(coordinate))) % pack.mystery_ids.size()])
@@ -1066,6 +1134,125 @@ func _add_frozen_archive_core(root: Node3D, center: Vector2, rng: RandomNumberGe
 		memory_slab.position = Vector3(center.x + float(index - 1) * 1.35, ground + 1.45, center.y)
 		memory_slab.rotation.y = rng.randf_range(-0.18, 0.18)
 		root.add_child(memory_slab)
+
+
+func _add_memory_ring_core(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var ground := _height_at(center.x, center.y)
+	var stem_material := _standard_material(pack.ground_high.darkened(0.55))
+	var cap_material := _standard_material(pack.accent_color.darkened(0.18), true)
+	var stem := MeshInstance3D.new()
+	stem.name = "RememberingStem"
+	stem.mesh = BIOME_MESH_LIBRARY.create_fungus_stem()
+	stem.material_override = stem_material
+	stem.scale = Vector3(1.3, 1.55, 1.3)
+	stem.position = Vector3(center.x, ground, center.y)
+	stem.rotation.y = rng.randf_range(0.0, TAU)
+	root.add_child(stem)
+	var cap := MeshInstance3D.new()
+	cap.name = "ListeningBellCap"
+	cap.mesh = BIOME_MESH_LIBRARY.create_fungus_cap_bell()
+	cap.material_override = cap_material
+	cap.scale = Vector3(2.15, 1.8, 2.15)
+	cap.position = Vector3(center.x, ground + 7.6, center.y)
+	cap.rotation = Vector3(PI, rng.randf_range(0.0, TAU), 0.0)
+	root.add_child(cap)
+	for index: int in 9:
+		var angle := TAU * float(index) / 9.0
+		var radius := 2.2 + 0.42 * float(index % 3)
+		var point := center + Vector2(cos(angle), sin(angle)) * radius
+		var witness := MeshInstance3D.new()
+		witness.name = "MemoryTooth_%02d" % index
+		witness.mesh = BIOME_MESH_LIBRARY.create_karst_rib() if index % 2 == 0 else BIOME_MESH_LIBRARY.create_karst_stack()
+		witness.material_override = _standard_material(pack.ground_high.darkened(0.34 + 0.06 * float(index % 2)))
+		witness.scale = Vector3.ONE * rng.randf_range(0.46, 0.8)
+		witness.position = Vector3(point.x, _height_at(point.x, point.y), point.y)
+		witness.rotation = Vector3(rng.randf_range(-0.12, 0.12), -angle, rng.randf_range(-0.14, 0.14))
+		root.add_child(witness)
+
+
+func _add_reflection_pool_core(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var ground := _height_at(center.x, center.y)
+	var pool := MeshInstance3D.new()
+	pool.name = "StillWaterEye"
+	var pool_mesh := CylinderMesh.new()
+	pool_mesh.top_radius = 3.5
+	pool_mesh.bottom_radius = 3.85
+	pool_mesh.height = 0.055
+	pool_mesh.radial_segments = 18
+	var water_material := _standard_material(pack.accent_color.darkened(0.28), true)
+	water_material.metallic = 0.82
+	water_material.roughness = 0.08
+	pool_mesh.material = water_material
+	pool.mesh = pool_mesh
+	pool.position = Vector3(center.x, ground + 0.08, center.y)
+	root.add_child(pool)
+	# Two unequal marker families sell the idea of a reflection that has begun to
+	# disagree with the real bank instead of merely adding another water disc.
+	for side: int in [-1, 1]:
+		for index: int in 4:
+			var marker := MeshInstance3D.new()
+			marker.name = "ReflectionWitness_%d_%02d" % [side, index]
+			marker.mesh = BIOME_MESH_LIBRARY.create_reed_fan() if side < 0 else BIOME_MESH_LIBRARY.create_wetland_shelf()
+			marker.material_override = _standard_material(pack.ground_high.darkened(0.28 if side < 0 else 0.46), side > 0)
+			var offset := Vector2(float(side) * (4.1 + index * 0.52), float(index - 2) * 1.35)
+			var point := center + offset
+			marker.position = Vector3(point.x, _height_at(point.x, point.y), point.y)
+			marker.scale = Vector3.ONE * (1.25 + float(index % 2) * 0.35)
+			marker.rotation.y = rng.randf_range(-0.25, 0.25) + (PI if side > 0 else 0.0)
+			root.add_child(marker)
+
+
+func _add_root_mouth_core(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var ground := _height_at(center.x, center.y)
+	var root_material := _standard_material(pack.ground_high.darkened(0.42))
+	var void_material := _standard_material(Color(0.008, 0.002, 0.012), true)
+	for index: int in 4:
+		var arch := MeshInstance3D.new()
+		arch.name = "RootThroat_%02d" % index
+		arch.mesh = BIOME_MESH_LIBRARY.create_root_loop() if index % 2 == 0 else BIOME_MESH_LIBRARY.create_root_spire()
+		arch.material_override = root_material
+		arch.scale = Vector3.ONE * (2.35 - float(index) * 0.26)
+		arch.position = Vector3(center.x, ground + 3.1, center.y + float(index) * 1.18)
+		arch.rotation = Vector3(0.0, rng.randf_range(-0.1, 0.1), 0.0)
+		root.add_child(arch)
+	var darkness := MeshInstance3D.new()
+	darkness.name = "RootMouthDarkness"
+	var darkness_mesh := SphereMesh.new()
+	darkness_mesh.radius = 2.15
+	darkness_mesh.height = 4.5
+	darkness_mesh.radial_segments = 10
+	darkness_mesh.rings = 6
+	darkness_mesh.material = void_material
+	darkness.mesh = darkness_mesh
+	darkness.scale = Vector3(0.75, 1.0, 0.26)
+	darkness.position = Vector3(center.x, ground + 2.5, center.y + 3.55)
+	root.add_child(darkness)
+
+
+func _add_brothers_heart_core(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var ground := _height_at(center.x, center.y)
+	var ring_material := _standard_material(pack.accent_color, true)
+	var strata_material := _standard_material(pack.ground_high.darkened(0.28), true)
+	for side: int in [-1, 1]:
+		var heart := MeshInstance3D.new()
+		heart.name = "BrotherArc_%d" % side
+		heart.mesh = BIOME_MESH_LIBRARY.create_heart_branch()
+		heart.material_override = ring_material
+		heart.scale = Vector3.ONE * 2.1
+		heart.position = Vector3(center.x + float(side) * 1.05, ground + 0.2, center.y)
+		heart.rotation = Vector3(0.0, float(side) * 0.22, float(side) * -0.12)
+		root.add_child(heart)
+	for index: int in 5:
+		var angle := TAU * float(index) / 5.0 + rng.randf_range(-0.14, 0.14)
+		var point := center + Vector2(cos(angle), sin(angle)) * rng.randf_range(3.2, 5.0)
+		var stratum := MeshInstance3D.new()
+		stratum.name = "ConcordanceStratum_%02d" % index
+		stratum.mesh = BIOME_MESH_LIBRARY.create_floating_shard() if index % 2 == 0 else BIOME_MESH_LIBRARY.create_floating_strata()
+		stratum.material_override = strata_material
+		stratum.scale = Vector3.ONE * rng.randf_range(0.72, 1.18)
+		stratum.position = Vector3(point.x, _height_at(point.x, point.y) + 2.1 + float(index % 3) * 1.25, point.y)
+		stratum.rotation = Vector3(rng.randf_range(-0.22, 0.22), angle, rng.randf_range(-0.18, 0.18))
+		root.add_child(stratum)
 
 
 func _configure_generated_poi_content(
@@ -1718,17 +1905,22 @@ void vertex() {
 void fragment() {
 	vec3 mundane = COLOR.rgb;
 	float broad = 0.5 + 0.5 * sin((terrain_position.x + terrain_position.z) * 0.055 + pulse * 1.4);
+	float macro_cells = hash21(floor(terrain_position.xz * 0.115));
 	float cells = hash21(floor(terrain_position.xz * 0.72));
-	float grain = mix(0.86, 1.13, cells);
+	float height_band = 0.5 + 0.5 * sin(terrain_position.y * 0.47 + macro_cells * 2.8);
+	float grain = mix(0.88, 1.1, cells) * mix(0.92, 1.08, macro_cells);
 	float slope_mask = smoothstep(0.1, 0.46, terrain_slope);
-	vec3 altered_palette = mix(phase_low, phase_high, broad * 0.72 + cells * 0.28);
-	vec3 altered = mix(mundane, altered_palette, 0.72);
+	vec3 altered_palette = mix(phase_low, phase_high, broad * 0.48 + height_band * 0.32 + cells * 0.2);
+	vec3 altered = mix(mundane, altered_palette, 0.58);
 	vec3 ground = mix(mundane, altered, metamorphosis);
 	ground *= grain;
-	ground = mix(ground, ground * 0.58 + phase_high * 0.16, slope_mask * 0.62);
+	ground = mix(ground, ground * 0.48 + phase_low * 0.13, slope_mask * 0.68);
+	ground *= mix(0.82, 1.08, height_band * (1.0 - slope_mask * 0.45));
 	ALBEDO = ground;
-	ROUGHNESS = mix(0.94, 0.72, metamorphosis) - cells * 0.08;
-	EMISSION = ground * 0.06 + altered_palette * metamorphosis * (0.1 + max(pulse, 0.0) * 0.22) * (1.0 - slope_mask * 0.55);
+	ROUGHNESS = clamp(mix(0.96, 0.78, metamorphosis) - cells * 0.07 + slope_mask * 0.08, 0.62, 1.0);
+	// Only the consciousness pulse emits. The former constant ground emission
+	// cancelled contact shadows and was the main source of the flat colour wash.
+	EMISSION = altered_palette * metamorphosis * (0.025 + max(pulse, 0.0) * 0.075) * (1.0 - slope_mask * 0.72);
 }
 """
 	var material := ShaderMaterial.new()
