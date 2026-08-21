@@ -979,7 +979,14 @@ uniform float metamorphosis : hint_range(0.0, 1.0) = 0.0;
 uniform vec3 phase_low : source_color = vec3(0.025, 0.16, 0.32);
 uniform vec3 phase_high : source_color = vec3(0.82, 0.025, 0.7);
 varying float pulse;
+varying vec3 terrain_position;
+varying float terrain_slope;
+float hash21(vec2 point) {
+	return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453);
+}
 void vertex() {
+	terrain_position = VERTEX;
+	terrain_slope = 1.0 - abs(NORMAL.y);
 	float wave_a = sin(VERTEX.x * 0.075 + TIME * 0.65);
 	float wave_b = cos(VERTEX.z * 0.061 - TIME * 0.48);
 	pulse = wave_a * wave_b;
@@ -987,11 +994,18 @@ void vertex() {
 }
 void fragment() {
 	vec3 mundane = COLOR.rgb;
-	float bands = 0.5 + 0.5 * sin((VERTEX.x + VERTEX.z) * 0.09 + pulse * 2.0);
-	vec3 altered = mix(phase_low, phase_high, bands);
-	ALBEDO = mix(mundane, altered, metamorphosis * 0.96);
-	ROUGHNESS = mix(0.96, 0.62, metamorphosis);
-	EMISSION = altered * metamorphosis * (0.3 + max(pulse, 0.0) * 0.45);
+	float broad = 0.5 + 0.5 * sin((terrain_position.x + terrain_position.z) * 0.055 + pulse * 1.4);
+	float cells = hash21(floor(terrain_position.xz * 0.72));
+	float grain = mix(0.86, 1.13, cells);
+	float slope_mask = smoothstep(0.1, 0.46, terrain_slope);
+	vec3 altered_palette = mix(phase_low, phase_high, broad * 0.72 + cells * 0.28);
+	vec3 altered = mix(mundane, altered_palette, 0.72);
+	vec3 ground = mix(mundane, altered, metamorphosis);
+	ground *= grain;
+	ground = mix(ground, ground * 0.58 + phase_high * 0.16, slope_mask * 0.62);
+	ALBEDO = ground;
+	ROUGHNESS = mix(0.94, 0.72, metamorphosis) - cells * 0.08;
+	EMISSION = altered_palette * metamorphosis * (0.1 + max(pulse, 0.0) * 0.22) * (1.0 - slope_mask * 0.55);
 }
 """
 	var material := ShaderMaterial.new()
