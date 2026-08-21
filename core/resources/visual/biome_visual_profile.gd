@@ -8,6 +8,9 @@ extends Resource
 @export_range(0.0, 8.0, 0.05) var sky_energy: float = 0.8
 @export var ambient_color: Color = Color(0.14, 0.18, 0.14)
 @export_range(0.0, 4.0, 0.05) var ambient_energy: float = 0.55
+@export var primary_light_color: Color = Color(0.72, 0.82, 0.68)
+@export_range(0.0, 4.0, 0.05) var primary_light_energy: float = 0.85
+@export var primary_light_rotation: Vector3 = Vector3(-0.72, -0.48, 0.0)
 @export var fog_color: Color = Color(0.06, 0.1, 0.07)
 @export_range(0.0, 0.1, 0.001) var fog_density: float = 0.012
 @export_range(0.0, 4.0, 0.05) var fog_light_energy: float = 0.55

@@ -68,8 +68,46 @@ func _validate_landscape_rules() -> void:
 	_expect(terrain.get_loaded_chunk_count() >= 4, "Streaming terrain did not page chunks around a moving player.")
 	terrain.set_world_phase(ExpeditionTerrain.PHASE_MYCELIAL)
 	_expect(terrain.get_world_phase() == ExpeditionTerrain.PHASE_MYCELIAL, "Consumable world phase was not applied to terrain generation.")
+	_validate_ecology_compositions(terrain)
 	target.free()
 	terrain.free()
+
+
+func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
+	var phase_paths := [
+		"res://content/world_phases/ordinary_world.tres",
+		"res://content/world_phases/mycelial_choir.tres",
+		"res://content/world_phases/crimson_hunt.tres",
+		"res://content/world_phases/glass_frost.tres",
+		"res://content/world_phases/ashen_silence.tres",
+		"res://content/world_phases/mirror_flood.tres",
+		"res://content/world_phases/root_dream.tres",
+		"res://content/world_phases/distant_heart.tres",
+	]
+	var families: Dictionary[StringName, bool] = {}
+	var key_lights: Dictionary[Color, bool] = {}
+	for path: String in phase_paths:
+		var phase := load(path) as WorldPhaseDefinition
+		var pack := phase.content_pack
+		_expect(pack != null, "%s has no content pack." % path)
+		if pack == null:
+			continue
+		_expect(not pack.composition_family.is_empty(), "%s has no authored ecology composition." % pack.id)
+		families[pack.composition_family] = true
+		key_lights[phase.visual_profile.primary_light_color] = true
+		_expect(phase.visual_profile.ambient_energy <= 0.72, "%s flattens geometry with excessive ambient light." % phase.id)
+		terrain.apply_world_phase(phase)
+		var body := StaticBody3D.new()
+		terrain.add_child(body)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 81173 + pack.ecology_family
+		terrain.call("_add_ecology_composition", body, Vector2i(0, 5), rng, pack)
+		var composition := body.get_child(0) if body.get_child_count() > 0 else null
+		_expect(composition != null and composition.get_meta(&"composition_family", &"") == pack.composition_family, "%s did not build its authored composition." % pack.id)
+		_expect(composition != null and composition.get_child_count() >= 5, "%s composition is too weak to form a readable silhouette." % pack.id)
+		body.free()
+	_expect(families.size() == phase_paths.size(), "Worlds reuse ecology compositions instead of owning distinct spatial motifs.")
+	_expect(key_lights.size() == phase_paths.size(), "Worlds reuse the same key light instead of owning distinct lighting direction and color.")
 
 
 func _create_scatter() -> BiomeDressingScatter:

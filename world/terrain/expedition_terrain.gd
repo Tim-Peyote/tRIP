@@ -393,6 +393,8 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(16.0 * vegetation_density)))
 	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density)))
 	_add_groundcover_multimesh(body, coordinate, rng, maxi(6, roundi(34.0 * vegetation_density)))
+	if pack != null and _should_place_ecology_composition(coordinate, pack):
+		_add_ecology_composition(body, coordinate, rng, pack)
 	_decor_exclusion_centers.clear()
 	if has_landmark:
 		_add_point_of_interest(body, coordinate, rng)
@@ -402,6 +404,134 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 		_add_cave_feature(body, coordinate, rng, pack)
 	if _is_altered_phase() and abs(int(_chunk_seed(coordinate))) % 4 == 0:
 		_add_mycelial_beacon(body, coordinate, rng)
+
+
+func _add_ecology_composition(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var center := _composition_center_for_row(coordinate.y, pack)
+	var root := Node3D.new()
+	root.name = "EcologyComposition_%s" % pack.composition_family
+	root.set_meta(&"composition_family", pack.composition_family)
+	root.set_meta(&"art_directed", true)
+	body.add_child(root)
+	var scale := pack.composition_scale
+	match pack.composition_family:
+		&"cedar_windfall":
+			_add_cedar_windfall(root, center, rng, pack, scale)
+		&"fungal_nursery":
+			_add_fungal_nursery(root, center, rng, pack, scale)
+		&"antler_migration":
+			_add_antler_migration(root, center, rng, pack, scale)
+		&"ice_organ":
+			_add_ice_organ(root, center, rng, pack, scale)
+		&"burn_scar":
+			_add_burn_scar(root, center, rng, pack, scale)
+		&"reed_mirror_island":
+			_add_reed_mirror_island(root, center, rng, pack, scale)
+		&"root_nave":
+			_add_root_nave(root, center, rng, pack, scale)
+		_:
+			_add_floating_concordance(root, center, rng, pack, scale)
+
+
+func _add_cedar_windfall(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var wood := _standard_material(Color("412719"))
+	var granite := _standard_material(pack.ground_high.darkened(0.22))
+	for index: int in 3:
+		var offset := Vector2(float(index - 1) * 1.5, rng.randf_range(-0.65, 0.65)) * scale
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_taiga_trunk(), center + offset, 0.32 * scale, Vector3(scale * rng.randf_range(0.72, 1.08), scale, scale), Vector3(0.0, rng.randf_range(-0.28, 0.28), PI * 0.5), wood)
+	for index: int in 5:
+		var angle := TAU * float(index) / 5.0 + 0.35
+		var offset := Vector2(cos(angle), sin(angle)) * rng.randf_range(2.4, 4.6) * scale
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_granite_boulder(), center + offset, 0.0, Vector3.ONE * rng.randf_range(0.7, 1.45) * scale, Vector3(0.0, angle, rng.randf_range(-0.15, 0.15)), granite)
+
+
+func _add_fungal_nursery(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var stem_material := _standard_material(Color(0.26, 0.12, 0.3))
+	var cap_material := _standard_material(pack.accent_color.darkened(0.12), true)
+	for index: int in 7:
+		var angle := TAU * float(index) / 7.0 + rng.randf_range(-0.24, 0.24)
+		var radius := (1.0 + float(index % 3) * 0.82) * scale
+		var point := center + Vector2(cos(angle), sin(angle)) * radius
+		var mushroom_scale := scale * rng.randf_range(0.38, 0.9)
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_fungus_stem(), point, 0.0, Vector3.ONE * mushroom_scale, Vector3(0.0, angle, 0.0), stem_material)
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_fungus_cap(), point, 4.15 * mushroom_scale, Vector3(mushroom_scale * 1.2, mushroom_scale, mushroom_scale * 1.2), Vector3(0.0, angle, 0.0), cap_material)
+
+
+func _add_antler_migration(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var bone := _standard_material(pack.accent_color.darkened(0.38))
+	var echo := _standard_material(Color(0.24, 0.012, 0.008), true)
+	for index: int in 6:
+		var offset := Vector2(float(index - 2) * 1.45, sin(float(index) * 1.7) * 1.2) * scale
+		var point := center + offset
+		var size := scale * rng.randf_range(0.72, 1.18)
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_antler_crown(), point, 0.1, Vector3.ONE * size, Vector3(0.0, rng.randf_range(-0.45, 0.45), (-0.08 if index % 2 == 0 else 0.12)), bone)
+	if _is_altered_phase():
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_false_beast_echo(), center + Vector2(0.0, -2.8 * scale), 0.5 * scale, Vector3.ONE * 1.6 * scale, Vector3(0.0, PI * 0.5, 0.0), echo)
+
+
+func _add_ice_organ(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var ice := _standard_material(pack.accent_color.lightened(0.08), true)
+	for index: int in 7:
+		var offset := Vector2(float(index - 3) * 1.05, absf(float(index - 3)) * 0.28) * scale
+		var height_scale := scale * (0.65 + (3.5 - absf(float(index) - 3.0)) * 0.18)
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_crystal_cluster(), center + offset, 0.0, Vector3(scale * 0.78, height_scale, scale * 0.78), Vector3(0.0, rng.randf_range(-0.3, 0.3), 0.0), ice)
+
+
+func _add_burn_scar(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var char_material := _standard_material(Color(0.025, 0.02, 0.018))
+	var ash_material := _standard_material(pack.ground_high.darkened(0.34))
+	for index: int in 8:
+		var angle := TAU * float(index) / 8.0 + rng.randf_range(-0.16, 0.16)
+		var point := center + Vector2(cos(angle), sin(angle)) * rng.randf_range(1.6, 4.2) * scale
+		var mesh: Mesh = BIOME_MESH_LIBRARY.create_burnt_crown() if index % 2 == 0 else BIOME_MESH_LIBRARY.create_ash_column()
+		var material := char_material if index % 2 == 0 else ash_material
+		_add_composition_mesh(root, mesh, point, 0.0, Vector3.ONE * rng.randf_range(0.72, 1.4) * scale, Vector3(0.0, angle, rng.randf_range(-0.13, 0.13)), material)
+
+
+func _add_reed_mirror_island(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var water_mesh := CylinderMesh.new()
+	water_mesh.top_radius = 4.4 * scale
+	water_mesh.bottom_radius = 4.65 * scale
+	water_mesh.height = 0.045
+	water_mesh.radial_segments = 18
+	var water := _standard_material(pack.accent_color.darkened(0.32), true)
+	water.metallic = 0.78
+	water.roughness = 0.12
+	_add_composition_mesh(root, water_mesh, center, 0.04, Vector3.ONE, Vector3.ZERO, water)
+	var reed_material := _standard_material(Color(0.055, 0.31, 0.19))
+	for index: int in 13:
+		var angle := TAU * float(index) / 13.0 + rng.randf_range(-0.18, 0.18)
+		var radius := rng.randf_range(2.5, 4.2) * scale
+		var point := center + Vector2(cos(angle), sin(angle)) * radius
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_reed_head(), point, 0.0, Vector3.ONE * rng.randf_range(1.5, 2.6) * scale, Vector3(0.0, angle, 0.0), reed_material)
+
+
+func _add_root_nave(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var root_material := _standard_material(pack.ground_high.darkened(0.3))
+	for index: int in 5:
+		var offset := Vector2(float(index - 2) * 1.55, absf(float(index - 2)) * 0.42) * scale
+		var size := scale * (1.15 - absf(float(index - 2)) * 0.08)
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_root_loop(), center + offset, 0.15, Vector3.ONE * size, Vector3(0.0, rng.randf_range(-0.18, 0.18), 0.0), root_material)
+
+
+func _add_floating_concordance(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack, scale: float) -> void:
+	var strata_material := _standard_material(pack.ground_high.darkened(0.2), true)
+	var ring_material := _standard_material(pack.accent_color, true)
+	for index: int in 6:
+		var angle := TAU * float(index) / 6.0
+		var point := center + Vector2(cos(angle), sin(angle)) * (2.2 + float(index % 2)) * scale
+		_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_floating_strata(), point, (1.2 + float(index % 3) * 1.05) * scale, Vector3.ONE * rng.randf_range(0.75, 1.25) * scale, Vector3(0.0, angle, 0.0), strata_material)
+	_add_composition_mesh(root, BIOME_MESH_LIBRARY.create_heart_loop(), center, 3.2 * scale, Vector3.ONE * 1.8 * scale, Vector3(0.0, 0.0, rng.randf_range(-0.16, 0.16)), ring_material)
+
+
+func _add_composition_mesh(root: Node3D, mesh: Mesh, point: Vector2, height_offset: float, scale: Vector3, rotation: Vector3, material: Material) -> void:
+	var instance := MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.material_override = material
+	instance.position = Vector3(point.x, _height_at(point.x, point.y) + height_offset, point.y)
+	instance.scale = scale
+	instance.rotation = rotation
+	root.add_child(instance)
 
 
 func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
@@ -487,6 +617,8 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 		var point := _random_chunk_point(coordinate, rng)
 		if _is_reserved(point):
 			continue
+		if not _accept_ecology_point(point, 0, pack):
+			continue
 		var size := rng.randf_range(size_low, size_high)
 		var ground := _height_at(point.x, point.y)
 		var yaw := rng.randf_range(0.0, TAU)
@@ -548,6 +680,8 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 		var point := _random_chunk_point(coordinate, rng)
 		if _is_reserved(point):
 			continue
+		if not _accept_ecology_point(point, 1, pack):
+			continue
 		var size := rng.randf_range(0.4, 1.9)
 		var ground := _height_at(point.x, point.y)
 		var vertical_scale := size * rng.randf_range(0.45, 0.9)
@@ -599,6 +733,8 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 			break
 		var point := _random_chunk_point(coordinate, rng)
 		if _is_reserved(point):
+			continue
+		if not _accept_ecology_point(point, 2, pack):
 			continue
 		var ground := _height_at(point.x, point.y)
 		var scale := rng.randf_range(0.72, 1.55)
@@ -946,6 +1082,25 @@ func _random_chunk_point(coordinate: Vector2i, rng: RandomNumberGenerator) -> Ve
 	return Vector2((float(coordinate.x) + rng.randf_range(0.04, 0.96)) * chunk_size, (float(coordinate.y) + rng.randf_range(0.04, 0.96)) * chunk_size)
 
 
+func _accept_ecology_point(point: Vector2, layer: int, pack: BiomeContentPack) -> bool:
+	if pack == null:
+		return true
+	# Offset noise fields prevent trees, stone and groundcover from becoming one
+	# uniform procedural carpet. Each layer forms patches and leaves authored
+	# negative space around the route and major compositions.
+	var ecology_offset := float(pack.ecology_family) * 173.0
+	var broad := _noise.get_noise_2d(point.x * 0.72 + ecology_offset, point.y * 0.72 - ecology_offset)
+	var detail := _detail_noise.get_noise_2d(point.x * 0.38 - ecology_offset, point.y * 0.38 + ecology_offset)
+	match layer:
+		0: # Vegetation forms groves and deliberate clearings.
+			var threshold := lerpf(0.08, -0.24, clampf(pack.vegetation_density / 1.6, 0.0, 1.0))
+			return broad + detail * 0.28 > threshold
+		1: # Geology traces different bands instead of shadowing the trees.
+			return absf(broad * 0.7 - detail) > lerpf(0.34, 0.12, clampf(pack.geology_density / 1.8, 0.0, 1.0))
+		_: # Groundcover bridges grove edges but preserves open sight lines.
+			return broad * 0.62 + detail * 0.55 > -0.22
+
+
 func _is_reserved(point: Vector2) -> bool:
 	for exclusion_center: Vector2 in _decor_exclusion_centers:
 		if point.distance_to(exclusion_center) < 7.2:
@@ -1007,6 +1162,28 @@ func _should_place_landmark(coordinate: Vector2i, pack: BiomeContentPack) -> boo
 		return false
 	var intended := _landmark_center_for_row(coordinate.y, pack)
 	return coordinate.x == floori(intended.x / chunk_size)
+
+
+func _should_place_ecology_composition(coordinate: Vector2i, pack: BiomeContentPack) -> bool:
+	if pack == null or coordinate.y < 3:
+		return false
+	if posmod(coordinate.y - 3, pack.composition_period) != 0:
+		return false
+	# Story POIs keep a clean visual stage. Ecological compositions occupy the
+	# quieter beats between them and make the route read as authored cadence.
+	if _should_place_landmark_row(coordinate.y, pack):
+		return false
+	var intended := _composition_center_for_row(coordinate.y, pack)
+	return coordinate.x == floori(intended.x / chunk_size)
+
+
+func _composition_center_for_row(row: int, pack: BiomeContentPack) -> Vector2:
+	var row_seed := _chunk_seed(Vector2i(73, row))
+	var z_jitter := float(abs(row_seed) % 997) / 996.0
+	var side := -1.0 if posmod(row + int(pack.ecology_family), 2) == 0 else 1.0
+	var z := (float(row) + lerpf(0.28, 0.72, z_jitter)) * chunk_size
+	var lateral := side * lerpf(6.2, 9.4, float(abs(row_seed / 1009) % 991) / 990.0)
+	return Vector2(_route_center_x(z) + lateral, z)
 
 
 func _landmark_center(coordinate: Vector2i, pack: BiomeContentPack) -> Vector2:
@@ -1272,7 +1449,7 @@ func _build_biome_atmosphere(pack: BiomeContentPack) -> void:
 	particle_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	particle_material.emission_enabled = altered
 	particle_material.emission = Color(color.r, color.g, color.b)
-	particle_material.emission_energy_multiplier = 1.8
+	particle_material.emission_energy_multiplier = 0.7
 	quad.material = particle_material
 	_atmosphere.draw_pass_1 = quad
 	add_child(_atmosphere)
@@ -1285,7 +1462,7 @@ func _standard_material(color: Color, emission: bool = false) -> StandardMateria
 	if emission:
 		material.emission_enabled = true
 		material.emission = color
-		material.emission_energy_multiplier = 2.2
+		material.emission_energy_multiplier = 0.48
 	return material
 
 
