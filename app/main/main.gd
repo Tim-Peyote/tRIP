@@ -15,9 +15,11 @@ const SHELTER_SCENE: PackedScene = preload("res://world/levels/shelter/shelter_l
 
 var _active_level: ShelterLevel
 var _active_player: FirstPersonController
+var _input_diagnostic: Label
 
 
 func _ready() -> void:
+	_setup_input_diagnostic()
 	InputBootstrap.ensure_defaults()
 	frontend_orchestrator.setup(main_menu)
 	frontend_orchestrator.game_requested.connect(_on_game_requested)
@@ -31,6 +33,61 @@ func _ready() -> void:
 	effect_orchestrator.setup(presentation_director)
 	world_metamorphosis_director.transition_started.connect(_on_world_transition_started)
 	world_metamorphosis_director.transition_finished.connect(_on_world_transition_finished)
+
+
+func _process(_delta: float) -> void:
+	_update_input_diagnostic()
+
+
+func _setup_input_diagnostic() -> void:
+	_input_diagnostic = Label.new()
+	_input_diagnostic.name = "InputDiagnostic"
+	_input_diagnostic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_input_diagnostic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_input_diagnostic.add_theme_font_size_override("font_size", 15)
+	_input_diagnostic.add_theme_color_override("font_color", Color("d7ff8a"))
+	var background := StyleBoxFlat.new()
+	background.bg_color = Color(0.015, 0.02, 0.015, 0.92)
+	background.border_color = Color(0.5, 0.75, 0.28, 0.8)
+	background.set_border_width_all(1)
+	background.set_corner_radius_all(5)
+	background.content_margin_left = 12.0
+	background.content_margin_right = 12.0
+	background.content_margin_top = 7.0
+	background.content_margin_bottom = 7.0
+	_input_diagnostic.add_theme_stylebox_override("normal", background)
+	_input_diagnostic.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_input_diagnostic.position = Vector2(-390.0, -66.0)
+	_input_diagnostic.size = Vector2(780.0, 52.0)
+	$UI.add_child(_input_diagnostic)
+
+
+func _update_input_diagnostic() -> void:
+	if _input_diagnostic == null or not is_instance_valid(_input_diagnostic):
+		return
+	var keys := "W:%d  A:%d  S:%d  D:%d  SPACE:%d" % [
+		int(Input.is_physical_key_pressed(KEY_W)),
+		int(Input.is_physical_key_pressed(KEY_A)),
+		int(Input.is_physical_key_pressed(KEY_S)),
+		int(Input.is_physical_key_pressed(KEY_D)),
+		int(Input.is_physical_key_pressed(KEY_SPACE)),
+	]
+	if _active_player == null:
+		_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  |  LEVEL:MENU  |  %s  |  MASTER:MUTED" % [
+			int(DisplayServer.window_is_focused()), keys,
+		]
+		return
+	_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  PAUSE:%d  GAMEPLAY:%d  CAPTURE:%d  |  %s\nPOS:(%.1f, %.1f, %.1f)  SPEED:%.2f  |  MASTER:MUTED" % [
+		int(DisplayServer.window_is_focused()),
+		int(get_tree().paused),
+		int(_active_player.is_gameplay_enabled()),
+		int(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED),
+		keys,
+		_active_player.global_position.x,
+		_active_player.global_position.y,
+		_active_player.global_position.z,
+		_active_player.get_planar_speed(),
+	]
 
 
 func _unhandled_input(event: InputEvent) -> void:

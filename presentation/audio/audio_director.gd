@@ -8,6 +8,7 @@ const ENVIRONMENT_AUDIO_BUSES: Array[StringName] = [
 	&"Music", &"World", &"Ambience", &"Creatures", &"Interactions", &"Voice", &"Perception",
 ]
 const DIAGNOSTIC_MUTE_ENVIRONMENT_AUDIO: bool = true
+const DIAGNOSTIC_MUTE_MASTER_AUDIO: bool = true
 
 var _snapshot_id: StringName = &"default"
 var _cue_players: Array[AudioStreamPlayer] = []
@@ -26,6 +27,9 @@ var _cue_cursor: int = 0
 
 func _ready() -> void:
 	_set_environment_audio_muted(DIAGNOSTIC_MUTE_ENVIRONMENT_AUDIO)
+	var master_bus := AudioServer.get_bus_index(&"Master")
+	if master_bus >= 0:
+		AudioServer.set_bus_mute(master_bus, DIAGNOSTIC_MUTE_MASTER_AUDIO)
 	if DisplayServer.get_name() == "headless":
 		return
 	for index: int in 4:
@@ -51,6 +55,11 @@ func is_environment_audio_muted() -> bool:
 		if bus_index >= 0 and not AudioServer.is_bus_mute(bus_index):
 			return false
 	return true
+
+
+func is_master_audio_muted() -> bool:
+	var master_bus := AudioServer.get_bus_index(&"Master")
+	return master_bus >= 0 and AudioServer.is_bus_mute(master_bus)
 
 
 func play_ui_cue(cue_id: StringName) -> void:

@@ -260,6 +260,10 @@ func is_sprinting() -> bool:
 	return _is_sprinting
 
 
+func is_gameplay_enabled() -> bool:
+	return _gameplay_enabled
+
+
 func _accepts_gameplay_input() -> bool:
 	return _gameplay_input_override or (_gameplay_enabled and not get_tree().paused)
 
