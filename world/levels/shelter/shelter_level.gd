@@ -174,7 +174,7 @@ func get_weather() -> WeatherOrchestrator:
 
 func initialize_new_session() -> void:
 	_disable_legacy_shelter()
-	biome_visual_controller.show_forest()
+	biome_visual_controller.show_forest_immediate()
 	world_progression.activate_session()
 	road_laboratory.initialize_new_run(Vector3(0, 0, 11.5), Vector3(6.5, 0, 18.5))
 	biome_hazard.activate_session()
@@ -186,7 +186,7 @@ func initialize_new_session() -> void:
 
 func apply_session_layout_after_load() -> void:
 	_disable_legacy_shelter()
-	biome_visual_controller.show_forest()
+	biome_visual_controller.show_forest_immediate()
 	world_progression.activate_session()
 	biome_hazard.activate_session()
 

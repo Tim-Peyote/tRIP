@@ -47,6 +47,11 @@ func show_forest(_actor: Node = null) -> void:
 	apply_profile(_world_override if _world_override != null else _base_profile)
 
 
+func show_forest_immediate() -> void:
+	_base_profile = forest_profile
+	apply_profile(_world_override if _world_override != null else _base_profile, true)
+
+
 func set_metamorphosis(active: bool) -> void:
 	if _metamorphosis_active == active:
 		return
