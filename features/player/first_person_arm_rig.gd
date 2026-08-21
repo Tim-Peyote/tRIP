@@ -1,7 +1,7 @@
 class_name FirstPersonArmRig
 extends Node3D
 
-@export_range(0.0, 1.4, 0.05) var grip_amount: float = 0.92
+@export_range(0.0, 1.4, 0.05) var grip_amount: float = 1.2
 
 var _skeleton: Skeleton3D
 
@@ -15,7 +15,7 @@ func _apply_idle_grip() -> void:
 	if _skeleton == null:
 		return
 	for side: String in ["r", "l"]:
-		var direction := -1.0
+		var direction := -1.0 if side == "r" else 1.0
 		for finger: String in ["pinky", "ring", "middle", "index"]:
 			for segment: int in [1, 2, 3]:
 				_pose_bone("finger_%s%d.%s" % [finger, segment, side], Vector3(0.0, 0.0, grip_amount * direction))

@@ -9,6 +9,8 @@ func _ready() -> void:
 	add_child(player)
 	player.global_position = Vector3(0.0, 0.05, 0.0)
 	player.set_gameplay_input_override_for_testing(true)
+	if "--vial" in OS.get_cmdline_user_args():
+		player.toolbelt.cycle_active_tool()
 	var floor := MeshInstance3D.new()
 	var floor_mesh := PlaneMesh.new()
 	floor_mesh.size = Vector2(16.0, 16.0)

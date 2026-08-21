@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://features/player/first_person_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://features/interaction/interaction_orchestrator.gd" id="2_interactor"]
@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://features/player/player_foley.gd" id="10_foley"]
 [ext_resource type="PackedScene" path="res://assets/third_party/wrad_arms/arms.glb" id="11_fps_arms"]
 [ext_resource type="Script" path="res://features/player/first_person_arm_rig.gd" id="12_fps_arm_driver"]
+[ext_resource type="PackedScene" path="res://assets/third_party/oga_low_poly_knife/knife.fbx" id="13_knife"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/bottle.glb" id="14_bottle"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
 radius = 0.34
@@ -97,6 +99,14 @@ albedo_color = Color(0.24, 0.13, 0.06, 1)
 roughness = 1.0
 shading_mode = 0
 
+[sub_resource type="StandardMaterial3D" id="Material_authored_vial"]
+albedo_color = Color(0.18, 0.52, 0.34, 1)
+metallic = 0.08
+roughness = 0.28
+emission_enabled = true
+emission = Color(0.015, 0.08, 0.035, 1)
+emission_energy_multiplier = 0.65
+
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 25
@@ -150,7 +160,7 @@ position = Vector3(0, -0.12, -0.45)
 scale = Vector3(0.8, 0.8, 0.8)
 
 [node name="RiggedFirstPersonArms" parent="CameraRig/Camera3D/ViewModel" instance=ExtResource("11_fps_arms")]
-position = Vector3(0, -0.46, 0.04)
+position = Vector3(0, -0.56, 0.04)
 rotation = Vector3(0, 0, 3.14159)
 scale = Vector3(0.095, 0.095, 0.095)
 script = ExtResource("12_fps_arm_driver")
@@ -235,38 +245,40 @@ mesh = SubResource("Mesh_finger")
 material_override = SubResource("Material_hand")
 cast_shadow = 0
 
-[node name="KnifeViewModel" type="Node3D" parent="CameraRig/Camera3D/ViewModel"]
-unique_name_in_owner = true
+[node name="PrototypeKnifeViewModel" type="Node3D" parent="CameraRig/Camera3D/ViewModel"]
+visible = false
 position = Vector3(0.74, -0.35, -0.72)
 rotation = Vector3(-0.72, 0.14, -0.22)
 scale = Vector3(0.56, 0.56, 0.56)
 
-[node name="Handle" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+[node name="Handle" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel"]
+visible = false
 mesh = SubResource("Mesh_knife_handle")
 material_override = SubResource("Material_knife_handle")
 cast_shadow = 0
 
-[node name="Blade" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+[node name="Blade" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel"]
+visible = false
 position = Vector3(0, 0, -0.355)
 mesh = SubResource("Mesh_knife_blade")
 material_override = SubResource("Material_knife_blade")
 cast_shadow = 0
 
-[node name="GripHand" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+[node name="GripHand" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel"]
 visible = false
 position = Vector3(0, -0.02, 0.105)
 mesh = SubResource("Mesh_grip_palm")
 material_override = SubResource("Material_hand")
 cast_shadow = 0
 
-[node name="GripSleeve" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+[node name="GripSleeve" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel"]
 visible = false
 position = Vector3(0.015, -0.015, 0.31)
 mesh = SubResource("Mesh_grip_sleeve")
 material_override = SubResource("Material_sleeve")
 cast_shadow = 0
 
-[node name="FingerA" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+[node name="FingerA" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel"]
 visible = false
 position = Vector3(-0.048, -0.055, 0.03)
 rotation = Vector3(1.5, 0, 0)
@@ -274,7 +286,7 @@ mesh = SubResource("Mesh_finger")
 material_override = SubResource("Material_hand")
 cast_shadow = 0
 
-[node name="FingerB" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+[node name="FingerB" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel"]
 visible = false
 position = Vector3(0, -0.06, 0.025)
 rotation = Vector3(1.5, 0, 0)
@@ -282,7 +294,7 @@ mesh = SubResource("Mesh_finger")
 material_override = SubResource("Material_hand")
 cast_shadow = 0
 
-[node name="FingerC" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/KnifeViewModel"]
+[node name="FingerC" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel"]
 visible = false
 position = Vector3(0.048, -0.055, 0.03)
 rotation = Vector3(1.5, 0, 0)
@@ -290,25 +302,26 @@ mesh = SubResource("Mesh_finger")
 material_override = SubResource("Material_hand")
 cast_shadow = 0
 
-[node name="VialViewModel" type="Node3D" parent="CameraRig/Camera3D/ViewModel"]
-unique_name_in_owner = true
+[node name="PrototypeVialViewModel" type="Node3D" parent="CameraRig/Camera3D/ViewModel"]
 visible = false
 position = Vector3(0.61, -0.42, -0.7)
 rotation = Vector3(-0.28, 0, -0.12)
 scale = Vector3(0.62, 0.62, 0.62)
 
-[node name="Glass" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/VialViewModel"]
+[node name="Glass" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeVialViewModel"]
+visible = false
 mesh = SubResource("Mesh_vial")
 material_override = SubResource("Material_vial")
 cast_shadow = 0
 
-[node name="Cork" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/VialViewModel"]
+[node name="Cork" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeVialViewModel"]
+visible = false
 position = Vector3(0, 0.135, 0)
 mesh = SubResource("Mesh_vial_cork")
 material_override = SubResource("Material_vial_cork")
 cast_shadow = 0
 
-[node name="GripHand" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/VialViewModel"]
+[node name="GripHand" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeVialViewModel"]
 visible = false
 position = Vector3(0, -0.13, 0.025)
 rotation = Vector3(0, 0, 1.5708)
@@ -316,13 +329,36 @@ mesh = SubResource("Mesh_grip_palm")
 material_override = SubResource("Material_hand")
 cast_shadow = 0
 
-[node name="GripSleeve" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/VialViewModel"]
+[node name="GripSleeve" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel/PrototypeVialViewModel"]
 visible = false
 position = Vector3(0.14, -0.18, 0.08)
 rotation = Vector3(0, 0, 1.5708)
 mesh = SubResource("Mesh_grip_sleeve")
 material_override = SubResource("Material_sleeve")
 cast_shadow = 0
+
+[node name="KnifeViewModel" type="BoneAttachment3D" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D"]
+unique_name_in_owner = true
+bone_name = "socket.r"
+bone_idx = 20
+
+[node name="AuthoredKnife" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/KnifeViewModel" instance=ExtResource("13_knife")]
+scale = Vector3(0.24, 0.24, 0.24)
+
+[node name="VialViewModel" type="BoneAttachment3D" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D"]
+unique_name_in_owner = true
+visible = false
+bone_name = "socket.r"
+bone_idx = 20
+
+[node name="AuthoredBottle" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel" instance=ExtResource("14_bottle")]
+position = Vector3(0, -0.7, 0)
+scale = Vector3(8.5, 8.5, 8.5)
+
+[node name="bottle" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel/AuthoredBottle" index="0"]
+material_override = SubResource("Material_authored_vial")
+
+[editable path="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel/AuthoredBottle"]
 
 [node name="InventoryComponent" type="Node" parent="."]
 unique_name_in_owner = true

@@ -23,7 +23,11 @@ func _run() -> void:
 	var first_person_arms := _player.get_node("CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms")
 	var arm_skeleton := first_person_arms.find_child("Skeleton3D", true, false) as Skeleton3D
 	_expect(arm_skeleton != null and arm_skeleton.get_bone_count() >= 40, "Rigged CC0 first-person arms were not installed.")
-	_expect(not (_player.get_node("CameraRig/Camera3D/ViewModel/KnifeViewModel/GripHand") as MeshInstance3D).visible, "Legacy primitive grip hand is still visible.")
+	var legacy_grip := _player.get_node("CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel/GripHand") as MeshInstance3D
+	var knife_attachment := _player.knife_viewmodel as BoneAttachment3D
+	_expect(not legacy_grip.visible, "Legacy primitive grip hand is still visible.")
+	_expect(knife_attachment != null and knife_attachment.bone_name == "socket.r", "Authored knife is not attached to the rigged hand socket.")
+	_expect(knife_attachment.find_child("AuthoredKnife", true, false) != null, "Authored CC0 knife is missing from the viewmodel.")
 
 	# Exercise a real physical key event, not Input.action_press(), so broken
 	# device-specific project bindings cannot hide behind the test harness.
