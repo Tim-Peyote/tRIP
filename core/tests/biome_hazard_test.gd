@@ -40,6 +40,8 @@ func _run() -> void:
 	level.player.global_position = test_position
 	controller.call("_process", 0.1)
 	controller.force_active()
+	var hazard_audio := controller.get("_audio") as AudioStreamPlayer3D
+	_expect(hazard_audio != null and hazard_audio.stream != null and not hazard_audio.stream is AudioStreamWAV, "Biome hazard still uses a synthesized looping WAV.")
 	level.player.velocity = Vector3.ZERO
 	for _step: int in 3:
 		controller.call("_process", 1.0)

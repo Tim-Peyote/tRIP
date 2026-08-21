@@ -8,6 +8,11 @@ signal overwhelmed(definition: BiomeHazardDefinition, text: String)
 enum State { CALM, WARNING, ACTIVE }
 
 const MIN_EXPEDITION_Z := 5.8
+const RECORDED_WIND := preload("res://assets/third_party/open_game_art_audio/wind_strong.ogg")
+const RECORDED_RAIN := preload("res://assets/third_party/open_game_art_audio/rain_long.ogg")
+const RECORDED_CAVERN := preload("res://assets/third_party/open_game_art_audio/dark_cavern.ogg")
+const RECORDED_ROOTS := preload("res://assets/third_party/open_game_art_audio/dungeon_ambience.ogg")
+const RECORDED_UNCANNY_FOREST := preload("res://assets/third_party/open_game_art_audio/creepy_forest.ogg")
 
 var state: State = State.CALM
 var exposure: float = 0.0
@@ -241,8 +246,10 @@ func _configure_presentation() -> void:
 			_particle_material.initial_velocity_min = 0.8
 			_particle_material.initial_velocity_max = 3.0
 	_particle_material.gravity = Vector3(0.2, -0.35, 0.05)
-	_audio.stream = _create_hazard_tone(_definition.audio_pitch, _definition.visual_family)
-	_audio.pitch_scale = _definition.audio_pitch
+	_audio.stream = _get_recorded_hazard_layer(_definition.visual_family)
+	if _audio.stream is AudioStreamOggVorbis:
+		(_audio.stream as AudioStreamOggVorbis).loop = true
+	_audio.pitch_scale = clampf(_definition.audio_pitch, 0.88, 1.12)
 	_set_presentation_intensity(0.0)
 
 
@@ -251,7 +258,7 @@ func _set_presentation_intensity(value: float) -> void:
 		_particles.emitting = value > 0.01
 		_particles.amount_ratio = clampf(value, 0.0, 1.0)
 	if _audio != null:
-		_audio.volume_db = lerpf(-80.0, -8.0, clampf(value, 0.0, 1.0))
+		_audio.volume_db = lerpf(-80.0, -14.0, clampf(value, 0.0, 1.0))
 		if value > 0.01 and not _audio.playing:
 			_audio.play()
 		elif value <= 0.01:
@@ -261,24 +268,15 @@ func _set_presentation_intensity(value: float) -> void:
 		RenderingServer.global_shader_parameter_set(&"trip_hazard_color", _definition.primary_color)
 
 
-func _create_hazard_tone(pitch: float, family: int) -> AudioStreamWAV:
-	var sample_rate := 22050
-	var sample_count := sample_rate * 3
-	var bytes := PackedByteArray()
-	bytes.resize(sample_count * 2)
-	var fundamental := (34.0 + float(family) * 7.0) * pitch
-	for index: int in sample_count:
-		var time := float(index) / float(sample_rate)
-		var envelope := 0.55 + sin(time * TAU / 3.0) * 0.25
-		var tone := sin(TAU * fundamental * time) * 0.32 + sin(TAU * fundamental * 1.017 * time) * 0.2
-		var grit := sin(TAU * (fundamental * 3.7 + sin(time * 1.7) * 18.0) * time) * 0.06
-		bytes.encode_s16(index * 2, int(clampf((tone + grit) * envelope, -0.8, 0.8) * 32767.0))
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = sample_rate
-	stream.stereo = false
-	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	stream.loop_begin = 0
-	stream.loop_end = sample_count
-	stream.data = bytes
-	return stream
+func _get_recorded_hazard_layer(family: int) -> AudioStream:
+	match family:
+		BiomeHazardDefinition.VisualFamily.WIND, BiomeHazardDefinition.VisualFamily.HUNT:
+			return RECORDED_WIND
+		BiomeHazardDefinition.VisualFamily.RAIN:
+			return RECORDED_RAIN
+		BiomeHazardDefinition.VisualFamily.ROOTS:
+			return RECORDED_ROOTS
+		BiomeHazardDefinition.VisualFamily.SHARDS, BiomeHazardDefinition.VisualFamily.RESONANCE:
+			return RECORDED_CAVERN
+		_:
+			return RECORDED_UNCANNY_FOREST

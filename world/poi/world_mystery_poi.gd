@@ -1,6 +1,11 @@
 class_name WorldMysteryPOI
 extends StaticBody3D
 
+const RECORDED_WIND := preload("res://assets/third_party/open_game_art_audio/wind_gust.ogg")
+const RECORDED_CAVERN := preload("res://assets/third_party/open_game_art_audio/dark_cavern.ogg")
+const RECORDED_ROOTS := preload("res://assets/third_party/open_game_art_audio/dungeon_ambience.ogg")
+const RECORDED_UNCANNY_FOREST := preload("res://assets/third_party/open_game_art_audio/creepy_forest.ogg")
+
 signal discovered(definition: WorldMysteryDefinition)
 signal event_started(definition: WorldMysteryDefinition, instruction: String)
 signal event_failed(definition: WorldMysteryDefinition, failure_text: String)
@@ -209,9 +214,11 @@ func _build_event_presentation() -> void:
 	add_child(_event_light)
 	_event_audio = AudioStreamPlayer3D.new()
 	_event_audio.name = "MysteryEventAudio"
-	_event_audio.stream = _create_event_tone(definition.audio_pitch)
-	_event_audio.pitch_scale = definition.audio_pitch
-	_event_audio.volume_db = -18.0
+	_event_audio.stream = _get_recorded_event_layer(definition.event_rule)
+	if _event_audio.stream is AudioStreamOggVorbis:
+		(_event_audio.stream as AudioStreamOggVorbis).loop = true
+	_event_audio.pitch_scale = clampf(definition.audio_pitch, 0.88, 1.12)
+	_event_audio.volume_db = -24.0
 	_event_audio.max_distance = definition.danger_radius * 2.2
 	_event_audio.position = _event_center + Vector3.UP
 	add_child(_event_audio)
@@ -245,7 +252,7 @@ func _update_presentation() -> void:
 	if _event_light != null:
 		_event_light.light_energy = lerpf(1.7, 5.4, _pressure) + sin(time * 4.0) * 0.35
 	if _event_audio != null:
-		_event_audio.volume_db = lerpf(-20.0, -7.0, _pressure)
+		_event_audio.volume_db = lerpf(-24.0, -14.0, _pressure)
 
 
 func _build_rule_visuals() -> void:
@@ -306,22 +313,13 @@ func _build_rule_visuals() -> void:
 		_rule_visuals.append(visual)
 
 
-func _create_event_tone(pitch: float) -> AudioStreamWAV:
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = 22050
-	stream.stereo = false
-	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	var frame_count := 22050 * 2
-	var bytes := PackedByteArray()
-	bytes.resize(frame_count * 2)
-	var base_frequency := 48.0 * pitch
-	for frame: int in frame_count:
-		var time := float(frame) / 22050.0
-		var breath := 0.42 + 0.58 * sin(time * PI) * sin(time * PI)
-		var sample := (sin(TAU * base_frequency * time) * 0.55 + sin(TAU * base_frequency * 1.503 * time) * 0.24) * breath
-		bytes.encode_s16(frame * 2, int(clampf(sample, -1.0, 1.0) * 11000.0))
-	stream.data = bytes
-	stream.loop_begin = 0
-	stream.loop_end = frame_count
-	return stream
+func _get_recorded_event_layer(rule: int) -> AudioStream:
+	match rule:
+		WorldMysteryDefinition.EventRule.KEEP_WALKING:
+			return RECORDED_WIND
+		WorldMysteryDefinition.EventRule.CROUCH_AND_LISTEN:
+			return RECORDED_CAVERN
+		WorldMysteryDefinition.EventRule.APPROACH_SLOWLY:
+			return RECORDED_ROOTS
+		_:
+			return RECORDED_UNCANNY_FOREST
