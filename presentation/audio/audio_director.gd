@@ -32,9 +32,13 @@ var _cue_streams: Dictionary[StringName, AudioStream] = {
 }
 var _cue_cursor: int = 0
 var _last_cue_usec: int = -UI_SELECT_COOLDOWN_USEC
+var _suppress_next_button_confirm: bool = false
+var _voice_lifetimes: Dictionary[int, float] = {}
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	set_process(true)
 	_apply_stable_audio_bus_state()
 	var master_bus := AudioServer.get_bus_index(&"Master")
 	if master_bus >= 0:
@@ -92,12 +96,41 @@ func play_ui_cue(cue_id: StringName) -> void:
 	player.volume_db = -18.0 if cue_id == &"select" else -10.0 if cue_id in [&"open", &"close"] else -7.0
 	player.play()
 	var maximum_lifetime := clampf(cue_stream.get_length() + 0.08, 0.12, 0.75)
-	get_tree().create_timer(maximum_lifetime, true, false, true).timeout.connect(_stop_ui_voice_if_same.bind(player, cue_stream), CONNECT_ONE_SHOT)
+	_voice_lifetimes[player.get_instance_id()] = maximum_lifetime
 
 
-func _stop_ui_voice_if_same(player: AudioStreamPlayer, expected_stream: AudioStream) -> void:
-	if is_instance_valid(player) and player.stream == expected_stream:
+func _process(delta: float) -> void:
+	if _voice_lifetimes.is_empty():
+		return
+	for player_instance_id: int in _voice_lifetimes.keys():
+		_voice_lifetimes[player_instance_id] -= delta
+		if _voice_lifetimes[player_instance_id] > 0.0:
+			continue
+		var player := instance_from_id(player_instance_id) as AudioStreamPlayer
+		if player != null:
+			player.stop()
+			player.stream = null
+		_voice_lifetimes.erase(player_instance_id)
+
+
+func stop_all_ui_audio() -> void:
+	_voice_lifetimes.clear()
+	for player: AudioStreamPlayer in _cue_players:
+		if not is_instance_valid(player):
+			continue
 		player.stop()
+		player.stream = null
+
+
+func suppress_next_button_confirm() -> void:
+	_suppress_next_button_confirm = true
+
+
+func _on_button_pressed() -> void:
+	if _suppress_next_button_confirm:
+		_suppress_next_button_confirm = false
+		return
+	play_ui_cue(&"confirm")
 
 
 func _wire_existing_buttons() -> void:
@@ -119,7 +152,7 @@ func _wire_button(button: Button) -> void:
 	button.mouse_entered.connect(play_ui_cue.bind(&"select"))
 	# Focus is often reassigned automatically while panels rebuild. Playing a cue
 	# for both focus and hover produced dense overlapping impulses on startup.
-	button.pressed.connect(play_ui_cue.bind(&"confirm"))
+	button.pressed.connect(_on_button_pressed)
 
 
 func set_snapshot(snapshot_id: StringName) -> void:

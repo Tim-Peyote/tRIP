@@ -42,8 +42,11 @@ func _run() -> void:
 	_expect(int(main.audio_director.get("_cue_cursor")) == cursor_before + 1, "UI cue rate limiter allowed overlapping hover impulses.")
 	await get_tree().create_timer(0.85, true, false, true).timeout
 	_expect(not limiter_voice.playing, "UI one-shot exceeded its hard lifetime and may be looping.")
-	cue_players.erase(limiter_voice)
-	limiter_voice.queue_free()
+	main.audio_director.set("_last_cue_usec", -AudioDirector.UI_SELECT_COOLDOWN_USEC)
+	cursor_before = int(main.audio_director.get("_cue_cursor"))
+	main.audio_director.suppress_next_button_confirm()
+	main.audio_director.call("_on_button_pressed")
+	_expect(int(main.audio_director.get("_cue_cursor")) == cursor_before, "Suppressed New Game button emitted a duplicate confirmation cue.")
 	main.main_menu.call("_show_settings")
 	await get_tree().process_frame
 	var settings_panel := main.main_menu.settings_panel
@@ -51,7 +54,18 @@ func _run() -> void:
 	_expect(settings_panel.get_node("Margin/Controls/HeadBobSlider") != null and settings_panel.get_node("Margin/Controls/FovSlider") != null, "Settings UI is missing first-person accessibility controls.")
 	_expect((main.main_menu.get_node("SafeArea/Layout/NewGameButton") as Button).disabled, "Background menu remained interactive behind settings.")
 	main.main_menu.call("_hide_settings")
+	cursor_before = int(main.audio_director.get("_cue_cursor"))
 	main.call("_on_game_requested", 41, true)
+	# Complete the real Button.pressed signal order: the generic audio hook runs
+	# after the game-request handler returns from synchronous world construction.
+	main.audio_director.call("_on_button_pressed")
+	_expect(int(main.audio_director.get("_cue_cursor")) == cursor_before, "New Game transition emitted a forbidden startup confirmation cue.")
+	main.audio_director.call("_process", 1.0)
+	var lifetime_debug := main.audio_director.get("_voice_lifetimes") as Dictionary
+	_expect(not limiter_voice.playing, "New Game confirmation was still playing after its hard one-shot lifetime (process=%s, lifetimes=%s)." % [main.audio_director.is_processing(), lifetime_debug])
+	_expect(limiter_voice.stream == null, "New Game confirmation retained its stream after the hard stop (process=%s, lifetimes=%s)." % [main.audio_director.is_processing(), lifetime_debug])
+	cue_players.erase(limiter_voice)
+	limiter_voice.queue_free()
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
 	for legacy_chunk: Node3D in [level.forest_clearing, level.forest_trail, level.deep_grove, level.root_well]:

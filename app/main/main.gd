@@ -74,6 +74,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	if _active_level != null:
 		return
+	# The same New Game press also reaches AudioDirector's generic button hook
+	# after this synchronous level construction returns. Consume that second cue
+	# and clear any menu voice before the expensive world build begins.
+	audio_director.suppress_next_button_confirm()
+	audio_director.stop_all_ui_audio()
 	get_tree().paused = false
 	main_menu.visible = false
 	_active_level = SHELTER_SCENE.instantiate() as ShelterLevel
@@ -110,7 +115,6 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	_active_player.inventory.consumable_used.connect(_active_player.play_consumption_animation)
 	effect_orchestrator.gameplay_channels_changed.connect(_on_effect_gameplay_channels_changed)
 	audio_director.set_snapshot(&"default")
-	audio_director.play_ui_cue(&"confirm")
 	_active_player.interactor.physical_hold_changed.connect(func(active: bool) -> void: audio_director.play_ui_cue(&"grab" if active else &"release"))
 	_active_player.interactor.interaction_completed.connect(audio_director.play_ui_cue.bind(&"confirm"))
 
