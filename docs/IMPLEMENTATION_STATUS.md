@@ -612,3 +612,9 @@ ingredient.mooncap
 - Грибной круг, зеркальный разлив, корневая пасть и сердце братьев больше не используют один общий набор перекрашенных примитивов. Каждый POI получил собственный фокусный силуэт и пространственную сцену; тест проверяет уникальный focal node всех восьми миров.
 - Terrain shader больше не окрашивает весь мир навигационным beacon color и не подсвечивает почву постоянной emission. Фазовая палитра использует stone low/high, склон темнеет, высота и macro cells дают крупные цветовые пласты, а emission остаётся только у пульса метаморфозы.
 - Сравнительный Forward+/Metal capture после каждой метаморфозы заново ставит наблюдателя на поверхность нового heightfield. Ледяной цирк больше не оценивается изнутри рельефа; восемь кадров подтверждают разную геометрию и воздушную перспективу.
+## System-wide UI presentation pass
+
+- Replaced the old near-black/green debug-panel theme with a layered field-interface system: translucent HUD plates, smoky content cards and distinct modal shells.
+- Unified buttons, focus states, tabs, lists, progress bars, separators and selection states across the main menu, settings, inventory, herbarium, pause, expedition results and sample inspection.
+- Added a designed inventory empty state and clearer item/detail hierarchy; the world remains visible behind expedition screens.
+- Main-menu controls now use a left-edge navigation accent and consistent keyboard/controller focus instead of generic centered rectangles.

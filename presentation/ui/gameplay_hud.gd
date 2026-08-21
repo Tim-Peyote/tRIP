@@ -95,9 +95,20 @@ func _ready() -> void:
 	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
 	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
 	inventory_panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_panel())
-	inventory_detail_panel.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel(Color(0.42, 0.55, 0.36), 0.52))
+	inventory_detail_panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color(0.62, 0.69, 0.52), 0.72))
+	%JournalPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
+	%PausePanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
+	%CycleResultPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(TripUITheme.EMBER))
+	inspection_panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color("8fb8a8"), 0.86))
+	%ObjectiveLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate())
+	%ClockLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("9bb6b1"), true))
+	inventory_label.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("9dbd78")))
+	%ToolLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("d49a68"), true))
+	%DistractionLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("a7aaa1"), true))
 	for filter_button: Button in [%InventoryFilterAll, %InventoryFilterIngredients, %InventoryFilterConsumables, %InventoryFilterTools]:
 		filter_button.toggle_mode = true
+	for journal_tab: Button in [%JournalTabSpecies, %JournalTabHypotheses, %JournalTabRecipes]:
+		journal_tab.toggle_mode = true
 	_refresh_inventory_filter_buttons()
 
 
@@ -653,13 +664,10 @@ func _update_inventory_panel() -> void:
 		_player.inventory.current_volume(), _player.inventory.maximum_volume,
 	]
 	if inventory_list.get_child_count() == 0:
-		var empty := Label.new()
-		empty.custom_minimum_size = Vector2(420.0, 100.0)
-		empty.text = "В этой категории пока пусто.\nИщи образцы, тайники и инструменты в мире."
-		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		inventory_list.add_child(empty)
+		inventory_list.add_child(_make_inventory_empty_state())
 		if catalog.is_empty():
 			_selected_inventory_id = &""
+		_show_empty_inventory_detail()
 	elif _selected_inventory_id == &"" or _player.inventory.count(_selected_inventory_id) <= 0.0 or not _inventory_definition_matches_filter(ContentDB.get_definition(_selected_inventory_id)):
 		_select_inventory_stack(visible_entries[0]["definition_id"], false)
 	else:
@@ -672,6 +680,53 @@ func _update_inventory_panel() -> void:
 		_player.inventory.current_mass(), _player.inventory.maximum_mass,
 		_player.inventory.current_volume(), _player.inventory.maximum_volume,
 	]
+
+
+func _make_inventory_empty_state() -> Control:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(640.0, 280.0)
+	panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color("788875"), 0.34))
+	var center := CenterContainer.new()
+	panel.add_child(center)
+	var content := VBoxContainer.new()
+	content.custom_minimum_size = Vector2(390.0, 0.0)
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.add_theme_constant_override("separation", 10)
+	center.add_child(content)
+	var sigil := Label.new()
+	sigil.text = "⌁"
+	sigil.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sigil.add_theme_color_override("font_color", Color("b8c68c"))
+	sigil.add_theme_font_size_override("font_size", 46)
+	content.add_child(sigil)
+	var title := Label.new()
+	title.text = "СУМКА ЖДЁТ ПЕРВЫЙ ОБРАЗЕЦ"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", TripUITheme.PAPER)
+	title.add_theme_font_size_override("font_size", 18)
+	content.add_child(title)
+	var body := Label.new()
+	body.text = "Исследуй влажные низины, корни и тайники.\nНайденное сырьё сохранит качество и свежесть."
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.add_theme_color_override("font_color", TripUITheme.MUTED)
+	body.add_theme_font_size_override("font_size", 14)
+	content.add_child(body)
+	return panel
+
+
+func _show_empty_inventory_detail() -> void:
+	inventory_detail_category.text = "ДОРОЖНЫЙ КОМПЛЕКТ"
+	inventory_detail_category.modulate = Color("9eb4a0")
+	inventory_detail_icon.texture = null
+	inventory_detail_title.text = "Готов к вылазке"
+	inventory_detail_body.text = "Здесь появятся свойства выбранного образца, его происхождение и доступные действия."
+	inventory_quality_bar.value = 0.0
+	inventory_freshness_bar.value = 0.0
+	inventory_specimen_list.clear()
+	inventory_specimen_list.add_item("Нет собранных образцов")
+	inventory_use_button.disabled = true
+	inventory_use_button.text = "Сначала найди сырьё"
 
 
 func _clear_inventory_list() -> void:
@@ -877,6 +932,9 @@ func _update_journal() -> void:
 func _set_journal_mode(mode: StringName) -> void:
 	_journal_mode = mode
 	_selected_journal_id = &""
+	%JournalTabSpecies.button_pressed = mode == &"species"
+	%JournalTabHypotheses.button_pressed = mode == &"hypotheses"
+	%JournalTabRecipes.button_pressed = mode == &"recipes"
 	audio_cue_requested.emit(&"select")
 	_update_journal()
 

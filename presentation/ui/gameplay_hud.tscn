@@ -514,7 +514,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0.006, 0.01, 0.008, 0.76)
+color = Color(0.018, 0.024, 0.021, 0.64)
 
 [node name="InventoryPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -525,34 +525,34 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -610.0
-offset_top = -338.0
-offset_right = 610.0
-offset_bottom = 338.0
+offset_left = -590.0
+offset_top = -320.0
+offset_right = 590.0
+offset_bottom = 320.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
 
 [node name="Margin" type="MarginContainer" parent="InventoryPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 34
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 34
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 14
 
 [node name="Layout" type="VBoxContainer" parent="InventoryPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
-theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.78, 0.86, 0.61, 1)
+theme_override_font_sizes/font_size = 28
 text = "СУМКА ЭКСПЕДИЦИИ"
 
 [node name="Subtitle" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.54, 0.61, 0.54, 1)
+theme_override_colors/font_color = Color(0.65, 0.69, 0.63, 1)
 theme_override_font_sizes/font_size = 13
 text = "ОБРАЗЦЫ · СОСТАВЫ · СНАРЯЖЕНИЕ"
 
@@ -637,7 +637,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 24
 
 [node name="ListScroll" type="ScrollContainer" parent="InventoryPanel/Margin/Layout/Body"]
-custom_minimum_size = Vector2(700, 0)
+custom_minimum_size = Vector2(664, 0)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
@@ -652,7 +652,7 @@ columns = 5
 
 [node name="Detail" type="PanelContainer" parent="InventoryPanel/Margin/Layout/Body"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(390, 0)
+custom_minimum_size = Vector2(370, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -676,7 +676,7 @@ text = "КАТЕГОРИЯ"
 
 [node name="InventoryDetailIcon" type="TextureRect" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 126)
+custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
@@ -732,7 +732,7 @@ text = "ОБРАЗЦЫ В СУМКЕ"
 
 [node name="InventorySpecimenList" type="ItemList" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 allow_reselect = true
@@ -745,7 +745,7 @@ text = "Нельзя применить напрямую"
 
 [node name="Hint" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.46, 0.52, 0.44, 1)
+theme_override_colors/font_color = Color(0.61, 0.65, 0.58, 1)
 theme_override_font_sizes/font_size = 13
 text = "[I] закрыть  ·  [1] быстро принять первый готовый состав  ·  выбор мышью или геймпадом"
 

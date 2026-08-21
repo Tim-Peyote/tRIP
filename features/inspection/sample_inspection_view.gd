@@ -16,6 +16,9 @@ var _dragging: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	theme = TripUITheme.build()
+	$InfoPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("92b8a2")))
+	$InfoPanel/Margin/Layout/FindingPanel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(TripUITheme.EMBER, 0.84))
 	viewport_container.gui_input.connect(_on_viewport_input)
 	session.clue_discovered.connect(_on_clue_discovered)
 	session.completed.connect(_on_session_completed)

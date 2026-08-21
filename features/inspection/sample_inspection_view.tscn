@@ -28,7 +28,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.008, 0.012, 0.01, 0.94)
+color = Color(0.018, 0.024, 0.021, 0.86)
 
 [node name="ViewportContainer" type="SubViewportContainer" parent="."]
 unique_name_in_owner = true

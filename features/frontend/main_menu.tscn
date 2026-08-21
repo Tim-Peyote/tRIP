@@ -71,7 +71,7 @@ grow_vertical = 2
 
 [node name="Layout" type="VBoxContainer" parent="SafeArea"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="SpacerTop" type="Control" parent="SafeArea/Layout"]
 custom_minimum_size = Vector2(0, 38)
@@ -79,13 +79,16 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="SafeArea/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.74, 0.82, 0.59, 1)
-theme_override_font_sizes/font_size = 84
+theme_override_colors/font_color = Color(0.82, 0.88, 0.68, 1)
+theme_override_colors/font_shadow_color = Color(0.02, 0.025, 0.02, 0.9)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 5
+theme_override_font_sizes/font_size = 88
 text = "TRip"
 
 [node name="Subtitle" type="Label" parent="SafeArea/Layout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.52, 0.6, 0.5, 1)
+theme_override_colors/font_color = Color(0.68, 0.73, 0.65, 1)
 theme_override_font_sizes/font_size = 17
 text = "ЛЕС ПОМНИТ, ЧТО ТЫ ПРИНИМАЛ"
 
@@ -102,35 +105,35 @@ layout_mode = 2
 
 [node name="ContinueButton" type="Button" parent="SafeArea/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(270, 42)
+custom_minimum_size = Vector2(310, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Продолжить"
 
 [node name="NewGameButton" type="Button" parent="SafeArea/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(270, 42)
+custom_minimum_size = Vector2(310, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Новая игра"
 
 [node name="SettingsButton" type="Button" parent="SafeArea/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(270, 42)
+custom_minimum_size = Vector2(310, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Настройки"
 
 [node name="CreditsButton" type="Button" parent="SafeArea/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(270, 42)
+custom_minimum_size = Vector2(310, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Авторы"
 
 [node name="QuitButton" type="Button" parent="SafeArea/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(270, 42)
+custom_minimum_size = Vector2(310, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Выйти"
