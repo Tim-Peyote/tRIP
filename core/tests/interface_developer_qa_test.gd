@@ -20,11 +20,11 @@ func _run() -> void:
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame
-	_expect(main.audio_director.is_safe_audio_bus_state_applied(), "Safe recorded-audio bus state was not applied.")
+	_expect(main.audio_director.is_full_audio_bus_state_applied(), "Full audio bus state was not restored.")
 	_expect(main.audio_director.is_master_audio_enabled(), "Master audio remained muted after restoring recorded sound.")
-	for bus_name: StringName in AudioDirector.SAFE_AUDIO_BUS_STATE:
+	for bus_name: StringName in AudioDirector.FULL_AUDIO_BUS_STATE:
 		var bus_index := AudioServer.get_bus_index(bus_name)
-		_expect(bus_index >= 0 and AudioServer.is_bus_mute(bus_index) == AudioDirector.SAFE_AUDIO_BUS_STATE[bus_name], "Audio bus has an unsafe mute state: %s" % bus_name)
+		_expect(bus_index >= 0 and not AudioServer.is_bus_mute(bus_index), "Audio bus remained muted: %s" % bus_name)
 	var recorded_cues := main.audio_director.get("_cue_streams") as Dictionary
 	_expect(recorded_cues.size() == 8, "Audio director is missing recorded UI cues.")
 	for cue_id: StringName in recorded_cues:

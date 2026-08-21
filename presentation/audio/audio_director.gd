@@ -4,16 +4,16 @@ extends Node
 signal snapshot_changed(snapshot_id: StringName)
 
 const SNAPSHOT_FADE_SECONDS: float = 0.35
-const SAFE_AUDIO_BUS_STATE: Dictionary[StringName, bool] = {
-	&"Music": true,
-	&"UI": true,
+const FULL_AUDIO_BUS_STATE: Dictionary[StringName, bool] = {
+	&"Music": false,
+	&"UI": false,
 	&"PlayerFoley": false,
 	&"World": false,
 	&"Ambience": false,
-	&"Creatures": true,
-	&"Interactions": true,
-	&"Voice": true,
-	&"Perception": true,
+	&"Creatures": false,
+	&"Interactions": false,
+	&"Voice": false,
+	&"Perception": false,
 }
 
 var _snapshot_id: StringName = &"default"
@@ -32,7 +32,7 @@ var _cue_cursor: int = 0
 
 
 func _ready() -> void:
-	_apply_safe_audio_bus_state()
+	_apply_full_audio_bus_state()
 	var master_bus := AudioServer.get_bus_index(&"Master")
 	if master_bus >= 0:
 		AudioServer.set_bus_mute(master_bus, false)
@@ -48,17 +48,17 @@ func _ready() -> void:
 	call_deferred("_wire_existing_buttons")
 
 
-func _apply_safe_audio_bus_state() -> void:
-	for bus_name: StringName in SAFE_AUDIO_BUS_STATE:
+func _apply_full_audio_bus_state() -> void:
+	for bus_name: StringName in FULL_AUDIO_BUS_STATE:
 		var bus_index := AudioServer.get_bus_index(bus_name)
 		if bus_index >= 0:
-			AudioServer.set_bus_mute(bus_index, SAFE_AUDIO_BUS_STATE[bus_name])
+			AudioServer.set_bus_mute(bus_index, FULL_AUDIO_BUS_STATE[bus_name])
 
 
-func is_safe_audio_bus_state_applied() -> bool:
-	for bus_name: StringName in SAFE_AUDIO_BUS_STATE:
+func is_full_audio_bus_state_applied() -> bool:
+	for bus_name: StringName in FULL_AUDIO_BUS_STATE:
 		var bus_index := AudioServer.get_bus_index(bus_name)
-		if bus_index < 0 or AudioServer.is_bus_mute(bus_index) != SAFE_AUDIO_BUS_STATE[bus_name]:
+		if bus_index < 0 or AudioServer.is_bus_mute(bus_index) != FULL_AUDIO_BUS_STATE[bus_name]:
 			return false
 	return true
 

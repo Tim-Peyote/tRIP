@@ -39,6 +39,11 @@ func _validate_landscape_rules() -> void:
 	_expect(camp_height > 1.45, "The deep-grove camp landmark lost its natural elevation.")
 	_expect(ramp_height > clearing_height and ramp_height < camp_height, "The camp approach is not a continuous slope.")
 	_expect(terrain.get_loaded_chunk_count() >= 1, "Streaming terrain did not create its center chunk.")
+	var origin_mesh := terrain.call("_build_chunk_mesh", Vector2i.ZERO, 25, true) as ArrayMesh
+	var minimum_generated_z := INF
+	for face_vertex: Vector3 in origin_mesh.get_faces():
+		minimum_generated_z = minf(minimum_generated_z, face_vertex.z)
+	_expect(minimum_generated_z < 0.1, "Streaming terrain still has an artificial southern world edge.")
 	terrain.set_run_seed(77123)
 	var ordinary_pack := load("res://content/biome_packs/ordinary_taiga.tres") as BiomeContentPack
 	var previous_landmark_row := -999

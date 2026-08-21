@@ -344,7 +344,7 @@ func _build_chunk_mesh(coordinate: Vector2i, resolution: int = -1, include_verte
 		coordinate,
 		chunk_size,
 		resolution,
-		MIN_EXPEDITION_Z,
+		-INF,
 		_height_at,
 		_terrain_color,
 		include_vertex_colors,
