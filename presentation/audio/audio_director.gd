@@ -6,7 +6,7 @@ signal snapshot_changed(snapshot_id: StringName)
 const SNAPSHOT_FADE_SECONDS: float = 0.35
 const STABLE_AUDIO_BUS_STATE: Dictionary[StringName, bool] = {
 	&"Music": true,
-	&"UI": true,
+	&"UI": false,
 	&"PlayerFoley": false,
 	&"World": false,
 	&"Ambience": false,
