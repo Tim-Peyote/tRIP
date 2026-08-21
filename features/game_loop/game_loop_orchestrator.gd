@@ -60,6 +60,8 @@ func get_objective_text() -> String:
 		Stage.REWARD:
 			return "ЦИКЛ ЗАВЕРШЁН · разобрать результаты"
 		_:
+			if mycologist_clues.has(&"mycologist.root_dream.ilya_echo"):
+				return "СЛЕД ИЛЬИ · найти Шляпку согласия и завершить формулу разделения голосов"
 			if mycologist_clues.has(&"mycologist.well.voice"):
 				return "МИКОЛОГ ЖИВ · найти настоящий путь ниже ложного сердца"
 			if root_well_entered:

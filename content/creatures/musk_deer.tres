@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=3 format=3]
 [ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_animals/Deer.fbx" id="2_deer"]
 [resource]
 script = ExtResource("1")
 id = &"creature.musk_deer"
@@ -21,6 +22,9 @@ silhouette_notes = "Короткое тело, очень длинные зад�
 body_color = Color(0.23, 0.18, 0.13, 1)
 accent_color = Color(0.67, 0.63, 0.5, 1)
 visual_scale = 0.78
+visual_scene = ExtResource("2_deer")
+visual_scene_scale = 0.82
+visual_scene_yaw = 180.0
 animation_states = Array[StringName]([&"freeze", &"sniff", &"notice", &"rock_hop", &"flee"])
 behavior_traits = Array[String](["Замирает в тени валуна", "Прыгает вверх по склону", "Не собирается в стадо"])
 gameplay_tells = Array[String](["Два тихих удара копыт", "В Хоре её следы складываются в пунктирную фразу"])

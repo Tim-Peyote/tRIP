@@ -45,6 +45,7 @@ func setup(
 	terrain.mystery_event_started.connect(_on_mystery_event_started)
 	terrain.mystery_event_failed.connect(_on_mystery_event_failed)
 	terrain.mystery_event_progressed.connect(_on_mystery_event_progressed)
+	terrain.authored_encounter_completed.connect(_on_authored_encounter_completed)
 	cooking.result_created.connect(_on_result_created)
 	phases.phase_changed.connect(_on_phase_changed)
 	_emit_contract()
@@ -126,6 +127,10 @@ func _on_mystery_discovered(definition: WorldMysteryDefinition) -> void:
 		_loop.narrative_notice_requested.emit(definition.display_name, definition.discovery_text)
 	autosave_requested.emit(&"world_mystery_discovered")
 	_emit_contract()
+
+
+func _on_authored_encounter_completed(clue_id: StringName, title: String, text: String) -> void:
+	_loop.record_trail_clue(clue_id, title, text)
 
 
 func _on_mystery_event_started(definition: WorldMysteryDefinition, instruction: String) -> void:

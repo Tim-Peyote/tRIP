@@ -219,7 +219,7 @@ func _setup_road_laboratory(terrain: ExpeditionTerrain) -> void:
 	var portable_nodes: Array[Node] = []
 	for path: NodePath in [
 		NodePath("Table"), NodePath("Mooncap"), NodePath("Mortar"), NodePath("Cauldron"),
-		NodePath("WaterJug"), NodePath("FireControl"), NodePath("Ladle"), NodePath("BottleRack"),
+		NodePath("WashBasin"), NodePath("PrepBoard"), NodePath("WaterJug"), NodePath("FireControl"), NodePath("Ladle"), NodePath("BottleRack"),
 		NodePath("Rug"), NodePath("CookingStationVisuals"), NodePath("CookingStationAudio"),
 		NodePath("ShelterProgressionVisuals"), NodePath("InvestigationBoard")
 	]:
@@ -240,10 +240,11 @@ func _setup_world_progression(terrain: ExpeditionTerrain) -> void:
 	world_progression.autosave_requested.connect(session_persistence.request_autosave)
 	terrain.biome_ingredient_harvested.connect(knowledge_orchestrator.record_harvest)
 	terrain.biome_ingredient_observed.connect(knowledge_orchestrator.observe)
-	var mortar_tool := road_laboratory.get_node("PortableLaboratory/Mortar/CookingToolComponent") as CookingToolComponent
-	for definition: ContentDefinition in ContentDB.get_all():
-		if definition is IngredientDefinition and definition.id not in mortar_tool.candidate_ingredient_ids:
-			mortar_tool.candidate_ingredient_ids.append(definition.id)
+	for node: Node in road_laboratory.get_node("PortableLaboratory").find_children("*", "CookingToolComponent", true, false):
+		var preparation_tool := node as CookingToolComponent
+		for definition: ContentDefinition in ContentDB.get_all():
+			if definition is IngredientDefinition and definition.id not in preparation_tool.candidate_ingredient_ids:
+				preparation_tool.candidate_ingredient_ids.append(definition.id)
 
 
 func _setup_biome_hazard(terrain: ExpeditionTerrain) -> void:

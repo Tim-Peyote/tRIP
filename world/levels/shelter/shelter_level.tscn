@@ -1,4 +1,4 @@
-[gd_scene load_steps=75 format=3]
+[gd_scene load_steps=78 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -106,6 +106,15 @@ radial_segments = 10
 [sub_resource type="CylinderShape3D" id="Shape_mortar"]
 radius = 0.3
 height = 0.24
+
+[sub_resource type="BoxMesh" id="Mesh_prep_board"]
+size = Vector3(0.72, 0.07, 0.52)
+
+[sub_resource type="BoxShape3D" id="Shape_prep_board"]
+size = Vector3(0.72, 0.12, 0.52)
+
+[sub_resource type="BoxMesh" id="Mesh_prep_blade"]
+size = Vector3(0.055, 0.055, 0.48)
 
 [sub_resource type="CylinderMesh" id="Mesh_pestle"]
 top_radius = 0.055
@@ -440,6 +449,74 @@ material_override = SubResource("Material_table")
 
 [node name="Mooncap" parent="." instance=ExtResource("3_mooncap")]
 position = Vector3(0, 1.02, -2.35)
+
+[node name="WashBasin" type="StaticBody3D" parent="."]
+position = Vector3(-1.72, 1.08, -1.8)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Bowl" type="MeshInstance3D" parent="WashBasin"]
+position = Vector3(0, 0.11, 0)
+mesh = SubResource("Mesh_mortar")
+material_override = SubResource("Material_water_jug")
+
+[node name="Collision" type="CollisionShape3D" parent="WashBasin"]
+position = Vector3(0, 0.12, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="WashBasin"]
+script = ExtResource("7_interactable")
+object_name = "Походная промывочная чаша"
+primary_action = &"wash"
+primary_verb = "Промыть образец"
+hold_duration = 0.65
+inspection_description = "Холодная проточная вода смывает почву и часть случайных спор, но долго держать образец нельзя."
+
+[node name="CookingToolComponent" type="Node" parent="WashBasin"]
+script = ExtResource("6_tool")
+operation = &"wash"
+amount = 1.0
+temperature = 16.0
+duration = 5.0
+candidate_ingredient_ids = Array[StringName]([&"ingredient.mirror_reed", &"ingredient.concordance_cap"])
+animated_node_path = NodePath("Bowl")
+action_rotation_degrees = Vector3(0, 0, 18)
+
+[node name="PrepBoard" type="StaticBody3D" parent="."]
+position = Vector3(-1.62, 1.05, -2.62)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Board" type="MeshInstance3D" parent="PrepBoard"]
+mesh = SubResource("Mesh_prep_board")
+material_override = SubResource("Material_table")
+
+[node name="Knife" type="MeshInstance3D" parent="PrepBoard"]
+position = Vector3(0.18, 0.12, 0)
+rotation = Vector3(0, 0.28, 0)
+mesh = SubResource("Mesh_prep_blade")
+material_override = SubResource("Material_cauldron")
+
+[node name="Collision" type="CollisionShape3D" parent="PrepBoard"]
+shape = SubResource("Shape_prep_board")
+
+[node name="InteractableComponent" type="Node" parent="PrepBoard"]
+script = ExtResource("7_interactable")
+object_name = "Доска полевого препаратора"
+primary_action = &"slice"
+primary_verb = "Разделить образец по волокнам"
+hold_duration = 0.8
+inspection_description = "Ножом отмечены углы среза. Неверное направление разрушит наблюдаемый ритм ткани."
+
+[node name="CookingToolComponent" type="Node" parent="PrepBoard"]
+script = ExtResource("6_tool")
+operation = &"slice"
+amount = 1.0
+temperature = 20.0
+duration = 7.0
+candidate_ingredient_ids = Array[StringName]([&"ingredient.mirror_reed", &"ingredient.concordance_cap"])
+animated_node_path = NodePath("Knife")
+action_rotation_degrees = Vector3(-32, 0, 0)
 
 [node name="Mortar" type="StaticBody3D" parent="."]
 position = Vector3(-0.72, 1.08, -2.35)

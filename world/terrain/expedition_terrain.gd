@@ -7,6 +7,7 @@ signal mystery_event_failed(definition: WorldMysteryDefinition, failure_text: St
 signal mystery_event_progressed(definition: WorldMysteryDefinition, progress: float, pressure: float)
 signal biome_ingredient_harvested(item: ItemInstance)
 signal biome_ingredient_observed(definition_id: StringName)
+signal authored_encounter_completed(clue_id: StringName, title: String, text: String)
 
 const PHASE_ORDINARY: StringName = &"ordinary"
 const PHASE_MYCELIAL: StringName = &"mycelial"
@@ -16,6 +17,7 @@ const TERRAIN_CHUNK_MESH_BUILDER = preload("res://world/terrain/terrain_chunk_me
 const AUTHORED_NATURE_ASSET_LIBRARY = preload("res://world/terrain/authored_nature_asset_library.gd")
 const BIOME_AMBIENCE = preload("res://presentation/audio/biome_procedural_ambience.gd")
 const ECOLOGY_MOTION_SHADER = preload("res://presentation/shaders/ecology_motion.gdshader")
+const ILYA_ROOT_ECHO = preload("res://features/npcs/ilya_root_echo.tscn")
 
 @export_range(16.0, 64.0, 1.0) var chunk_size: float = 30.0
 @export_range(9, 49, 2) var chunk_resolution: int = 25
@@ -1227,6 +1229,15 @@ func _add_root_mouth_core(root: Node3D, center: Vector2, rng: RandomNumberGenera
 	darkness.scale = Vector3(0.75, 1.0, 0.26)
 	darkness.position = Vector3(center.x, ground + 2.5, center.y + 3.55)
 	root.add_child(darkness)
+	var ilya_echo := ILYA_ROOT_ECHO.instantiate() as AuthoredNPCEncounter
+	ilya_echo.name = "IlyaRootEcho"
+	ilya_echo.required_clue_id = &""
+	ilya_echo.position = Vector3(center.x + 3.45, ground + 0.04, center.y - 2.75)
+	ilya_echo.rotation.y = -0.56
+	ilya_echo.encounter_completed.connect(func(clue_id: StringName, title: String, text: String) -> void:
+		authored_encounter_completed.emit(clue_id, title, text)
+	)
+	root.add_child(ilya_echo)
 
 
 func _add_brothers_heart_core(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
@@ -1641,33 +1652,111 @@ func _rebuild_presentation_layers() -> void:
 	_biome_ambience.call("set_expedition_active", is_instance_valid(_target) and _target.global_position.z >= MIN_EXPEDITION_Z)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = base_seed * 97 + _run_seed * 53 + ecology * 101
+	_build_layered_ridge_horizon(rng, pack)
 	match ecology:
 		BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
-			_build_mountain_horizon(rng, pack)
+			_build_taiga_horizon_crown(rng, pack)
 		BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
 			_build_fungal_horizon(rng, pack)
 		_:
 			_build_signature_horizon(rng, pack)
+	_build_celestial_anchor(pack)
 	_build_biome_atmosphere(pack)
 
 
-func _build_mountain_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+func _build_layered_ridge_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
 	var low := pack.ground_low if pack != null else Color(0.055, 0.15, 0.065)
 	var high := pack.ground_high if pack != null else Color(0.28, 0.27, 0.12)
-	for index in 16:
-		var peak := MeshInstance3D.new()
-		peak.name = "DistantRidge_%02d" % index
-		var mesh := PrismMesh.new()
-		var width := rng.randf_range(18.0, 31.0)
-		var height := rng.randf_range(24.0, 46.0)
-		mesh.size = Vector3(width, height, rng.randf_range(7.0, 13.0))
-		mesh.material = _standard_material(low.lerp(high, rng.randf_range(0.08, 0.38)).darkened(0.34))
-		peak.mesh = mesh
-		var angle := TAU * float(index) / 16.0 + rng.randf_range(-0.08, 0.08)
-		var radius := rng.randf_range(82.0, 105.0)
-		peak.position = Vector3(cos(angle) * radius, height * 0.5, sin(angle) * radius)
-		peak.rotation.y = -angle + PI * 0.5
-		_horizon_root.add_child(peak)
+	var ecology := pack.ecology_family if pack != null else BiomeContentPack.EcologyFamily.ALTAI_TAIGA
+	var relief_multiplier := 1.0
+	if ecology == BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
+		relief_multiplier = 1.38
+	elif ecology in [BiomeContentPack.EcologyFamily.MIRROR_WETLAND, BiomeContentPack.EcologyFamily.ASHEN_TUNDRA]:
+		relief_multiplier = 0.62
+	elif ecology == BiomeContentPack.EcologyFamily.ROOT_CAVERN:
+		relief_multiplier = 0.82
+	for layer: int in 3:
+		var radius := 76.0 + float(layer) * 24.0
+		var base_height := (15.0 - float(layer) * 2.2) * relief_multiplier
+		var amplitude := (9.0 - float(layer) * 1.5) * relief_multiplier
+		var phase_a := rng.randf_range(0.0, TAU)
+		var phase_b := rng.randf_range(0.0, TAU)
+		var surface := SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var material := _standard_material(low.lerp(high, 0.15 + float(layer) * 0.16).darkened(0.32 + float(layer) * 0.1))
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		surface.set_material(material)
+		var segments := 72
+		for index: int in segments:
+			var angle_a := TAU * float(index) / float(segments)
+			var angle_b := TAU * float(index + 1) / float(segments)
+			var radius_a := radius + sin(angle_a * 5.0 + phase_a) * 3.8 + sin(angle_a * 11.0 + phase_b) * 1.4
+			var radius_b := radius + sin(angle_b * 5.0 + phase_a) * 3.8 + sin(angle_b * 11.0 + phase_b) * 1.4
+			var top_a := base_height + sin(angle_a * 3.0 + phase_a) * amplitude + sin(angle_a * 8.0 + phase_b) * amplitude * 0.34
+			var top_b := base_height + sin(angle_b * 3.0 + phase_a) * amplitude + sin(angle_b * 8.0 + phase_b) * amplitude * 0.34
+			var bottom_a := Vector3(cos(angle_a) * radius_a, -13.0, sin(angle_a) * radius_a)
+			var bottom_b := Vector3(cos(angle_b) * radius_b, -13.0, sin(angle_b) * radius_b)
+			var ridge_a := Vector3(cos(angle_a) * radius_a, top_a, sin(angle_a) * radius_a)
+			var ridge_b := Vector3(cos(angle_b) * radius_b, top_b, sin(angle_b) * radius_b)
+			surface.add_vertex(bottom_a)
+			surface.add_vertex(bottom_b)
+			surface.add_vertex(ridge_a)
+			surface.add_vertex(bottom_b)
+			surface.add_vertex(ridge_b)
+			surface.add_vertex(ridge_a)
+		surface.generate_normals()
+		var ridge := MeshInstance3D.new()
+		ridge.name = "DistantRidgeLayer_%02d" % layer
+		ridge.mesh = surface.commit()
+		_horizon_root.add_child(ridge)
+
+
+func _build_taiga_horizon_crown(rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var material := _standard_material(pack.ground_low.darkened(0.48) if pack != null else Color(0.018, 0.065, 0.028))
+	var trunk_mesh := BIOME_MESH_LIBRARY.create_taiga_trunk()
+	var crown_mesh := BIOME_MESH_LIBRARY.create_conifer_crown_windformed()
+	_set_mesh_material(trunk_mesh, material)
+	_set_mesh_material(crown_mesh, material)
+	var trunks := _new_multimesh(trunk_mesh, 28)
+	var crowns := _new_multimesh(crown_mesh, 28)
+	for index: int in 28:
+		var angle := TAU * float(index) / 28.0 + rng.randf_range(-0.07, 0.07)
+		var radius := rng.randf_range(67.0, 76.0)
+		var scale := rng.randf_range(2.0, 3.7)
+		var position := Vector3(cos(angle) * radius, -1.5, sin(angle) * radius)
+		var trunk_basis := Basis(Vector3.UP, -angle).scaled(Vector3.ONE * scale)
+		trunks.set_instance_transform(index, Transform3D(trunk_basis, position))
+		var crown_scale := scale * rng.randf_range(0.88, 1.14)
+		var crown_basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * crown_scale)
+		crowns.set_instance_transform(index, Transform3D(crown_basis, position + Vector3.UP * 5.1 * scale))
+	_add_multimesh_instance(_horizon_root, "DistantCedarTrunks", trunks)
+	_add_multimesh_instance(_horizon_root, "DistantCedarCrowns", crowns)
+
+
+func _build_celestial_anchor(pack: BiomeContentPack) -> void:
+	if pack == null:
+		return
+	var anchor := MeshInstance3D.new()
+	anchor.name = "BiomeCelestialAnchor"
+	var sphere := SphereMesh.new()
+	var scale := 7.5
+	if pack.ecology_family == BiomeContentPack.EcologyFamily.HEART_PLATEAU:
+		scale = 13.0
+	elif pack.ecology_family == BiomeContentPack.EcologyFamily.ROOT_CAVERN:
+		scale = 9.5
+	sphere.radius = 1.0
+	sphere.height = 2.0
+	sphere.radial_segments = 24
+	sphere.rings = 12
+	var color := pack.accent_color.lightened(0.18)
+	var material := _standard_material(color, true)
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.emission_energy_multiplier = 2.8
+	sphere.material = material
+	anchor.mesh = sphere
+	anchor.scale = Vector3.ONE * scale
+	anchor.position = Vector3(-66.0, 42.0, -82.0)
+	_horizon_root.add_child(anchor)
 
 
 func _build_fungal_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:

@@ -136,7 +136,8 @@ func _spawn_chunk_population(key: String, coordinate: Vector2i, developer_overri
 	for index: int in group_size:
 		var actor := ACTOR_SCRIPT.new() as BiomeCreatureActor
 		root.add_child(actor)
-		var offset := Vector2(cos(float(index) * 2.4), sin(float(index) * 2.4)) * rng.randf_range(1.2, 3.8)
+		var group_spacing := rng.randf_range(2.8, 5.8) * maxf(selected.visual_scale, 0.8)
+		var offset := Vector2(cos(float(index) * 2.4), sin(float(index) * 2.4)) * group_spacing
 		var point := center + offset
 		var height := _terrain.get_height_at_global(Vector3(point.x, 0, point.y))
 		actor.global_position = Vector3(point.x, height + (2.8 if selected.body_plan == CreatureArchetypeDefinition.BodyPlan.BIRD else 0.08), point.y)

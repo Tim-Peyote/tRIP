@@ -26,6 +26,15 @@ enum ActivityWindow { DAY, NIGHT, CREPUSCULAR, ANY }
 @export var accent_color: Color = Color(0.72, 0.58, 0.32)
 @export_range(0.25, 3.0, 0.05) var visual_scale: float = 1.0
 @export var animation_states: Array[StringName] = [&"idle", &"notice", &"turn", &"walk", &"flee"]
+@export var visual_scene: PackedScene
+@export var visual_scene_variants: Array[PackedScene] = []
+@export_range(0.05, 4.0, 0.01) var visual_scene_scale: float = 1.0
+@export_range(-180.0, 180.0, 1.0, "suffix:°") var visual_scene_yaw: float = 0.0
+@export var idle_animation: StringName = &"Idle"
+@export var forage_animation: StringName = &"Eating"
+@export var walk_animation: StringName = &"Walk"
+@export var run_animation: StringName = &"Gallop"
+@export var notice_animation: StringName = &"Idle_2"
 @export var behavior_traits: Array[String] = []
 @export var gameplay_tells: Array[String] = []
 @export var player_interactions: Array[StringName] = [&"observe"]

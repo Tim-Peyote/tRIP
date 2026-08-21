@@ -17,6 +17,8 @@ var _visual_root: Node3D
 var _body: Node3D
 var _head: Node3D
 var _limbs: Array[Node3D] = []
+var _animation_player: AnimationPlayer
+var _active_animation: StringName
 var _home: Vector3
 var _awareness_time: float = 0.0
 
@@ -126,6 +128,40 @@ func _build_character() -> void:
 	_visual_root.name = "AnimatedSilhouette"
 	add_child(_visual_root)
 	var scale_factor := definition.visual_scale
+	if definition.visual_scene != null:
+		_build_rigged_character()
+	else:
+		_build_procedural_character()
+	_visual_root.scale = Vector3.ONE * scale_factor
+	var collision := CollisionShape3D.new()
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.38 * scale_factor
+	shape.height = 1.4 * scale_factor
+	collision.shape = shape
+	collision.position.y = 0.7 * scale_factor
+	add_child(collision)
+
+
+func _build_rigged_character() -> void:
+	var selected_scene := definition.visual_scene
+	if not definition.visual_scene_variants.is_empty():
+		var variant_roll := absi(int(_rng.seed)) % (definition.visual_scene_variants.size() + 1)
+		if variant_roll > 0:
+			selected_scene = definition.visual_scene_variants[variant_roll - 1]
+	var imported := selected_scene.instantiate() as Node3D
+	if imported == null:
+		_build_procedural_character()
+		return
+	imported.name = "RiggedAnimal"
+	imported.scale = Vector3.ONE * definition.visual_scene_scale
+	imported.rotation_degrees.y = definition.visual_scene_yaw
+	_visual_root.add_child(imported)
+	_animation_player = imported.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	for mesh: Node in imported.find_children("*", "MeshInstance3D", true, false):
+		(mesh as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+
+
+func _build_procedural_character() -> void:
 	var material := _material(definition.body_color)
 	var accent := _material(definition.accent_color, definition.temperament == CreatureArchetypeDefinition.Temperament.MYTHIC)
 	match definition.body_plan:
@@ -142,14 +178,6 @@ func _build_character() -> void:
 			_build_quadruped(material, accent, Vector3(1.28, 0.58, 0.52), 0.52, 0.68)
 		_:
 			_build_quadruped(material, accent, Vector3(1.38, 0.7, 0.58), 0.58, 0.92)
-	_visual_root.scale = Vector3.ONE * scale_factor
-	var collision := CollisionShape3D.new()
-	var shape := CapsuleShape3D.new()
-	shape.radius = 0.38 * scale_factor
-	shape.height = 1.4 * scale_factor
-	collision.shape = shape
-	collision.position.y = 0.7 * scale_factor
-	add_child(collision)
 
 
 func _build_quadruped(material: Material, accent: Material, body_size: Vector3, leg_length: float, head_height: float) -> void:
@@ -166,6 +194,10 @@ func _build_quadruped(material: Material, accent: Material, body_size: Vector3, 
 
 
 func _animate_character(delta: float, planar_speed: float) -> void:
+	if _animation_player != null:
+		_animation_player.speed_scale = clampf(planar_speed / maxf(definition.move_speed * 0.55, 0.1), 0.72, 1.45) if state in [State.WANDER, State.FLEE, State.STALK] else 1.0
+		_play_state_animation()
+		return
 	_gait_phase += delta * (2.0 + planar_speed * 2.8)
 	var moving := clampf(planar_speed / maxf(definition.move_speed, 0.1), 0.0, 1.5)
 	if _body != null:
@@ -179,6 +211,32 @@ func _animate_character(delta: float, planar_speed: float) -> void:
 			limb.rotation.z = (0.28 if index == 0 else -0.28) + sin(_gait_phase * 2.2) * (0.55 if index == 0 else -0.55)
 		else:
 			limb.rotation.x = sin(_gait_phase + (PI if index % 2 == 0 else 0.0)) * 0.45 * moving
+
+
+func _play_state_animation() -> void:
+	if _animation_player == null:
+		return
+	var requested := definition.idle_animation
+	match state:
+		State.FORAGE: requested = definition.forage_animation
+		State.WANDER, State.STALK: requested = definition.walk_animation
+		State.FLEE: requested = definition.run_animation
+		State.NOTICE, State.OBSERVE: requested = definition.notice_animation
+	var resolved := _resolve_animation_name(requested)
+	if resolved == &"" or resolved == _active_animation:
+		return
+	_active_animation = resolved
+	_animation_player.play(resolved, 0.22)
+
+
+func _resolve_animation_name(requested: StringName) -> StringName:
+	if _animation_player.has_animation(requested):
+		return requested
+	var suffix := "|%s" % String(requested)
+	for animation_name: StringName in _animation_player.get_animation_list():
+		if String(animation_name).ends_with(suffix):
+			return animation_name
+	return &""
 
 
 func _part(mesh: Mesh, material: Material, position_value: Vector3, rotation_value: Vector3 = Vector3.ZERO) -> Node3D:

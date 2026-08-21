@@ -1,6 +1,26 @@
-[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=7 format=3]
 [ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1"]
 [ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2"]
+[sub_resource type="Resource" id="wash"]
+script = ExtResource("2")
+operation = &"wash"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 10.0
+maximum_temperature = 22.0
+minimum_duration = 3.0
+maximum_duration = 7.0
+player_hint = "Промыть стебель в холодной воде, пока отражённая тень не отстанет от настоящей."
+[sub_resource type="Resource" id="slice"]
+script = ExtResource("2")
+operation = &"slice"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 10.0
+maximum_temperature = 26.0
+minimum_duration = 5.0
+maximum_duration = 9.0
+player_hint = "Разделить стебель вдоль настоящего волокна; зеркальный срез не использовать."
 [sub_resource type="Resource" id="grind"]
 script = ExtResource("2")
 operation = &"grind"
@@ -33,7 +53,7 @@ display_name = "Зеркальный отвар"
 description = "Переход из Пепельной тишины в Зеркальный разлив."
 tags = Array[StringName]([&"brew", &"world_key", &"mirror"])
 primary_ingredient_id = &"ingredient.mirror_reed"
-steps = Array[ExtResource("2")]([SubResource("grind"), SubResource("heat")])
+steps = Array[ExtResource("2")]([SubResource("wash"), SubResource("slice"), SubResource("grind"), SubResource("heat")])
 result_item_id = &"item.mirror_reed_broth"
 effect_ids = Array[StringName]([&"effect.mirror_tide"])
 acceptable_error = 0.18

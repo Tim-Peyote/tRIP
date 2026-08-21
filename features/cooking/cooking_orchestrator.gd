@@ -40,10 +40,13 @@ func add_water() -> bool:
 
 
 func transfer_prepared_ingredient() -> bool:
-	if process.events.is_empty() or process.events[0].operation != &"grind":
+	var source: CookingProcessEvent
+	for event: CookingProcessEvent in process.events:
+		if event.operation == &"grind":
+			source = event
+	if source == null:
 		action_rejected.emit("Сначала измельчи подходящий образец в ступке.")
 		return false
-	var source := process.events[0]
 	if not vessel.add_ingredient(source.ingredient_id, source.source_quality, source.ingredient_tags):
 		action_rejected.emit("Сначала налей воду; второй образец уже не нужен.")
 		return false

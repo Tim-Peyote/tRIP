@@ -38,6 +38,15 @@ func _run() -> void:
 		var generated_pois := probe_body.find_children("*", "WorldMysteryPOI", true, false)
 		_expect(not generated_pois.is_empty(), "World %s generated no interactive POI." % phase.id)
 		var generated_poi := generated_pois[0] as WorldMysteryPOI if not generated_pois.is_empty() else null
+		if phase.id == &"phase.root_dream":
+			var encounters := probe_body.find_children("*", "AuthoredNPCEncounter", true, false)
+			_expect(encounters.size() == 1, "Root Dream did not generate its authored Ilya encounter.")
+			if not encounters.is_empty():
+				var encounter := encounters[0] as AuthoredNPCEncounter
+				_expect(encounter.is_encounter_available(), "Streamed Ilya encounter was not available in Root Dream.")
+				var encounter_interactable := encounter.find_child("InteractableComponent", true, false) as InteractableComponent
+				encounter_interactable.complete_interaction(level.player)
+				_expect(level.game_loop_orchestrator.mycologist_clues.has(&"mycologist.root_dream.ilya_echo"), "Ilya encounter did not enter the persistent story state.")
 		if index >= expected_ingredients.size():
 			if generated_poi != null:
 				generated_poi.call("_resolve_event")
@@ -73,20 +82,16 @@ func _run() -> void:
 		sample.processing_state[&"part"] = &"cap" if index < 2 else &"whole"
 		level.player.inventory.add_item(sample)
 		var tags := ingredient.tags.duplicate()
-		var first := recipe.steps[0]
-		var second := recipe.steps[1]
-		var ground_ok := level.cooking_orchestrator.perform_action(
-			level.player, first.operation, recipe.primary_ingredient_id, tags, 1.0,
-			(first.minimum_temperature + first.maximum_temperature) * 0.5,
-			(first.minimum_duration + first.maximum_duration) * 0.5,
-			recipe.primary_ingredient_id
-		)
-		var heat_ok := level.cooking_orchestrator.perform_action(
-			level.player, second.operation, recipe.primary_ingredient_id, tags, 1.0,
-			(second.minimum_temperature + second.maximum_temperature) * 0.5,
-			(second.minimum_duration + second.maximum_duration) * 0.5
-		)
-		_expect(ground_ok and heat_ok, "Correct transition formula %s was rejected." % recipe.id)
+		var formula_ok := true
+		for step_index: int in recipe.steps.size():
+			var step := recipe.steps[step_index]
+			formula_ok = level.cooking_orchestrator.perform_action(
+				level.player, step.operation, recipe.primary_ingredient_id, tags, 1.0,
+				(step.minimum_temperature + step.maximum_temperature) * 0.5,
+				(step.minimum_duration + step.maximum_duration) * 0.5,
+				recipe.primary_ingredient_id if step_index == 0 else &""
+			) and formula_ok
+		_expect(formula_ok, "Correct transition formula %s was rejected." % recipe.id)
 		_expect(level.recipe_knowledge_orchestrator.is_learned(recipe.id), "Successful transition formula %s was not learned." % recipe.id)
 		_expect(level.player.inventory.use_first_consumable(), "Transition result for %s could not be consumed." % recipe.id)
 		await get_tree().process_frame

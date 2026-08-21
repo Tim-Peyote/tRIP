@@ -1,0 +1,75 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://features/npcs/authored_npc_encounter.gd" id="1_encounter"]
+[ext_resource type="Resource" path="res://content/npcs/ilya_sokolov.tres" id="2_definition"]
+[ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_human/Animated Human.fbx" id="3_human"]
+[ext_resource type="Script" path="res://core/components/interactable_component.gd" id="4_interactable"]
+[ext_resource type="Texture2D" path="res://assets/third_party/quaternius_animated_human/textures/ClothedLightSkin.png" id="5_skin"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
+radius = 0.38
+height = 1.78
+
+[sub_resource type="StandardMaterial3D" id="EchoMaterial"]
+transparency = 1
+albedo_color = Color(0.92, 1, 0.94, 0.9)
+albedo_texture = ExtResource("5_skin")
+roughness = 0.82
+emission_enabled = true
+emission = Color(0.018, 0.1, 0.035, 1)
+emission_energy_multiplier = 0.72
+
+[sub_resource type="BoxMesh" id="PackMesh"]
+size = Vector3(0.52, 0.67, 0.24)
+
+[sub_resource type="StandardMaterial3D" id="PackMaterial"]
+albedo_color = Color(0.58, 0.055, 0.025, 1)
+roughness = 0.9
+emission_enabled = true
+emission = Color(0.16, 0.012, 0.004, 1)
+emission_energy_multiplier = 0.7
+
+[node name="IlyaRootEcho" type="StaticBody3D"]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_encounter")
+definition = ExtResource("2_definition")
+required_clue_id = &"mycologist.well.voice"
+result_clue_id = &"mycologist.root_dream.ilya_echo"
+encounter_title = "СОВПАВШЕЕ ОТРАЖЕНИЕ"
+encounter_text = "Силуэт Ильи одновременно стоит у стены и отражается в мокром камне. Он показывает на корневую полость: «Не ищи меня глазами. На живом голосе растёт Шляпка согласия. Соедини её с Корнем второго берега — только финальный состав отделит мой след от голоса грибницы». Красный гермомешок остаётся видимым ещё секунду после исчезновения фигуры."
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.89, 0)
+shape = SubResource("CapsuleShape_body")
+
+[node name="Rig" type="Node3D" parent="."]
+scale = Vector3(0.31, 0.31, 0.31)
+
+[node name="Human" parent="Rig" instance=ExtResource("3_human")]
+
+[node name="EchoMaterialDriver" type="MeshInstance3D" parent="."]
+visible = false
+material_override = SubResource("EchoMaterial")
+
+[node name="RedDryBag" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.05, 0.22)
+rotation = Vector3(0.05, 0, 0)
+mesh = SubResource("PackMesh")
+material_override = SubResource("PackMaterial")
+
+[node name="EchoLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.15, 0.25)
+light_color = Color(0.24, 0.95, 0.52, 1)
+light_energy = 1.8
+omni_range = 4.8
+shadow_enabled = false
+
+[node name="InteractableComponent" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("4_interactable")
+object_name = "Илья Соколов"
+primary_verb = "Окликнуть"
+hold_duration = 0.65
+affordance = "examine"
+inspection_description = "Человеческий силуэт с красным гермомешком. Контур не совпадает с собственной тенью."
