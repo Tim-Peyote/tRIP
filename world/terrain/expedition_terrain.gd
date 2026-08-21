@@ -25,6 +25,8 @@ var _detail_noise := FastNoiseLite.new()
 var _terrain_material: ShaderMaterial
 var _horizon_root: Node3D
 var _atmosphere: GPUParticles3D
+var _generated_mesh_cache: Dictionary[StringName, Mesh] = {}
+var _mesh_library: RefCounted = BIOME_MESH_LIBRARY.new()
 
 
 func _ready() -> void:
@@ -100,6 +102,10 @@ func get_world_phase() -> StringName:
 
 func get_loaded_chunk_count() -> int:
 	return _chunks.size()
+
+
+func get_generated_mesh_cache_size() -> int:
+	return _generated_mesh_cache.size()
 
 
 func get_loaded_ecology_signature() -> String:
@@ -344,49 +350,41 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 	var size_high := 1.65
 	match family:
 		BiomeContentPack.VegetationFamily.CEDAR_FIR:
-			trunk = BIOME_MESH_LIBRARY.create_taiga_trunk()
+			trunk = _cached_biome_mesh(&"taiga_trunk", "create_taiga_trunk")
 			trunk_height = 5.8
 			trunk_has_base_origin = true
-			crown = BIOME_MESH_LIBRARY.create_conifer_crown()
+			crown = _cached_biome_mesh(&"conifer_crown", "create_conifer_crown")
 			crown_layers = 1
 		BiomeContentPack.VegetationFamily.GIANT_FUNGI:
-			trunk = BIOME_MESH_LIBRARY.create_fungus_stem()
+			trunk = _cached_biome_mesh(&"fungus_stem", "create_fungus_stem")
 			trunk_height = 5.4
 			trunk_has_base_origin = true
-			crown = BIOME_MESH_LIBRARY.create_fungus_cap()
+			crown = _cached_biome_mesh(&"fungus_cap", "create_fungus_cap")
 			trunk_color = Color(0.3, 0.18, 0.32)
 			crown_layers = 1
 		BiomeContentPack.VegetationFamily.ANTLER_LARCH:
-			var antler := PrismMesh.new()
-			antler.size = Vector3(0.42, 3.5, 0.5)
-			crown = antler
+			trunk = _cached_biome_mesh(&"taiga_trunk", "create_taiga_trunk")
+			trunk_height = 5.8
+			trunk_has_base_origin = true
+			crown = _cached_biome_mesh(&"antler_crown", "create_antler_crown")
 			trunk_color = Color(0.16, 0.018, 0.012)
-			crown_layers = 4
+			crown_layers = 1
 		BiomeContentPack.VegetationFamily.ICE_LICHEN:
-			var crystal := PrismMesh.new()
-			crystal.size = Vector3(1.4, 3.8, 1.1)
-			crown = crystal
+			crown = _cached_biome_mesh(&"crystal_cluster", "create_crystal_cluster")
 			trunk_color = Color(0.08, 0.28, 0.4)
-			crown_layers = 2
+			crown_layers = 1
 			trunk_shape.height = 3.6
 			trunk_height = 3.6
 		BiomeContentPack.VegetationFamily.BURNT_SNAGS:
-			var snag := CylinderMesh.new()
-			snag.top_radius = 0.0
-			snag.bottom_radius = 0.24
-			snag.height = 2.2
-			snag.radial_segments = 5
-			crown = snag
+			trunk = _cached_biome_mesh(&"taiga_trunk", "create_taiga_trunk")
+			trunk_height = 5.8
+			trunk_has_base_origin = true
+			crown = _cached_biome_mesh(&"burnt_crown", "create_burnt_crown")
 			trunk_color = Color(0.035, 0.028, 0.025)
 			crown_layers = 1
 			size_low = 0.62
 		BiomeContentPack.VegetationFamily.REED_ISLANDS:
-			var seed_head := SphereMesh.new()
-			seed_head.radius = 0.18
-			seed_head.height = 0.72
-			seed_head.radial_segments = 6
-			seed_head.rings = 3
-			crown = seed_head
+			crown = _cached_biome_mesh(&"reed_head", "create_reed_head")
 			trunk_shape.top_radius = 0.025
 			trunk_shape.bottom_radius = 0.05
 			trunk_shape.height = 2.4
@@ -396,23 +394,13 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			size_low = 0.45
 			size_high = 1.05
 		BiomeContentPack.VegetationFamily.ROOT_COLUMNS:
-			var ring := TorusMesh.new()
-			ring.inner_radius = 0.46
-			ring.outer_radius = 1.05
-			ring.rings = 10
-			ring.ring_segments = 7
-			crown = ring
+			crown = _cached_biome_mesh(&"root_loop", "create_root_loop")
 			trunk_shape.top_radius = 0.42
 			trunk_shape.bottom_radius = 0.72
 			trunk_color = Color(0.22, 0.07, 0.018)
 			crown_layers = 2
 		_:
-			var heart_ring := TorusMesh.new()
-			heart_ring.inner_radius = 0.62
-			heart_ring.outer_radius = 1.38
-			heart_ring.rings = 9
-			heart_ring.ring_segments = 6
-			crown = heart_ring
+			crown = _cached_biome_mesh(&"heart_loop", "create_heart_loop")
 			trunk_color = Color(0.08, 0.12, 0.28)
 			crown_layers = 3
 	_set_mesh_material(trunk, _standard_material(trunk_color))
@@ -443,10 +431,7 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			if family == BiomeContentPack.VegetationFamily.CONCORDANT_GROVE:
 				offset.y += sin(float(layer) * 2.1) * size
 			var crown_rotation := Vector3(0.0, yaw + layer * 0.3, 0.0)
-			if family == BiomeContentPack.VegetationFamily.ROOT_COLUMNS:
-				crown_rotation.x = PI * 0.5
-			elif family == BiomeContentPack.VegetationFamily.CONCORDANT_GROVE:
-				crown_rotation.x = PI * 0.5
+			if family == BiomeContentPack.VegetationFamily.CONCORDANT_GROVE:
 				crown_rotation.z = float(layer) * 0.52
 			crowns.set_instance_transform(placed * crown_layers + layer, Transform3D(Basis.from_euler(crown_rotation).scaled(Vector3(crown_scale, size, crown_scale)), Vector3(point.x, ground, point.y) + offset))
 			var ordinary := Color(0.055, 0.24, 0.075).lerp(Color(0.4, 0.55, 0.12), rng.randf_range(0.0, 0.65))
@@ -467,38 +452,21 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 	var mesh: Mesh
 	match family:
 		BiomeContentPack.GeologyFamily.ROUNDED_GRANITE:
-			mesh = BIOME_MESH_LIBRARY.create_granite_boulder()
+			mesh = _cached_biome_mesh(&"granite_boulder", "create_granite_boulder")
 		BiomeContentPack.GeologyFamily.ROOT_NODULES:
-			var rounded := SphereMesh.new()
-			rounded.radius = 0.9
-			rounded.height = 1.35
-			rounded.radial_segments = 7
-			rounded.rings = 3
-			mesh = rounded
+			mesh = _cached_biome_mesh(&"root_nodule", "create_root_nodule")
 		BiomeContentPack.GeologyFamily.KARST_RIBS:
-			mesh = BIOME_MESH_LIBRARY.create_karst_rib()
-		BiomeContentPack.GeologyFamily.ICE_CRYSTALS, BiomeContentPack.GeologyFamily.FLOATING_STRATA:
-			var shard := PrismMesh.new()
-			shard.size = Vector3(1.2, 2.8, 1.0)
-			mesh = shard
+			mesh = _cached_biome_mesh(&"karst_rib", "create_karst_rib")
+		BiomeContentPack.GeologyFamily.ICE_CRYSTALS:
+			mesh = _cached_biome_mesh(&"ice_geology", "create_ice_geology")
+		BiomeContentPack.GeologyFamily.FLOATING_STRATA:
+			mesh = _cached_biome_mesh(&"floating_strata", "create_floating_strata")
 		BiomeContentPack.GeologyFamily.RED_SCREE:
-			var scree := PrismMesh.new()
-			scree.size = Vector3(1.8, 1.2, 1.4)
-			mesh = scree
+			mesh = _cached_biome_mesh(&"red_scree", "create_red_scree")
 		BiomeContentPack.GeologyFamily.ASH_COLUMNS:
-			var column := CylinderMesh.new()
-			column.top_radius = 0.28
-			column.bottom_radius = 0.72
-			column.height = 2.8
-			column.radial_segments = 5
-			mesh = column
+			mesh = _cached_biome_mesh(&"ash_column", "create_ash_column")
 		_:
-			var shelf := CylinderMesh.new()
-			shelf.top_radius = 1.15
-			shelf.bottom_radius = 1.4
-			shelf.height = 0.38
-			shelf.radial_segments = 7
-			mesh = shelf
+			mesh = _cached_biome_mesh(&"wetland_shelf", "create_wetland_shelf")
 	_set_mesh_material(mesh, _standard_material(pack.ground_high if pack != null else Color(0.26, 0.28, 0.24), family == BiomeContentPack.GeologyFamily.ICE_CRYSTALS or family == BiomeContentPack.GeologyFamily.FLOATING_STRATA))
 	var multimesh := _new_multimesh(mesh, count)
 	var placed := 0
@@ -517,10 +485,16 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 			mesh_height = (mesh as PrismMesh).size.y
 		elif mesh is CylinderMesh:
 			mesh_height = (mesh as CylinderMesh).height
-		elif family == BiomeContentPack.GeologyFamily.KARST_RIBS:
-			mesh_height = 3.5
-		elif family == BiomeContentPack.GeologyFamily.ROUNDED_GRANITE:
-			mesh_height = 1.55
+		else:
+			match family:
+				BiomeContentPack.GeologyFamily.KARST_RIBS: mesh_height = 3.5
+				BiomeContentPack.GeologyFamily.ROUNDED_GRANITE: mesh_height = 1.55
+				BiomeContentPack.GeologyFamily.RED_SCREE: mesh_height = 1.2
+				BiomeContentPack.GeologyFamily.ICE_CRYSTALS: mesh_height = 3.4
+				BiomeContentPack.GeologyFamily.ASH_COLUMNS: mesh_height = 3.1
+				BiomeContentPack.GeologyFamily.WETLAND_SHELVES: mesh_height = 0.58
+				BiomeContentPack.GeologyFamily.ROOT_NODULES: mesh_height = 1.8
+				BiomeContentPack.GeologyFamily.FLOATING_STRATA: mesh_height = 1.44
 		multimesh.set_instance_transform(placed, Transform3D(basis, Vector3(point.x, ground + mesh_height * vertical_scale * 0.42, point.y)))
 		var ordinary := Color(0.19, 0.24, 0.2).lerp(Color(0.48, 0.42, 0.28), rng.randf())
 		var altered_low := _phase_definition.stone_low if _phase_definition != null else Color(0.08, 0.32, 0.42)
@@ -536,12 +510,14 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 	var pack := _get_content_pack()
 	if pack == null:
 		return
-	var fungal := pack.ecology_family == BiomeContentPack.EcologyFamily.MYCELIAL_KARST
-	if pack.ecology_family != BiomeContentPack.EcologyFamily.ALTAI_TAIGA and not fungal:
-		return
-	var mesh: Mesh = BIOME_MESH_LIBRARY.create_ground_clump(fungal)
-	var color := Color(0.19, 0.36, 0.08) if not fungal else Color(0.96, 0.08, 0.58)
-	var material := _standard_material(color, fungal)
+	var ecology := pack.ecology_family
+	var mesh: Mesh = _cached_biome_mesh(StringName("groundcover_%d" % ecology), &"create_ecology_groundcover", [ecology])
+	var colors := [
+		Color(0.19, 0.36, 0.08), Color(0.96, 0.08, 0.58), Color(0.68, 0.035, 0.012), Color(0.34, 0.82, 0.96),
+		Color(0.12, 0.095, 0.075), Color(0.08, 0.48, 0.34), Color(0.62, 0.16, 0.025), Color(0.92, 0.14, 0.72),
+	]
+	var color: Color = colors[ecology]
+	var material := _standard_material(color, ecology != BiomeContentPack.EcologyFamily.ALTAI_TAIGA)
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_set_mesh_material(mesh, material)
 	var multimesh := _new_multimesh(mesh, count)
@@ -560,7 +536,7 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 		multimesh.set_instance_color(placed, tint)
 		placed += 1
 	multimesh.instance_count = placed
-	_add_multimesh_instance(body, "Groundcover_%d" % pack.ecology_family, multimesh)
+	_add_multimesh_instance(body, "Groundcover_%d" % ecology, multimesh)
 
 
 func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
@@ -782,10 +758,13 @@ func _rebuild_presentation_layers() -> void:
 	var ecology := pack.ecology_family if pack != null else BiomeContentPack.EcologyFamily.ALTAI_TAIGA
 	var rng := RandomNumberGenerator.new()
 	rng.seed = base_seed * 97 + _run_seed * 53 + ecology * 101
-	if ecology == BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
-		_build_fungal_horizon(rng, pack)
-	else:
-		_build_mountain_horizon(rng, pack)
+	match ecology:
+		BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+			_build_mountain_horizon(rng, pack)
+		BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
+			_build_fungal_horizon(rng, pack)
+		_:
+			_build_signature_horizon(rng, pack)
 	_build_biome_atmosphere(pack)
 
 
@@ -832,9 +811,64 @@ func _build_fungal_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack) -
 		_horizon_root.add_child(cap)
 
 
+func _build_signature_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var mesh: Mesh
+	var count := 14
+	var scale_low := 3.5
+	var scale_high := 6.5
+	var base_y := 3.0
+	match pack.ecology_family:
+		BiomeContentPack.EcologyFamily.CRIMSON_STEPPE:
+			mesh = BIOME_MESH_LIBRARY.create_antler_crown()
+			scale_low = 5.0
+			scale_high = 9.0
+			base_y = 5.0
+		BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
+			mesh = BIOME_MESH_LIBRARY.create_crystal_cluster()
+			scale_low = 2.4
+			scale_high = 4.2
+			base_y = 0.0
+		BiomeContentPack.EcologyFamily.ASHEN_TUNDRA:
+			mesh = BIOME_MESH_LIBRARY.create_ash_column()
+			count = 18
+			scale_low = 3.0
+			scale_high = 7.0
+			base_y = 0.0
+		BiomeContentPack.EcologyFamily.MIRROR_WETLAND:
+			mesh = BIOME_MESH_LIBRARY.create_wetland_shelf()
+			count = 12
+			scale_low = 5.5
+			scale_high = 10.0
+			base_y = 8.0
+		BiomeContentPack.EcologyFamily.ROOT_CAVERN:
+			mesh = BIOME_MESH_LIBRARY.create_root_loop()
+			scale_low = 5.0
+			scale_high = 8.5
+			base_y = 10.0
+		_:
+			mesh = BIOME_MESH_LIBRARY.create_floating_strata()
+			count = 16
+			scale_low = 4.5
+			scale_high = 9.0
+			base_y = 12.0
+	_set_mesh_material(mesh, _standard_material(pack.accent_color.darkened(0.48), pack.ecology_family != BiomeContentPack.EcologyFamily.ASHEN_TUNDRA))
+	for index in count:
+		var silhouette := MeshInstance3D.new()
+		silhouette.name = "SignatureHorizon_%02d" % index
+		silhouette.mesh = mesh
+		var angle := TAU * float(index) / float(count) + rng.randf_range(-0.1, 0.1)
+		var radius := rng.randf_range(72.0, 102.0)
+		var scale := rng.randf_range(scale_low, scale_high)
+		silhouette.scale = Vector3(scale * rng.randf_range(0.8, 1.25), scale, scale * rng.randf_range(0.75, 1.2))
+		silhouette.position = Vector3(cos(angle) * radius, base_y + rng.randf_range(-2.0, 3.0), sin(angle) * radius)
+		silhouette.rotation.y = rng.randf_range(0.0, TAU)
+		_horizon_root.add_child(silhouette)
+
+
 func _build_biome_atmosphere(pack: BiomeContentPack) -> void:
 	_atmosphere = GPUParticles3D.new()
 	_atmosphere.name = "BiomeAtmosphere"
+	var ecology := pack.ecology_family if pack != null else BiomeContentPack.EcologyFamily.ALTAI_TAIGA
 	_atmosphere.amount = 150
 	_atmosphere.lifetime = 8.0
 	_atmosphere.preprocess = 8.0
@@ -850,10 +884,52 @@ func _build_biome_atmosphere(pack: BiomeContentPack) -> void:
 	process_material.gravity = Vector3(0.08, 0.035, 0.04)
 	process_material.scale_min = 0.45
 	process_material.scale_max = 1.45
+	match ecology:
+		BiomeContentPack.EcologyFamily.CRIMSON_STEPPE:
+			_atmosphere.amount = 105
+			process_material.direction = Vector3(1.0, 0.25, 0.18)
+			process_material.initial_velocity_min = 0.8
+			process_material.initial_velocity_max = 2.4
+			process_material.gravity = Vector3(0.35, 0.18, 0.0)
+		BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
+			_atmosphere.amount = 240
+			process_material.direction = Vector3(0.35, -1.0, 0.12)
+			process_material.spread = 28.0
+			process_material.initial_velocity_min = 0.5
+			process_material.initial_velocity_max = 1.7
+			process_material.gravity = Vector3(0.12, -0.48, 0.04)
+		BiomeContentPack.EcologyFamily.ASHEN_TUNDRA:
+			_atmosphere.amount = 210
+			process_material.direction = Vector3(0.5, -0.42, 0.16)
+			process_material.initial_velocity_min = 0.15
+			process_material.initial_velocity_max = 0.72
+			process_material.gravity = Vector3(0.08, -0.12, 0.02)
+		BiomeContentPack.EcologyFamily.MIRROR_WETLAND:
+			_atmosphere.amount = 120
+			process_material.direction = Vector3(0.65, 0.05, 0.25)
+			process_material.initial_velocity_min = 0.08
+			process_material.initial_velocity_max = 0.38
+			process_material.gravity = Vector3.ZERO
+		BiomeContentPack.EcologyFamily.ROOT_CAVERN:
+			_atmosphere.amount = 175
+			process_material.direction = Vector3(0.05, 1.0, 0.05)
+			process_material.initial_velocity_min = 0.3
+			process_material.initial_velocity_max = 0.95
+			process_material.gravity = Vector3(0.0, 0.16, 0.0)
+		BiomeContentPack.EcologyFamily.HEART_PLATEAU:
+			_atmosphere.amount = 190
+			process_material.direction = Vector3(0.4, 0.65, -0.3)
+			process_material.initial_velocity_min = 0.4
+			process_material.initial_velocity_max = 1.35
+			process_material.gravity = Vector3(0.0, 0.08, 0.0)
 	_atmosphere.process_material = process_material
 	var quad := QuadMesh.new()
-	var altered := pack != null and pack.ecology_family != BiomeContentPack.EcologyFamily.ALTAI_TAIGA
-	quad.size = Vector2(0.045, 0.045) if not altered else Vector2(0.095, 0.095)
+	var altered := ecology != BiomeContentPack.EcologyFamily.ALTAI_TAIGA
+	quad.size = Vector2(0.018, 0.018) if not altered else Vector2(0.028, 0.028)
+	if ecology == BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
+		quad.size = Vector2(0.014, 0.055)
+	elif ecology == BiomeContentPack.EcologyFamily.ASHEN_TUNDRA:
+		quad.size = Vector2(0.016, 0.026)
 	var particle_material := StandardMaterial3D.new()
 	var color := Color(0.82, 0.66, 0.24, 0.38) if pack == null else pack.accent_color
 	color.a = 0.38 if not altered else 0.72
@@ -886,6 +962,12 @@ func _set_mesh_material(mesh: Mesh, material: Material) -> void:
 	else:
 		for surface_index in mesh.get_surface_count():
 			mesh.surface_set_material(surface_index, material)
+
+
+func _cached_biome_mesh(key: StringName, method: StringName, arguments: Array = []) -> Mesh:
+	if not _generated_mesh_cache.has(key):
+		_generated_mesh_cache[key] = _mesh_library.callv(method, arguments) as Mesh
+	return _generated_mesh_cache[key]
 
 
 func _build_terrain_material() -> ShaderMaterial:

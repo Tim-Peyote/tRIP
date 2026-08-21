@@ -81,6 +81,99 @@ static func create_karst_rib() -> ArrayMesh:
 	return _create_tapered_form(3.5, 0.72, 0.08, 6, 4, 0.42, 0.83)
 
 
+static func create_antler_crown() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var branches := [
+		[Vector3(0, 0, 0), Vector3(-0.9, 1.2, 0.1), 0.16, 0.08],
+		[Vector3(0, 0.25, 0), Vector3(1.0, 1.55, -0.15), 0.18, 0.07],
+		[Vector3(-0.62, 0.82, 0.08), Vector3(-1.35, 1.55, 0.32), 0.1, 0.035],
+		[Vector3(-0.58, 0.86, 0.08), Vector3(-0.38, 1.85, -0.22), 0.09, 0.03],
+		[Vector3(0.66, 1.02, -0.1), Vector3(1.48, 1.72, -0.38), 0.1, 0.03],
+		[Vector3(0.65, 1.02, -0.1), Vector3(0.48, 2.2, 0.2), 0.1, 0.025],
+	]
+	for branch: Array in branches:
+		_add_tube_segment(surface, branch[0], branch[1], branch[2], branch[3], 5)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_crystal_cluster() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_crystal(surface, Vector3(-0.55, 0, 0.25), 0.48, 2.25, 0.3)
+	_add_crystal(surface, Vector3(0.1, 0, 0.0), 0.62, 3.4, -0.2)
+	_add_crystal(surface, Vector3(0.62, 0, -0.2), 0.38, 1.8, 0.12)
+	_add_crystal(surface, Vector3(0.15, 0, 0.55), 0.3, 1.35, -0.45)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_burnt_crown() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_tube_segment(surface, Vector3(0, 0, 0), Vector3(-0.8, 1.45, 0.12), 0.18, 0.035, 5)
+	_add_tube_segment(surface, Vector3(0.0, 0.12, 0), Vector3(0.72, 1.02, -0.38), 0.15, 0.03, 5)
+	_add_tube_segment(surface, Vector3(-0.34, 0.65, 0.05), Vector3(-1.0, 0.98, -0.28), 0.09, 0.02, 4)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_reed_head() -> ArrayMesh:
+	return _create_tapered_form(0.86, 0.12, 0.055, 6, 3, 0.06, 1.7)
+
+
+static func create_root_loop() -> ArrayMesh:
+	return _create_loop_form(Vector2(0.95, 1.35), 0.14, 11, 0.32)
+
+
+static func create_heart_loop() -> ArrayMesh:
+	return _create_loop_form(Vector2(1.35, 1.58), 0.11, 13, 0.58)
+
+
+static func create_red_scree() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_crystal(surface, Vector3(-0.5, 0, 0.2), 0.9, 1.2, 0.8)
+	_add_crystal(surface, Vector3(0.45, 0, -0.25), 0.7, 0.82, -0.7)
+	_add_crystal(surface, Vector3(0.0, 0, 0.5), 0.5, 0.65, 0.15)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_ice_geology() -> ArrayMesh:
+	return create_crystal_cluster()
+
+
+static func create_ash_column() -> ArrayMesh:
+	return _create_tapered_form(3.1, 0.78, 0.22, 5, 3, 0.14, 2.2)
+
+
+static func create_wetland_shelf() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_irregular_disc(surface, 1.45, 0.0, 9, 0.17)
+	_add_irregular_disc(surface, 1.0, 0.28, 8, 0.31)
+	_add_irregular_disc(surface, 0.58, 0.52, 7, 0.48)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_root_nodule() -> ArrayMesh:
+	return _create_tapered_form(1.8, 1.15, 0.32, 8, 3, 0.5, 1.26)
+
+
+static func create_floating_strata() -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for layer in 3:
+		var y := float(layer) * 0.48
+		var radius := 1.3 - float(layer) * 0.22
+		_add_irregular_disc(surface, radius, y, 7, float(layer) * 0.7)
+	surface.generate_normals()
+	return surface.commit()
+
+
 static func create_ground_clump(fungal: bool = false) -> ArrayMesh:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -96,6 +189,43 @@ static func create_ground_clump(fungal: bool = false) -> ArrayMesh:
 		if fungal:
 			var cap_center := base + lean + Vector3.UP * height
 			_add_triangle(surface, cap_center + Vector3(-0.16, 0.0, -0.05), cap_center + Vector3(0.16, 0.0, -0.05), cap_center + Vector3(0.0, 0.08, 0.13))
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func create_ecology_groundcover(ecology: int) -> ArrayMesh:
+	if ecology == 0:
+		return create_ground_clump(false)
+	if ecology == 1:
+		return create_ground_clump(true)
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	match ecology:
+		2: # Crimson thorn grass.
+			for index in 6:
+				var angle := TAU * float(index) / 6.0
+				var base := Vector3(cos(angle), 0, sin(angle)) * 0.12
+				_add_triangle(surface, base + Vector3(-0.07, 0, 0), base + Vector3(0.07, 0, 0), base + Vector3(cos(angle) * 0.48, 0.75 + 0.14 * (index % 2), sin(angle) * 0.48))
+		3: # Ice rosette.
+			for index in 5:
+				var angle := TAU * float(index) / 5.0
+				_add_crystal(surface, Vector3(cos(angle), 0, sin(angle)) * 0.16, 0.12, 0.52 + 0.1 * index, angle)
+		4: # Burnt heath.
+			for index in 5:
+				var x := -0.35 + float(index) * 0.17
+				_add_tube_segment(surface, Vector3(x, 0, 0), Vector3(x + 0.08 * sin(index), 0.28 + 0.08 * (index % 3), 0.1 * cos(index)), 0.025, 0.008, 4)
+		5: # Reed fan.
+			for index in 7:
+				var x := -0.42 + float(index) * 0.14
+				_add_tube_segment(surface, Vector3(x, 0, 0), Vector3(x + 0.08 * sin(index), 0.8 + 0.12 * (index % 3), 0.12 * cos(index)), 0.018, 0.009, 4)
+		6: # Root tendrils.
+			for index in 5:
+				var angle := TAU * float(index) / 5.0
+				_add_tube_segment(surface, Vector3.ZERO, Vector3(cos(angle) * 0.72, 0.18 + 0.08 * (index % 2), sin(angle) * 0.72), 0.06, 0.018, 5)
+		_: # Concordant ring flowers.
+			for index in 4:
+				var angle := TAU * float(index) / 4.0
+				_add_tube_segment(surface, Vector3(cos(angle) * 0.18, 0, sin(angle) * 0.18), Vector3(cos(angle) * 0.32, 0.5, sin(angle) * 0.32), 0.035, 0.014, 5)
 	surface.generate_normals()
 	return surface.commit()
 
@@ -124,6 +254,65 @@ static func _create_tapered_form(height: float, bottom_radius: float, top_radius
 			_add_triangle(surface, b, d, c)
 	surface.generate_normals()
 	return surface.commit()
+
+
+static func _create_loop_form(extents: Vector2, tube_radius: float, segments: int, wobble: float) -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for index in segments:
+		var angle_a := TAU * float(index) / float(segments)
+		var angle_b := TAU * float(index + 1) / float(segments)
+		var a := Vector3(cos(angle_a) * extents.x, sin(angle_a) * extents.y, sin(angle_a * 3.0) * wobble)
+		var b := Vector3(cos(angle_b) * extents.x, sin(angle_b) * extents.y, sin(angle_b * 3.0) * wobble)
+		_add_tube_segment(surface, a, b, tube_radius, tube_radius * (0.86 + 0.14 * sin(angle_b * 2.0)), 6)
+	surface.generate_normals()
+	return surface.commit()
+
+
+static func _add_tube_segment(surface: SurfaceTool, start: Vector3, end: Vector3, radius_start: float, radius_end: float, sides: int) -> void:
+	var direction := (end - start).normalized()
+	var right := direction.cross(Vector3.UP)
+	if right.length_squared() < 0.01:
+		right = direction.cross(Vector3.RIGHT)
+	right = right.normalized()
+	var up := right.cross(direction).normalized()
+	for side in sides:
+		var next := (side + 1) % sides
+		var angle_a := TAU * float(side) / float(sides)
+		var angle_b := TAU * float(next) / float(sides)
+		var radial_a := right * cos(angle_a) + up * sin(angle_a)
+		var radial_b := right * cos(angle_b) + up * sin(angle_b)
+		var a := start + radial_a * radius_start
+		var b := start + radial_b * radius_start
+		var c := end + radial_a * radius_end
+		var d := end + radial_b * radius_end
+		_add_triangle(surface, a, b, c)
+		_add_triangle(surface, b, d, c)
+
+
+static func _add_crystal(surface: SurfaceTool, center: Vector3, radius: float, height: float, lean: float) -> void:
+	var tip := center + Vector3(sin(lean) * height * 0.18, height, cos(lean) * height * 0.12)
+	for side in 5:
+		var next := (side + 1) % 5
+		var angle_a := TAU * float(side) / 5.0
+		var angle_b := TAU * float(next) / 5.0
+		var a := center + Vector3(cos(angle_a) * radius, 0, sin(angle_a) * radius)
+		var b := center + Vector3(cos(angle_b) * radius, 0, sin(angle_b) * radius)
+		_add_triangle(surface, a, b, tip)
+		_add_triangle(surface, b, a, center + Vector3.UP * 0.04)
+
+
+static func _add_irregular_disc(surface: SurfaceTool, radius: float, height: float, sides: int, phase: float) -> void:
+	var center := Vector3(0, height, 0)
+	for side in sides:
+		var next := (side + 1) % sides
+		var angle_a := TAU * float(side) / float(sides)
+		var angle_b := TAU * float(next) / float(sides)
+		var radius_a := radius * (0.82 + 0.18 * sin(float(side) * 2.3 + phase))
+		var radius_b := radius * (0.82 + 0.18 * sin(float(next) * 2.3 + phase))
+		var a := Vector3(cos(angle_a) * radius_a, height, sin(angle_a) * radius_a)
+		var b := Vector3(cos(angle_b) * radius_b, height, sin(angle_b) * radius_b)
+		_add_triangle(surface, a, b, center + Vector3.UP * 0.06)
 
 
 static func _add_triangle(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3) -> void:
