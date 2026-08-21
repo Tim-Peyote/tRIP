@@ -8,6 +8,11 @@ signal transition_finished(definition: WorldPhaseDefinition)
 const ONSET_SECONDS: float = 1.15
 const RUPTURE_SECONDS: float = 0.38
 const SETTLE_SECONDS: float = 2.8
+const TRANSITION_SOUNDS: Array[AudioStream] = [
+	preload("res://assets/third_party/kenney_audio/metamorphosis/impactBell_heavy_000.ogg"),
+	preload("res://assets/third_party/kenney_audio/metamorphosis/impactBell_heavy_002.ogg"),
+	preload("res://assets/third_party/kenney_audio/metamorphosis/impactBell_heavy_004.ogg"),
+]
 
 var _orchestrator: WorldPhaseOrchestrator
 var _target_definition: WorldPhaseDefinition
@@ -88,7 +93,8 @@ func _begin_transition(definition: WorldPhaseDefinition) -> void:
 	RenderingServer.global_shader_parameter_set(&"trip_world_family", float(definition.geometry_family))
 	_set_transition_progress(0.0)
 	if _audio_player != null:
-		_audio_player.stream = _build_transition_sound(definition.geometry_family)
+		_audio_player.stream = TRANSITION_SOUNDS[posmod(definition.geometry_family, TRANSITION_SOUNDS.size())]
+		_audio_player.pitch_scale = lerpf(0.82, 1.08, float(posmod(definition.geometry_family, 8)) / 7.0)
 		_audio_player.play()
 	transition_started.emit(definition, ONSET_SECONDS + RUPTURE_SECONDS + SETTLE_SECONDS)
 	_transition_tween = create_tween()
@@ -112,29 +118,3 @@ func _finish_transition() -> void:
 	_transition_tween = null
 	if finished_definition != null:
 		transition_finished.emit(finished_definition)
-
-
-func _build_transition_sound(family: int) -> AudioStreamWAV:
-	var sample_rate := 22050
-	var duration := ONSET_SECONDS + RUPTURE_SECONDS + SETTLE_SECONDS
-	var sample_count := int(duration * sample_rate)
-	var bytes := PackedByteArray()
-	bytes.resize(sample_count * 2)
-	for index in sample_count:
-		var time := float(index) / float(sample_rate)
-		var normalized := time / duration
-		var envelope := sin(PI * clampf(normalized, 0.0, 1.0))
-		var family_ratio := float(family) / 7.0
-		var rising_tone := lerpf(34.0 + family_ratio * 18.0, 104.0 + family_ratio * 46.0, smoothstep(0.0, 1.0, normalized))
-		var drone := sin(TAU * rising_tone * time) * 0.34
-		var beating := sin(TAU * (rising_tone * 1.013) * time) * 0.22
-		var overtone := sin(TAU * (168.0 + float(family) * 13.0 + sin(time * 2.1) * 24.0) * time) * 0.1
-		var rupture := exp(-pow((normalized - 0.31) * 24.0, 2.0)) * sin(TAU * (52.0 + float(family) * 9.0) * time) * 0.32
-		var sample := clampf((drone + beating + overtone) * envelope + rupture, -0.85, 0.85)
-		bytes.encode_s16(index * 2, int(sample * 32767.0))
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = sample_rate
-	stream.stereo = false
-	stream.data = bytes
-	return stream

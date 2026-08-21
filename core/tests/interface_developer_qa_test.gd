@@ -20,8 +20,10 @@ func _run() -> void:
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame
-	var cue := main.audio_director.call("_make_cue", 0.1, 300.0, 600.0, 0.02, 7) as AudioStreamWAV
-	_expect(cue != null and cue.data.size() > 1000, "Audio director did not generate audible UI feedback data.")
+	var recorded_cues := main.audio_director.get("_cue_streams") as Dictionary
+	_expect(recorded_cues.size() == 8, "Audio director is missing recorded UI cues.")
+	for cue_id: StringName in recorded_cues:
+		_expect(recorded_cues[cue_id] is AudioStreamOggVorbis, "UI cue is not a recorded OGG asset: %s" % cue_id)
 	main.main_menu.call("_show_settings")
 	await get_tree().process_frame
 	var settings_panel := main.main_menu.settings_panel

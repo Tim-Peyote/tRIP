@@ -41,7 +41,7 @@ func _run() -> void:
 	controller.call("_process", 0.1)
 	controller.force_active()
 	var hazard_audio := controller.get("_audio") as AudioStreamPlayer3D
-	_expect(hazard_audio != null and hazard_audio.stream != null and not hazard_audio.stream is AudioStreamWAV, "Biome hazard still uses a synthesized looping WAV.")
+	_expect(hazard_audio != null and hazard_audio.stream is AudioStreamOggVorbis, "Biome hazard is not using recorded OGG ambience.")
 	level.player.velocity = Vector3.ZERO
 	for _step: int in 3:
 		controller.call("_process", 1.0)

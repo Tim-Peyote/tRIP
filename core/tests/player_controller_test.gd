@@ -17,6 +17,11 @@ func _run() -> void:
 	add_child(_player)
 	_player.global_position = Vector3(0.0, 0.05, 0.0)
 	_player.set_gameplay_input_override_for_testing(true)
+	var foley := _player.find_child("PlayerFoley", true, false) as PlayerFoley
+	for stream: AudioStream in foley.get("_step_streams"):
+		_expect(stream is AudioStreamOggVorbis, "Player step still uses a generated stream.")
+	_expect(foley.get("_jump_stream") is AudioStreamOggVorbis, "Player jump still uses a generated stream.")
+	_expect(foley.get("_land_stream") is AudioStreamOggVorbis, "Player landing still uses a generated stream.")
 	_player.landed.connect(func(impact: float) -> void: _landed_impacts.append(impact))
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	await _physics_frames(10)

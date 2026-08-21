@@ -21,7 +21,7 @@ func _run() -> void:
 	add_child(quiet_poi)
 	quiet_poi.configure(quiet_mystery, Vector3.ZERO)
 	var mystery_audio := quiet_poi.get("_event_audio") as AudioStreamPlayer3D
-	_expect(mystery_audio != null and mystery_audio.stream != null and not mystery_audio.stream is AudioStreamWAV, "World mystery still uses a synthesized looping WAV.")
+	_expect(mystery_audio != null and mystery_audio.stream is AudioStreamOggVorbis, "World mystery is not using a recorded OGG asset.")
 	var sample := GeneratedBiomeIngredient.new()
 	sample.configure(&"ingredient.mooncap", &"test.reveal", Color(0.7, 0.9, 0.4), 0)
 	quiet_poi.add_child(sample)
