@@ -38,6 +38,17 @@ func _validate_landscape_rules() -> void:
 	_expect(trail_height > -0.1 and trail_height < 0.35, "The expedition trail left its authored height corridor.")
 	_expect(camp_height > 1.45, "The deep-grove camp landmark lost its natural elevation.")
 	_expect(ramp_height > clearing_height and ramp_height < camp_height, "The camp approach is not a continuous slope.")
+	_expect(terrain.get_loaded_chunk_count() >= 1, "Streaming terrain did not create its center chunk.")
+	var target := Node3D.new()
+	add_child(target)
+	target.global_position = Vector3(95, 0, 95)
+	terrain.setup(target)
+	for _frame in 4:
+		await get_tree().process_frame
+	_expect(terrain.get_loaded_chunk_count() >= 4, "Streaming terrain did not page chunks around a moving player.")
+	terrain.set_world_phase(ExpeditionTerrain.PHASE_MYCELIAL)
+	_expect(terrain.get_world_phase() == ExpeditionTerrain.PHASE_MYCELIAL, "Consumable world phase was not applied to terrain generation.")
+	target.free()
 	terrain.free()
 
 

@@ -214,6 +214,7 @@ random_seed = 73301
 trail_half_width = 1.6
 
 [node name="BiomeDressingScatter" type="Node3D" parent="."]
+visible = false
 script = ExtResource("11_dressing")
 area_size = Vector2(40, 30)
 base_seed = 33091

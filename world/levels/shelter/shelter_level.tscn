@@ -1,4 +1,4 @@
-[gd_scene load_steps=70 format=3]
+[gd_scene load_steps=71 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -32,6 +32,7 @@
 [ext_resource type="PackedScene" path="res://features/investigation/investigation_board.tscn" id="30_board"]
 [ext_resource type="PackedScene" path="res://world/levels/root_well/root_well_chunk.tscn" id="31_root_well"]
 [ext_resource type="Script" path="res://world/terrain/expedition_terrain.gd" id="32_terrain"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/mycelial_visual_profile.tres" id="33_mycelial_profile"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -234,6 +235,7 @@ unique_name_in_owner = true
 script = ExtResource("23_biome_controller")
 shelter_profile = ExtResource("24_shelter_profile")
 forest_profile = ExtResource("25_forest_profile")
+mycelial_profile = ExtResource("33_mycelial_profile")
 
 [node name="ShelterDressing" parent="." instance=ExtResource("22_dressing")]
 

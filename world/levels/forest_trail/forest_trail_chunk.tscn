@@ -140,6 +140,7 @@ fern_count = 96
 random_seed = 98122
 
 [node name="BiomeDressingScatter" type="Node3D" parent="."]
+visible = false
 script = ExtResource("8_dressing")
 area_size = Vector2(38, 52)
 base_seed = 22067

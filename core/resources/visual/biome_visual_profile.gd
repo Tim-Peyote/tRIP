@@ -3,6 +3,9 @@ extends Resource
 
 @export var id: StringName
 @export var background_color: Color = Color(0.01, 0.02, 0.015)
+@export var sky_top_color: Color = Color(0.015, 0.055, 0.09)
+@export var sky_horizon_color: Color = Color(0.42, 0.22, 0.09)
+@export_range(0.0, 8.0, 0.05) var sky_energy: float = 0.8
 @export var ambient_color: Color = Color(0.14, 0.18, 0.14)
 @export_range(0.0, 4.0, 0.05) var ambient_energy: float = 0.55
 @export var fog_color: Color = Color(0.06, 0.1, 0.07)
