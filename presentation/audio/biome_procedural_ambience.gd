@@ -23,6 +23,14 @@ func _ready() -> void:
 	add_child(_accent)
 
 
+func _exit_tree() -> void:
+	stop()
+	stream = null
+	if _accent != null:
+		_accent.stop()
+		_accent.stream = null
+
+
 func configure(family: int, seed: int) -> void:
 	ecology_family = clampi(family, 0, 7)
 	if _accent == null:

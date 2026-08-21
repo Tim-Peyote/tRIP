@@ -46,8 +46,8 @@ func _test_physical_grab() -> void:
 	_expect(body.linear_damp >= 6.9, "Grab did not engage stable spring damping.")
 	player.interactor.call("_release_grabbed_body")
 	_expect(not player.interactor.is_holding_body(), "Physical body did not release.")
-	player.queue_free()
-	body.queue_free()
+	player.free()
+	body.free()
 
 
 func _test_weather() -> void:
@@ -61,6 +61,11 @@ func _test_weather() -> void:
 	var weather := WeatherOrchestrator.new()
 	add_child(weather)
 	weather.setup(world_environment, player)
+	var rain_audio := weather.get_node("RecordedRain") as AudioStreamPlayer
+	var wind_audio := weather.get_node("RecordedWind") as AudioStreamPlayer
+	var thunder_audio := weather.get_node("SpatialThunder") as AudioStreamPlayer3D
+	_expect(not rain_audio.playing, "Clear weather started the rain loop during setup.")
+	_expect(thunder_audio.stream is AudioStreamWAV and (thunder_audio.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_DISABLED, "Thunder one-shot is configured as a loop.")
 	weather.set_weather(WeatherOrchestrator.State.STORM, 1.0, true)
 	weather.call("_process", 1.0)
 	_expect(weather.state == WeatherOrchestrator.State.STORM, "Developer weather switching failed.")
@@ -68,11 +73,23 @@ func _test_weather() -> void:
 	_expect(weather.wetness > 0.0, "Storm did not begin wetting the world.")
 	var precipitation := weather.get_node("LocalPrecipitation") as GPUParticles3D
 	_expect(precipitation != null and precipitation.emitting, "Storm precipitation is not visible.")
+	_expect(rain_audio.playing and wind_audio.playing and wind_audio.stream == WeatherOrchestrator.WIND_STRONG, "Storm did not start its recorded rain and strong-wind layers.")
 	weather.developer_set(WeatherOrchestrator.State.FOG)
+	weather.call("_update_audio", 10.0)
 	_expect(world_environment.environment.fog_density > 0.0, "Fog state did not affect the environment.")
-	weather.queue_free()
-	player.queue_free()
-	world_environment.queue_free()
+	_expect(not rain_audio.playing and wind_audio.stream == WeatherOrchestrator.WIND_SOFT, "Fog retained the previous storm audio layers.")
+	weather.set_ecology_family(BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE)
+	var glacial_weights := weather.get_weather_weights()
+	_expect(float(glacial_weights[WeatherOrchestrator.State.SNOW]) > float(glacial_weights[WeatherOrchestrator.State.DRIZZLE]), "Glacial biome does not favour snow over rain.")
+	weather.set_ecology_family(BiomeContentPack.EcologyFamily.MIRROR_WETLAND)
+	var wetland_weights := weather.get_weather_weights()
+	_expect(float(wetland_weights[WeatherOrchestrator.State.DRIZZLE]) > float(wetland_weights[WeatherOrchestrator.State.SNOW]), "Wetland weather does not favour rain over snow.")
+	weather.set_weather(WeatherOrchestrator.State.SNOW, 0.8, true)
+	weather.set_ecology_family(BiomeContentPack.EcologyFamily.MIRROR_WETLAND)
+	_expect(weather.state == WeatherOrchestrator.State.DRIZZLE, "Incompatible snow leaked from the previous biome into the mirror wetland.")
+	weather.free()
+	player.free()
+	world_environment.free()
 
 
 func _expect(condition: bool, message: String) -> void:

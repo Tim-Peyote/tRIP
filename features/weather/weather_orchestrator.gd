@@ -11,6 +11,16 @@ const RAIN_AMBIENCE := preload("res://assets/third_party/open_game_art_audio/rai
 const WIND_SOFT := preload("res://assets/third_party/open_game_art_audio/wind_soft.ogg")
 const WIND_STRONG := preload("res://assets/third_party/open_game_art_audio/wind_strong.ogg")
 const THUNDERCLAP := preload("res://assets/third_party/open_game_art_audio/thunderclap.wav")
+const WEATHER_WEIGHTS: Dictionary[int, Array] = {
+	BiomeContentPack.EcologyFamily.ALTAI_TAIGA: [38.0, 26.0, 10.0, 20.0, 6.0],
+	BiomeContentPack.EcologyFamily.MYCELIAL_KARST: [16.0, 28.0, 8.0, 45.0, 3.0],
+	BiomeContentPack.EcologyFamily.CRIMSON_STEPPE: [55.0, 8.0, 20.0, 14.0, 3.0],
+	BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE: [18.0, 4.0, 14.0, 22.0, 42.0],
+	BiomeContentPack.EcologyFamily.ASHEN_TUNDRA: [24.0, 2.0, 8.0, 38.0, 28.0],
+	BiomeContentPack.EcologyFamily.MIRROR_WETLAND: [12.0, 38.0, 22.0, 26.0, 2.0],
+	BiomeContentPack.EcologyFamily.ROOT_CAVERN: [20.0, 18.0, 2.0, 58.0, 2.0],
+	BiomeContentPack.EcologyFamily.HEART_PLATEAU: [34.0, 16.0, 14.0, 28.0, 8.0],
+}
 
 var state: State = State.CLEAR
 var intensity: float = 0.0
@@ -32,6 +42,7 @@ var _lightning_time: float = 8.0
 var _reactive_tick: float = 0.0
 var _base_fog_density: float = 0.012
 var _base_volumetric_density: float = 0.012
+var _ecology_family: int = BiomeContentPack.EcologyFamily.ALTAI_TAIGA
 
 
 func setup(world_environment: WorldEnvironment, player: FirstPersonController) -> void:
@@ -45,6 +56,46 @@ func setup(world_environment: WorldEnvironment, player: FirstPersonController) -
 	_build_lightning()
 	_build_audio()
 	set_weather(State.CLEAR, 0.0, true)
+
+
+func _exit_tree() -> void:
+	for player: AudioStreamPlayer in [_rain_audio, _wind_audio]:
+		if player != null:
+			player.stop()
+			player.stream = null
+	if _thunder_audio != null:
+		_thunder_audio.stop()
+		_thunder_audio.stream = null
+
+
+func set_run_seed(value: int) -> void:
+	_rng.seed = 98317 ^ value
+	_next_change = _rng.randf_range(90.0, 170.0)
+
+
+func apply_world_phase(definition: WorldPhaseDefinition, _developer_override: bool = false) -> void:
+	if definition != null and definition.content_pack != null:
+		set_ecology_family(definition.content_pack.ecology_family)
+
+
+func set_ecology_family(value: int) -> void:
+	_ecology_family = clampi(value, 0, 7)
+	_state_time = 0.0
+	_next_change = _rng.randf_range(45.0, 95.0)
+	var weights := get_weather_weights()
+	# Do not carry an ecologically impossible condition into the next world
+	# (for example snowfall over the mirror wetland). Such a transition adopts
+	# the biome's signature weather as part of the metamorphosis.
+	if float(weights[state]) <= 4.0:
+		var dominant_state := 0
+		for index: int in range(1, weights.size()):
+			if float(weights[index]) > float(weights[dominant_state]):
+				dominant_state = index
+		set_weather(dominant_state as State, 0.72)
+
+
+func get_weather_weights() -> Array:
+	return (WEATHER_WEIGHTS.get(_ecology_family, WEATHER_WEIGHTS[BiomeContentPack.EcologyFamily.ALTAI_TAIGA]) as Array).duplicate()
 
 
 func _process(delta: float) -> void:
@@ -108,10 +159,25 @@ func get_debug_text() -> String:
 
 
 func _choose_next_weather() -> void:
-	var options: Array[State] = [State.CLEAR, State.DRIZZLE, State.FOG, State.CLEAR, State.STORM]
-	if _rng.randf() < 0.18:
-		options.append(State.SNOW)
-	set_weather(options[_rng.randi_range(0, options.size() - 1)], _rng.randf_range(0.48, 1.0))
+	var weights := get_weather_weights()
+	var total := 0.0
+	for weight: float in weights:
+		total += maxf(weight, 0.0)
+	var roll := _rng.randf() * total
+	var next_state := State.CLEAR
+	for index: int in weights.size():
+		roll -= maxf(float(weights[index]), 0.0)
+		if roll <= 0.0:
+			next_state = index as State
+			break
+	var strength_range := {
+		State.CLEAR: Vector2(0.0, 0.35),
+		State.DRIZZLE: Vector2(0.35, 0.78),
+		State.STORM: Vector2(0.68, 1.0),
+		State.FOG: Vector2(0.42, 0.92),
+		State.SNOW: Vector2(0.45, 1.0),
+	}[next_state] as Vector2
+	set_weather(next_state, _rng.randf_range(strength_range.x, strength_range.y))
 
 
 func _target_wetness() -> float:
@@ -280,13 +346,13 @@ func _spawn_lightning_bolt(strike_origin: Vector3, strength: float) -> void:
 
 
 func _build_audio() -> void:
-	if DisplayServer.get_name() == "headless":
-		return
 	_rain_audio = _make_weather_layer("RecordedRain", RAIN_AMBIENCE, -40.0)
 	_wind_audio = _make_weather_layer("RecordedWind", WIND_SOFT, -40.0)
 	_thunder_audio = AudioStreamPlayer3D.new()
 	_thunder_audio.name = "SpatialThunder"
 	_thunder_audio.stream = THUNDERCLAP
+	if _thunder_audio.stream is AudioStreamWAV:
+		(_thunder_audio.stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_DISABLED
 	_thunder_audio.bus = &"Ambience"
 	_thunder_audio.unit_size = 12.0
 	_thunder_audio.max_distance = 180.0
@@ -306,7 +372,6 @@ func _make_weather_layer(layer_name: String, audio_stream: AudioStream, initial_
 		(audio_stream as AudioStreamMP3).loop = true
 	player.volume_db = initial_db
 	add_child(player)
-	player.play()
 	return player
 
 
@@ -315,16 +380,25 @@ func _update_audio(delta: float) -> void:
 		return
 	var rain_amount := intensity if state in [State.DRIZZLE, State.STORM] else 0.0
 	var wind_amount := clampf(wind.length() / 8.5, 0.0, 1.0)
-	var rain_target := 6.0 + linear_to_db(rain_amount) if rain_amount > 0.01 else -80.0
-	var wind_target := 3.0 + linear_to_db(wind_amount) if wind_amount > 0.01 else -80.0
+	var rain_target := lerpf(-28.0, -9.0, rain_amount) if rain_amount > 0.01 else -80.0
+	var wind_target := lerpf(-26.0, -12.0, wind_amount) if wind_amount > 0.01 else -80.0
+	if rain_amount > 0.01 and not _rain_audio.playing:
+		_rain_audio.play()
 	_rain_audio.volume_db = move_toward(_rain_audio.volume_db, rain_target, delta * 10.0)
 	_wind_audio.volume_db = move_toward(_wind_audio.volume_db, wind_target, delta * 8.0)
-	var desired_wind := WIND_STRONG if state == State.STORM and intensity > 0.6 else WIND_SOFT
+	if rain_amount <= 0.01 and _rain_audio.volume_db <= -55.0:
+		_rain_audio.stop()
+	var wants_strong_wind := (state == State.STORM or state == State.SNOW) and intensity > 0.6
+	var desired_wind := WIND_STRONG if wants_strong_wind else WIND_SOFT
 	if _wind_audio.stream != desired_wind:
+		_wind_audio.stop()
 		_wind_audio.stream = desired_wind
 		if desired_wind is AudioStreamOggVorbis:
 			(desired_wind as AudioStreamOggVorbis).loop = true
+	if wind_amount > 0.01 and not _wind_audio.playing:
 		_wind_audio.play()
+	elif wind_amount <= 0.01 and _wind_audio.volume_db <= -55.0:
+		_wind_audio.stop()
 
 
 func _schedule_thunder(strike_origin: Vector3, strength: float) -> void:
