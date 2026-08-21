@@ -98,6 +98,7 @@ func _return_to_main_menu() -> void:
 	_active_player = null
 	gameplay_hud.clear()
 	main_menu.visible = true
+	main_menu.refresh_progress()
 	main_menu.set_continue_available(SaveService.has_save(0))
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	audio_director.set_snapshot(&"default")

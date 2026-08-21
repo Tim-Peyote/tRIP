@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://features/frontend/main_menu.gd" id="1_menu"]
 [ext_resource type="Shader" path="res://features/frontend/main_menu_background.gdshader" id="2_shader"]
 [ext_resource type="Script" path="res://features/frontend/settings_panel.gd" id="3_settings"]
+[ext_resource type="Script" path="res://features/frontend/menu_camp_backdrop.gd" id="4_backdrop"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_background"]
 shader = ExtResource("2_shader")
@@ -25,6 +26,36 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 material = SubResource("ShaderMaterial_background")
+
+[node name="CampViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="CampViewport" type="SubViewport" parent="CampViewportContainer"]
+handle_input_locally = false
+size = Vector2i(1280, 720)
+render_target_update_mode = 4
+own_world_3d = true
+
+[node name="MenuCampBackdrop" type="Node3D" parent="CampViewportContainer/CampViewport"]
+unique_name_in_owner = true
+script = ExtResource("4_backdrop")
+
+[node name="ReadabilityShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.005, 0.008, 0.012, 0.18)
 
 [node name="SafeArea" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -57,6 +88,13 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.52, 0.6, 0.5, 1)
 theme_override_font_sizes/font_size = 17
 text = "ЛЕС ПОМНИТ, ЧТО ТЫ ПРИНИМАЛ"
+
+[node name="LabStatus" type="Label" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.42, 0.22, 1)
+theme_override_font_sizes/font_size = 13
+text = "ДОРОЖНАЯ ЛАБОРАТОРИЯ · УРОВЕНЬ 0"
 
 [node name="Spacer" type="Control" parent="SafeArea/Layout"]
 custom_minimum_size = Vector2(0, 38)
@@ -179,4 +217,3 @@ text = "Полные параметры изображения, управлен
 unique_name_in_owner = true
 layout_mode = 2
 text = "Назад"
-

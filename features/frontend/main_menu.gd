@@ -8,6 +8,8 @@ signal quit_requested
 @onready var continue_button: Button = %ContinueButton
 @onready var settings_panel: SettingsPanel = %SettingsPanel
 @onready var notice_label: Label = %NoticeLabel
+@onready var camp_backdrop: MenuCampBackdrop = %MenuCampBackdrop
+@onready var lab_status: Label = %LabStatus
 
 
 func _ready() -> void:
@@ -18,6 +20,14 @@ func _ready() -> void:
 	%QuitButton.pressed.connect(func() -> void: quit_requested.emit())
 	settings_panel.closed.connect(_hide_settings)
 	%NewGameButton.grab_focus()
+	refresh_progress()
+
+
+func refresh_progress() -> void:
+	if camp_backdrop == null:
+		return
+	camp_backdrop.refresh_from_save()
+	lab_status.text = "ДОРОЖНАЯ ЛАБОРАТОРИЯ · УРОВЕНЬ %d" % camp_backdrop.get_laboratory_level()
 
 
 func set_continue_available(is_available: bool) -> void:
@@ -42,4 +52,3 @@ func _hide_settings() -> void:
 
 func _show_credits() -> void:
 	show_notice("TRip — создаётся вместе с лесом. Версия pre-production.")
-
