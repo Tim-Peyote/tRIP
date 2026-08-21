@@ -24,6 +24,10 @@ func setup_viewmodels(viewmodels: Dictionary[StringName, Node3D]) -> void:
 	_sync_visual()
 
 
+func refresh_viewmodels() -> void:
+	_sync_visual()
+
+
 func toggle_active_tool() -> void:
 	is_equipped = not is_equipped
 	_sync_visual()

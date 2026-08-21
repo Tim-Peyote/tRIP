@@ -26,8 +26,19 @@ func _run() -> void:
 	var legacy_grip := _player.get_node("CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel/GripHand") as MeshInstance3D
 	var knife_attachment := _player.knife_viewmodel as BoneAttachment3D
 	_expect(not legacy_grip.visible, "Legacy primitive grip hand is still visible.")
-	_expect(knife_attachment != null and knife_attachment.bone_name == "socket.r", "Authored knife is not attached to the rigged hand socket.")
+	_expect(knife_attachment != null and knife_attachment.bone_name == "socket.l", "Authored knife is not attached to the rigged hand socket.")
 	_expect(knife_attachment.find_child("AuthoredKnife", true, false) != null, "Authored CC0 knife is missing from the viewmodel.")
+	var offhand_index := arm_skeleton.find_bone("shoulder.r")
+	_expect(offhand_index >= 0 and arm_skeleton.get_bone_pose_scale(offhand_index).x < 0.01, "Unused offhand is still hanging in the normal exploration view.")
+	var held_probe := _add_rigid_box(Vector3(0.0, 0.35, -1.5))
+	_player.interactor.call("_begin_grab", held_probe)
+	_expect(arm_skeleton.get_bone_pose_scale(offhand_index).x < 0.01, "Physical interaction exposed the unanimated offhand.")
+	_expect(not first_person_arms.visible, "Generic physical grab exposed an unanchored hand pose.")
+	_expect(not knife_attachment.visible, "Equipped tool remained visible through a physical interaction.")
+	_player.interactor.call("_release_grabbed_body")
+	_expect(first_person_arms.visible and arm_skeleton.get_bone_pose_scale(offhand_index).x < 0.01 and knife_attachment.visible, "Exploration hand pose was not restored after releasing an object.")
+	held_probe.queue_free()
+	await get_tree().physics_frame
 
 	# Exercise a real physical key event, not Input.action_press(), so broken
 	# device-specific project bindings cannot hide behind the test harness.

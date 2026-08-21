@@ -4,14 +4,16 @@ extends Node3D
 const ARM_ALBEDO = preload("res://assets/third_party/wrad_arms/arm_albedo_pale.png")
 
 @export_range(0.0, 1.4, 0.05) var grip_amount: float = 1.2
-@export_range(-1.2, 1.2, 0.05) var tool_wrist_twist: float = 0.55
+@export_range(-1.2, 1.2, 0.05) var tool_wrist_twist: float = -0.55
 
 var _skeleton: Skeleton3D
+var _physical_interaction_active: bool = false
 
 
 func _ready() -> void:
 	_skeleton = find_child("Skeleton3D", true, false) as Skeleton3D
 	_apply_viewmodel_material()
+	set_physical_interaction_pose(false)
 	_apply_idle_grip()
 
 
@@ -40,15 +42,29 @@ void fragment() {
 func _apply_idle_grip() -> void:
 	if _skeleton == null:
 		return
-	_pose_bone("wrist.r", Vector3(0.0, tool_wrist_twist, 0.0))
+	# Keep the palm in a readable three-quarter view. Resetting the imported wrist
+	# points the fingers straight at the camera and makes the hand look truncated.
+	_pose_bone("wrist.l", Vector3(0.0, tool_wrist_twist, 0.0))
 	for side: String in ["r", "l"]:
 		var direction := -1.0 if side == "r" else 1.0
-		var amount := grip_amount if side == "r" else grip_amount * 0.3
+		var amount := grip_amount * 0.16 if _physical_interaction_active else (grip_amount if side == "l" else grip_amount * 0.3)
 		for finger: String in ["pinky", "ring", "middle", "index"]:
 			for segment: int in [1, 2, 3]:
 				_pose_bone("finger_%s%d.%s" % [finger, segment, side], Vector3(0.0, 0.0, amount * direction))
 		for segment: int in [1, 2, 3]:
 			_pose_bone("finger_thumb%d.%s" % [segment, side], Vector3(0.0, amount * 0.18 * direction, amount * 0.62 * direction))
+
+
+func set_physical_interaction_pose(active: bool) -> void:
+	if _skeleton == null:
+		return
+	_physical_interaction_active = active
+	var offhand_shoulder := _skeleton.find_bone("shoulder.r")
+	if offhand_shoulder >= 0:
+		# A second generic arm reads as a mirrored HUD claw. Keep it out until an
+		# authored action (door pull, two-handed lift, cooking) explicitly owns it.
+		_skeleton.set_bone_pose_scale(offhand_shoulder, Vector3(0.001, 0.001, 0.001))
+	_apply_idle_grip()
 
 
 func _pose_bone(bone_name: String, rotation_value: Vector3) -> void:

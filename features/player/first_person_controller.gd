@@ -47,6 +47,7 @@ signal jumped
 @onready var vial_viewmodel: Node3D = %VialViewModel
 @onready var distraction_thrower: DistractionThrowerComponent = %DistractionThrowerComponent
 @onready var avatar_animator: PlayerAvatarAnimator = %AvatarAnimator
+@onready var first_person_arm_rig: FirstPersonArmRig = %RiggedFirstPersonArms
 
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 var _look_pitch: float = 0.0
@@ -85,6 +86,7 @@ func _ready() -> void:
 	camera.fov = float(SettingsService.get_value(&"video", &"fov", field_of_view))
 	_look_pitch = camera_rig.rotation.x
 	interactor.actor = self
+	interactor.physical_hold_changed.connect(_on_physical_hold_changed)
 	toolbelt.setup_viewmodels({
 		&"tool.field_knife": knife_viewmodel,
 		&"tool.spore_vial": vial_viewmodel,
@@ -243,6 +245,19 @@ func set_crimson_drive(value: float) -> void:
 func set_weather_modifiers(surface_wetness: float, wind_strength: float) -> void:
 	_surface_wetness = clampf(surface_wetness, 0.0, 1.0)
 	_weather_wind_strength = maxf(wind_strength, 0.0)
+
+
+func _on_physical_hold_changed(active: bool) -> void:
+	first_person_arm_rig.set_physical_interaction_pose(active)
+	# Generic grabbed objects have arbitrary scale and grip points. Until an
+	# interaction supplies an authored hand target, showing a guessed wrist pose
+	# creates intersections and broken-looking anatomy.
+	first_person_arm_rig.visible = not active
+	if active:
+		knife_viewmodel.visible = false
+		vial_viewmodel.visible = false
+	else:
+		toolbelt.refresh_viewmodels()
 
 
 func play_consumption_animation(_effect_ids: Array[StringName], _display_name: String) -> void:

@@ -4,13 +4,18 @@ const OUTPUT_PATH := "/tmp/trip_fps_arms_capture.png"
 
 
 func _ready() -> void:
+	var capture_args := OS.get_cmdline_user_args()
 	ContentDB.rebuild()
 	var player := (load("res://features/player/player.tscn") as PackedScene).instantiate() as FirstPersonController
 	add_child(player)
 	player.global_position = Vector3(0.0, 0.05, 0.0)
 	player.set_gameplay_input_override_for_testing(true)
-	if "--vial" in OS.get_cmdline_user_args():
+	await get_tree().process_frame
+	if "--vial" in capture_args:
 		player.toolbelt.cycle_active_tool()
+	if "--hold" in capture_args:
+		player.interactor.set_physics_process(false)
+		player.call("_on_physical_hold_changed", true)
 	var floor := MeshInstance3D.new()
 	var floor_mesh := PlaneMesh.new()
 	floor_mesh.size = Vector2(16.0, 16.0)
@@ -32,8 +37,10 @@ func _ready() -> void:
 	add_child(environment)
 	for _frame: int in 8:
 		await get_tree().process_frame
+	await RenderingServer.frame_post_draw
 	var image := get_viewport().get_texture().get_image()
-	var error := image.save_png(OUTPUT_PATH)
+	var output_path := "/tmp/trip_fps_arms_hold_capture.png" if "--hold" in capture_args else OUTPUT_PATH
+	var error := image.save_png(output_path)
 	if error == OK:
-		print("FPS arms capture saved: %s" % OUTPUT_PATH)
+		print("FPS arms capture saved: %s" % output_path)
 	get_tree().quit(error)

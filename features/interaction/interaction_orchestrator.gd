@@ -7,6 +7,7 @@ signal context_changed(context: Dictionary)
 signal hold_progress_changed(progress: float)
 signal inspection_requested(title: String, description: String)
 signal inspection_definition_requested(definition_id: StringName, title: String, description: String)
+signal physical_hold_changed(active: bool)
 
 var actor: Node
 var focused: InteractableComponent
@@ -197,12 +198,14 @@ func _begin_grab(body: RigidBody3D) -> void:
 	body.linear_damp = 7.0
 	body.angular_damp = 6.0
 	body.sleeping = false
+	physical_hold_changed.emit(true)
 	_emit_context()
 
 
 func _update_grabbed_body() -> void:
 	if not is_instance_valid(grabbed_body):
 		grabbed_body = null
+		physical_hold_changed.emit(false)
 		_emit_context()
 		return
 	var target := global_position + -global_basis.z * _grab_distance
@@ -222,6 +225,7 @@ func _release_grabbed_body() -> void:
 	grabbed_body.angular_damp = _stored_angular_damp
 	grabbed_body = null
 	_rotating_body = false
+	physical_hold_changed.emit(false)
 	force_raycast_update()
 	_focused_body = _find_rigid_body(get_collider() as Node) if is_colliding() else null
 	_emit_context()

@@ -160,6 +160,7 @@ position = Vector3(0, -0.12, -0.45)
 scale = Vector3(0.8, 0.8, 0.8)
 
 [node name="RiggedFirstPersonArms" parent="CameraRig/Camera3D/ViewModel" instance=ExtResource("11_fps_arms")]
+unique_name_in_owner = true
 position = Vector3(0, -0.56, 0.04)
 rotation = Vector3(0, 0, 3.14159)
 scale = Vector3(0.095, 0.095, 0.095)
@@ -339,8 +340,8 @@ cast_shadow = 0
 
 [node name="KnifeViewModel" type="BoneAttachment3D" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D"]
 unique_name_in_owner = true
-bone_name = "socket.r"
-bone_idx = 20
+bone_name = "socket.l"
+bone_idx = 45
 
 [node name="AuthoredKnife" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/KnifeViewModel" instance=ExtResource("13_knife")]
 scale = Vector3(0.24, 0.24, 0.24)
@@ -348,8 +349,8 @@ scale = Vector3(0.24, 0.24, 0.24)
 [node name="VialViewModel" type="BoneAttachment3D" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D"]
 unique_name_in_owner = true
 visible = false
-bone_name = "socket.r"
-bone_idx = 20
+bone_name = "socket.l"
+bone_idx = 45
 
 [node name="AuthoredBottle" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel" instance=ExtResource("14_bottle")]
 position = Vector3(0, -0.7, 0)
