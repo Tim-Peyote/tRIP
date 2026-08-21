@@ -36,8 +36,10 @@ func configure(family: int, seed: int) -> void:
 	rng.seed = seed + ecology_family * 7919
 	pitch_scale = rng.randf_range(0.96, 1.025)
 	_accent.pitch_scale = rng.randf_range(0.94, 1.035)
-	volume_db = [-12.0, -13.5, -13.0, -15.0, -16.0, -12.5, -13.0, -14.0][ecology_family]
-	_accent.volume_db = [-24.0, -20.0, -23.0, -21.0, -22.0, -21.0, -19.0, -22.0][ecology_family]
+	# Source-aware gain matching: the forest recording is nearly 40 dB quieter
+	# than the cavern recording, so a single attenuation table made it inaudible.
+	volume_db = [14.0, -18.0, -8.0, 0.0, -2.0, -4.0, -18.0, -8.0][ecology_family]
+	_accent.volume_db = [-6.0, -14.0, -8.0, -26.0, -16.0, -26.0, -12.0, -8.0][ecology_family]
 	play(rng.randf_range(0.0, minf(8.0, stream.get_length() * 0.25)))
 	_accent.play(rng.randf_range(0.0, minf(5.0, _accent.stream.get_length() * 0.25)))
 

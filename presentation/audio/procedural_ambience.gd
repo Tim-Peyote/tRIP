@@ -16,7 +16,8 @@ func _ready() -> void:
 	bus = &"Ambience"
 	# The shelter bed sits behind the expedition and fire layers instead of
 	# competing with them when the forest portal is open.
-	volume_db = linear_to_db(maxf(0.01, intensity * 0.25))
+	# This field recording is mastered very quietly (about -53 dB RMS).
+	volume_db = 10.0 + linear_to_db(maxf(0.01, intensity))
 	play()
 
 

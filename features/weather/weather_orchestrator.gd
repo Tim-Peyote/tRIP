@@ -315,8 +315,8 @@ func _update_audio(delta: float) -> void:
 		return
 	var rain_amount := intensity if state in [State.DRIZZLE, State.STORM] else 0.0
 	var wind_amount := clampf(wind.length() / 8.5, 0.0, 1.0)
-	var rain_target := lerpf(-38.0, -7.0, rain_amount) if rain_amount > 0.01 else -40.0
-	var wind_target := lerpf(-38.0, -12.0, wind_amount) if wind_amount > 0.01 else -40.0
+	var rain_target := 6.0 + linear_to_db(rain_amount) if rain_amount > 0.01 else -80.0
+	var wind_target := 3.0 + linear_to_db(wind_amount) if wind_amount > 0.01 else -80.0
 	_rain_audio.volume_db = move_toward(_rain_audio.volume_db, rain_target, delta * 10.0)
 	_wind_audio.volume_db = move_toward(_wind_audio.volume_db, wind_target, delta * 8.0)
 	var desired_wind := WIND_STRONG if state == State.STORM and intensity > 0.6 else WIND_SOFT
