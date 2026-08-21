@@ -63,9 +63,19 @@ func _validate_landscape_rules() -> void:
 	add_child(target)
 	target.global_position = Vector3(95, 0, 95)
 	terrain.setup(target)
-	for _frame in 4:
+	for _frame in 40:
 		await get_tree().process_frame
 	_expect(terrain.get_loaded_chunk_count() >= 4, "Streaming terrain did not page chunks around a moving player.")
+	var maximum_visual_chunks := int(pow(float(terrain.visual_radius * 2 + 1), 2.0))
+	_expect(terrain.get_loaded_chunk_count() <= maximum_visual_chunks, "Streaming terrain exceeded its bounded visual working set.")
+	_expect(terrain.get_collision_chunk_count() <= int(pow(float(terrain.collision_radius * 2 + 1), 2.0)), "Distant terrain retained expensive collision meshes.")
+	_expect(terrain.get_distant_chunk_count() > 0, "Streaming terrain did not create the low-detail horizon ring.")
+	for body: StaticBody3D in terrain.get_loaded_chunk_nodes():
+		if int(body.get_meta(&"terrain_detail_tier", 0)) == 0:
+			_expect(body.get_node_or_null("Collision") == null, "A horizon-only chunk still owns collision.")
+	var center_chunk := terrain.get_loaded_chunk_nodes().filter(func(body: StaticBody3D) -> bool: return int(body.get_meta(&"terrain_detail_tier", 0)) == 2).front() as StaticBody3D
+	var center_collision := center_chunk.get_node_or_null("Collision") as CollisionShape3D
+	_expect(center_collision != null and center_collision.shape.get_faces().size() <= 900, "Near terrain collision did not use the reduced collision LOD.")
 	terrain.set_world_phase(ExpeditionTerrain.PHASE_MYCELIAL)
 	_expect(terrain.get_world_phase() == ExpeditionTerrain.PHASE_MYCELIAL, "Consumable world phase was not applied to terrain generation.")
 	_validate_ecology_compositions(terrain)

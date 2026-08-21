@@ -20,7 +20,12 @@ const ECOLOGY_MOTION_SHADER = preload("res://presentation/shaders/ecology_motion
 @export_range(16.0, 64.0, 1.0) var chunk_size: float = 30.0
 @export_range(9, 49, 2) var chunk_resolution: int = 25
 @export_range(1, 4, 1) var active_radius: int = 2
+@export_range(2, 6, 1) var visual_radius: int = 3
+@export_range(1, 3, 1) var collision_radius: int = 1
+@export_range(7, 25, 2) var distant_chunk_resolution: int = 13
+@export_range(7, 25, 2) var collision_resolution: int = 13
 @export_range(1, 4, 1) var chunks_per_frame: int = 1
+@export_range(1.0, 12.0, 0.5, "suffix:ms") var generation_budget_ms: float = 4.0
 @export var base_seed: int = 61937
 
 var _run_seed: int = 0
@@ -31,6 +36,7 @@ var _target: Node3D
 var _last_center := Vector2i(999999, 999999)
 var _chunks: Dictionary[Vector2i, StaticBody3D] = {}
 var _pending: Array[Vector2i] = []
+var _desired_tiers: Dictionary[Vector2i, int] = {}
 var _noise := FastNoiseLite.new()
 var _detail_noise := FastNoiseLite.new()
 var _terrain_material: ShaderMaterial
@@ -126,6 +132,26 @@ func get_loaded_chunk_nodes() -> Array[StaticBody3D]:
 	return result
 
 
+func get_pending_chunk_count() -> int:
+	return _pending.size()
+
+
+func get_collision_chunk_count() -> int:
+	var count := 0
+	for body: StaticBody3D in _chunks.values():
+		if body.get_node_or_null("Collision") != null:
+			count += 1
+	return count
+
+
+func get_distant_chunk_count() -> int:
+	var count := 0
+	for body: StaticBody3D in _chunks.values():
+		if int(body.get_meta(&"terrain_detail_tier", 0)) == 0:
+			count += 1
+	return count
+
+
 func get_generated_mesh_cache_size() -> int:
 	return _generated_mesh_cache.size()
 
@@ -207,10 +233,20 @@ func _process(_delta: float) -> void:
 		var center := _chunk_coordinate(_target.global_position)
 		if center != _last_center:
 			_refresh_chunks(_target.global_position, true)
-	for _index in mini(chunks_per_frame, _pending.size()):
+	var generation_started := Time.get_ticks_usec()
+	var processed := 0
+	while processed < chunks_per_frame and not _pending.is_empty():
 		var coordinate: Vector2i = _pending.pop_front()
-		if not _chunks.has(coordinate):
-			_build_chunk(coordinate)
+		if not _desired_tiers.has(coordinate):
+			continue
+		var desired_tier: int = _desired_tiers[coordinate]
+		if _chunks.has(coordinate):
+			_apply_chunk_tier(_chunks[coordinate], coordinate, desired_tier)
+		else:
+			_build_chunk(coordinate, desired_tier)
+		processed += 1
+		if processed > 0 and float(Time.get_ticks_usec() - generation_started) >= generation_budget_ms * 1000.0:
+			break
 
 
 func _set_phase_amount(value: float) -> void:
@@ -239,15 +275,19 @@ func _refresh_chunks(world_position: Vector3, immediate_center: bool) -> void:
 	_last_center = center
 	var desired: Dictionary[Vector2i, bool] = {}
 	var offsets: Array[Vector2i] = []
-	for z_offset in range(-active_radius, active_radius + 1):
-		for x_offset in range(-active_radius, active_radius + 1):
+	var resolved_visual_radius := maxi(visual_radius, maxi(active_radius, collision_radius))
+	for z_offset in range(-resolved_visual_radius, resolved_visual_radius + 1):
+		for x_offset in range(-resolved_visual_radius, resolved_visual_radius + 1):
 			offsets.append(Vector2i(x_offset, z_offset))
 	offsets.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return a.length_squared() < b.length_squared())
 	_pending.clear()
+	_desired_tiers.clear()
 	for offset: Vector2i in offsets:
 		var coordinate := center + offset
+		var tier := _detail_tier_for_offset(offset)
 		desired[coordinate] = true
-		if not _chunks.has(coordinate):
+		_desired_tiers[coordinate] = tier
+		if not _chunks.has(coordinate) or int(_chunks[coordinate].get_meta(&"terrain_detail_tier", -1)) != tier:
 			_pending.append(coordinate)
 	for coordinate: Vector2i in _chunks.keys():
 		if not desired.has(coordinate):
@@ -255,45 +295,96 @@ func _refresh_chunks(world_position: Vector3, immediate_center: bool) -> void:
 			_chunks.erase(coordinate)
 	if immediate_center and not _chunks.has(center):
 		_pending.erase(center)
-		_build_chunk(center)
+		_build_chunk(center, int(_desired_tiers.get(center, 2)))
+	elif immediate_center and int(_chunks[center].get_meta(&"terrain_detail_tier", -1)) != int(_desired_tiers.get(center, 2)):
+		_pending.erase(center)
+		_apply_chunk_tier(_chunks[center], center, int(_desired_tiers.get(center, 2)))
+
+
+func _detail_tier_for_offset(offset: Vector2i) -> int:
+	var distance := maxi(absi(offset.x), absi(offset.y))
+	if distance <= collision_radius:
+		return 2
+	if distance <= active_radius:
+		return 1
+	return 0
 
 
 func _chunk_coordinate(world_position: Vector3) -> Vector2i:
 	return Vector2i(floori(world_position.x / chunk_size), floori(world_position.z / chunk_size))
 
 
-func _build_chunk(coordinate: Vector2i) -> void:
+func _build_chunk(coordinate: Vector2i, detail_tier: int = 2) -> void:
 	var body := StaticBody3D.new()
 	body.name = "LandscapeChunk_%d_%d" % [coordinate.x, coordinate.y]
 	body.collision_layer = 1
 	body.collision_mask = 0
 	body.set_meta(&"landscape_chunk", true)
 	body.set_meta(&"chunk_coordinate", coordinate)
+	body.set_meta(&"terrain_detail_tier", detail_tier)
 	add_child(body)
-	var mesh := _build_chunk_mesh(coordinate)
+	var mesh := _build_chunk_mesh(coordinate, chunk_resolution if detail_tier >= 1 else distant_chunk_resolution)
 	if mesh.get_surface_count() > 0:
 		var mesh_instance := MeshInstance3D.new()
 		mesh_instance.name = "Terrain"
 		mesh_instance.mesh = mesh
 		mesh_instance.material_override = _terrain_material
 		body.add_child(mesh_instance)
-		var collision := CollisionShape3D.new()
-		collision.name = "Collision"
-		collision.shape = mesh.create_trimesh_shape()
-		body.add_child(collision)
-	_build_chunk_decor(body, coordinate)
+		if detail_tier >= 2:
+			_add_chunk_collision(body, coordinate, mesh)
+	if detail_tier >= 1:
+		_build_chunk_decor(body, coordinate)
 	_chunks[coordinate] = body
 
 
-func _build_chunk_mesh(coordinate: Vector2i) -> ArrayMesh:
+func _build_chunk_mesh(coordinate: Vector2i, resolution: int = -1, include_vertex_colors: bool = true) -> ArrayMesh:
+	if resolution < 0:
+		resolution = chunk_resolution
 	return TERRAIN_CHUNK_MESH_BUILDER.build(
 		coordinate,
 		chunk_size,
-		chunk_resolution,
+		resolution,
 		MIN_EXPEDITION_Z,
 		_height_at,
 		_terrain_color,
+		include_vertex_colors,
 	)
+
+
+func _apply_chunk_tier(body: StaticBody3D, coordinate: Vector2i, detail_tier: int) -> void:
+	var previous_tier := int(body.get_meta(&"terrain_detail_tier", -1))
+	if previous_tier == detail_tier:
+		return
+	var terrain := body.get_node_or_null("Terrain") as MeshInstance3D
+	if terrain != null and (previous_tier == 0) != (detail_tier == 0):
+		terrain.mesh = _build_chunk_mesh(coordinate, chunk_resolution if detail_tier >= 1 else distant_chunk_resolution)
+	var collision := body.get_node_or_null("Collision") as CollisionShape3D
+	if detail_tier >= 2 and collision == null:
+		_add_chunk_collision(body, coordinate, terrain.mesh if terrain != null else null)
+	elif detail_tier < 2 and collision != null:
+		body.remove_child(collision)
+		collision.queue_free()
+	if previous_tier < 1 and detail_tier >= 1:
+		_build_chunk_decor(body, coordinate)
+	elif previous_tier >= 1 and detail_tier < 1:
+		for child: Node in body.get_children():
+			if child.name == "Terrain" or child.name == "Collision":
+				continue
+			body.remove_child(child)
+			child.queue_free()
+	body.set_meta(&"terrain_detail_tier", detail_tier)
+
+
+func _add_chunk_collision(body: StaticBody3D, coordinate: Vector2i, render_mesh: Mesh) -> void:
+	var collision_mesh: Mesh = render_mesh
+	if collision_resolution != chunk_resolution or collision_mesh == null:
+		collision_mesh = _build_chunk_mesh(coordinate, collision_resolution, false)
+	if collision_mesh == null or collision_mesh.get_surface_count() == 0:
+		return
+	var collision := CollisionShape3D.new()
+	collision.name = "Collision"
+	collision.shape = collision_mesh.create_trimesh_shape()
+	body.add_child(collision)
 
 
 func _height_at(x: float, z: float) -> float:
@@ -1254,7 +1345,8 @@ func _rebuild_loaded_decor() -> void:
 			if child.name != "Terrain" and child.name != "Collision":
 				body.remove_child(child)
 				child.queue_free()
-		_build_chunk_decor(body, coordinate)
+		if int(body.get_meta(&"terrain_detail_tier", 0)) >= 1:
+			_build_chunk_decor(body, coordinate)
 
 
 func _new_multimesh(mesh: Mesh, count: int) -> MultiMesh:

@@ -8,7 +8,8 @@ static func build(
 	resolution: int,
 	minimum_world_z: float,
 	height_sampler: Callable,
-	color_sampler: Callable
+	color_sampler: Callable,
+	include_vertex_colors: bool = true
 ) -> ArrayMesh:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
@@ -31,7 +32,8 @@ static func build(
 
 	vertices.resize(resolution * resolution)
 	normals.resize(resolution * resolution)
-	colors.resize(resolution * resolution)
+	if include_vertex_colors:
+		colors.resize(resolution * resolution)
 	for z_index in resolution:
 		for x_index in resolution:
 			var sample_index := (z_index + 1) * sample_resolution + x_index + 1
@@ -46,7 +48,8 @@ static func build(
 			var normal := Vector3(left - right, step * 2.0, back - front).normalized()
 			vertices[vertex_index] = Vector3(x, height, z)
 			normals[vertex_index] = normal
-			colors[vertex_index] = color_sampler.call(Vector2(x, z), height, 1.0 - normal.y) as Color
+			if include_vertex_colors:
+				colors[vertex_index] = color_sampler.call(Vector2(x, z), height, 1.0 - normal.y) as Color
 
 	for z_index in resolution - 1:
 		for x_index in resolution - 1:
@@ -70,7 +73,8 @@ static func build(
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_COLOR] = colors
+	if include_vertex_colors:
+		arrays[Mesh.ARRAY_COLOR] = colors
 	arrays[Mesh.ARRAY_INDEX] = indices
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	return mesh
