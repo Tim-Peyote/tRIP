@@ -221,6 +221,7 @@ func simulate_nearest_mystery_event() -> bool:
 
 func _process(_delta: float) -> void:
 	if is_instance_valid(_target):
+		_recover_target_below_surface()
 		var expedition_visible := _target.global_position.z >= MIN_EXPEDITION_Z
 		if is_instance_valid(_horizon_root):
 			_horizon_root.visible = expedition_visible
@@ -293,12 +294,32 @@ func _refresh_chunks(world_position: Vector3, immediate_center: bool) -> void:
 		if not desired.has(coordinate):
 			_retire_chunk(_chunks[coordinate])
 			_chunks.erase(coordinate)
-	if immediate_center and not _chunks.has(center):
-		_pending.erase(center)
-		_build_chunk(center, int(_desired_tiers.get(center, 2)))
-	elif immediate_center and int(_chunks[center].get_meta(&"terrain_detail_tier", -1)) != int(_desired_tiers.get(center, 2)):
-		_pending.erase(center)
-		_apply_chunk_tier(_chunks[center], center, int(_desired_tiers.get(center, 2)))
+	if immediate_center:
+		# Never expose the player to an asynchronously generated seam. Build the
+		# complete 3x3 physics neighbourhood before returning; only decoration and
+		# distant horizon chunks are allowed to stream over later frames.
+		for z_offset in range(-collision_radius, collision_radius + 1):
+			for x_offset in range(-collision_radius, collision_radius + 1):
+				var coordinate := center + Vector2i(x_offset, z_offset)
+				var desired_tier := int(_desired_tiers.get(coordinate, 2))
+				_pending.erase(coordinate)
+				if not _chunks.has(coordinate):
+					_build_chunk(coordinate, desired_tier)
+				elif int(_chunks[coordinate].get_meta(&"terrain_detail_tier", -1)) != desired_tier:
+					_apply_chunk_tier(_chunks[coordinate], coordinate, desired_tier)
+
+
+func _recover_target_below_surface() -> void:
+	if not _target is CharacterBody3D:
+		return
+	var terrain_height := _height_at(_target.global_position.x, _target.global_position.z)
+	if _target.global_position.y >= terrain_height - 1.0:
+		return
+	var safe_position := _target.global_position
+	safe_position.y = terrain_height + 0.08
+	_target.global_position = safe_position
+	(_target as CharacterBody3D).velocity.y = 0.0
+	(_target as CharacterBody3D).apply_floor_snap()
 
 
 func _detail_tier_for_offset(offset: Vector2i) -> int:
