@@ -4,6 +4,7 @@ extends Node
 var _orchestrator: WorldPhaseOrchestrator
 var _terrain: ExpeditionTerrain
 var _progression: WorldProgressionOrchestrator
+var _hazard: BiomeHazardOrchestrator
 var _canvas: CanvasLayer
 var _panel: PanelContainer
 var _status: Label
@@ -12,10 +13,11 @@ var _seed: int = 117
 var _previous_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 
 
-func setup(orchestrator: WorldPhaseOrchestrator, terrain: ExpeditionTerrain, progression: WorldProgressionOrchestrator = null) -> void:
+func setup(orchestrator: WorldPhaseOrchestrator, terrain: ExpeditionTerrain, progression: WorldProgressionOrchestrator = null, hazard: BiomeHazardOrchestrator = null) -> void:
 	_orchestrator = orchestrator
 	_terrain = terrain
 	_progression = progression
+	_hazard = hazard
 	_build_ui()
 	_orchestrator.phase_changed.connect(_on_phase_changed)
 	_update_status()
@@ -53,6 +55,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_progression.simulate_transition_formula()
 	elif key.keycode == KEY_P and _progression != null:
 		_progression.simulate_nearest_mystery_event()
+	elif key.keycode == KEY_H and _hazard != null:
+		_hazard.force_active()
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -103,8 +107,13 @@ func _build_ui() -> void:
 		mystery_button.text = "◆ РАЗРЕШИТЬ БЛИЖАЙШЕЕ СОБЫТИЕ POI"
 		mystery_button.pressed.connect(_progression.simulate_nearest_mystery_event)
 		column.add_child(mystery_button)
+	if _hazard != null:
+		var hazard_button := Button.new()
+		hazard_button.text = "⚠ ЗАПУСТИТЬ ПРИРОДНОЕ ЯВЛЕНИЕ"
+		hazard_button.pressed.connect(_hazard.force_active)
+		column.add_child(hazard_button)
 	var help := Label.new()
-	help.text = "PgUp/PgDn — мир   P — разрешить POI   Enter — употребить формулу   R — новый seed   Backspace — снять симуляцию   F10 — закрыть"
+	help.text = "PgUp/PgDn — мир   P — POI   H — явление   Enter — формула   R — seed   Backspace — снять симуляцию   F10 — закрыть"
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.modulate = Color(0.68, 0.76, 0.62)
 	column.add_child(help)

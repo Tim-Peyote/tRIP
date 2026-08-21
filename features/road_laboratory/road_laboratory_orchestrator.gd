@@ -120,6 +120,13 @@ func migrate_legacy_save() -> void:
 	manifest_near_player(false)
 
 
+func get_hazard_protection_at(world_position: Vector3) -> float:
+	if not manifested or not is_instance_valid(_laboratory_root):
+		return 0.0
+	var distance := world_position.distance_to(_laboratory_root.global_position + Vector3(0.0, 0.0, -1.2))
+	return 1.0 - smoothstep(3.4, 5.4, distance)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(LAB_INPUT) and unlocked and not _busy:
 		if manifested:

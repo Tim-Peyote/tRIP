@@ -26,6 +26,7 @@ var _game_loop: GameLoopOrchestrator
 var _persistence: SessionPersistenceOrchestrator
 var _spore_tide: SporeTideOrchestrator
 var _root_pressure: RootPressureOrchestrator
+var _biome_hazard: BiomeHazardOrchestrator
 var _inside_root_well: bool = false
 
 
@@ -138,6 +139,14 @@ func setup_root_pressure(root_pressure: RootPressureOrchestrator) -> void:
 	root_pressure.overwhelmed.connect(func() -> void: show_notice("Корни нашли твой ритм и вытолкнули ко входу в колодец."))
 
 
+func setup_biome_hazard(hazard: BiomeHazardOrchestrator) -> void:
+	_biome_hazard = hazard
+	hazard.state_changed.connect(_on_biome_hazard_state_changed)
+	hazard.exposure_changed.connect(_on_biome_hazard_exposure_changed)
+	_on_biome_hazard_state_changed(hazard.state, "", "")
+	_on_biome_hazard_exposure_changed(hazard.exposure)
+
+
 func clear() -> void:
 	_player = null
 	_cooking = null
@@ -150,6 +159,7 @@ func clear() -> void:
 	_persistence = null
 	_spore_tide = null
 	_root_pressure = null
+	_biome_hazard = null
 	_inside_root_well = false
 	prompt_label.text = ""
 	hold_progress.visible = false
@@ -353,6 +363,19 @@ func _on_root_pressure_changed(value: float) -> void:
 func _on_root_ward_changed(is_warded: bool, ward_name: String) -> void:
 	%RootWardLabel.visible = _inside_root_well and is_warded
 	%RootWardLabel.text = "МЕМБРАНА · %s" % ward_name.to_upper()
+
+
+func _on_biome_hazard_state_changed(state: int, title: String, instruction: String) -> void:
+	%BiomeHazardLabel.visible = state != BiomeHazardOrchestrator.State.CALM
+	%BiomeHazardInstruction.visible = state != BiomeHazardOrchestrator.State.CALM
+	%BiomeHazardLabel.text = title
+	%BiomeHazardInstruction.text = instruction
+	%BiomeHazardLabel.modulate = Color(0.96, 0.74, 0.28) if state == BiomeHazardOrchestrator.State.WARNING else Color(0.98, 0.32, 0.22)
+
+
+func _on_biome_hazard_exposure_changed(value: float) -> void:
+	%BiomeHazardBar.value = value * 100.0
+	%BiomeHazardBar.visible = value > 0.01
 
 
 func _on_inspection_requested(title: String, description: String) -> void:

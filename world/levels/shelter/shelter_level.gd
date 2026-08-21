@@ -29,6 +29,7 @@ extends Node3D
 
 var road_laboratory: RoadLaboratoryOrchestrator
 var world_progression: WorldProgressionOrchestrator
+var biome_hazard: BiomeHazardOrchestrator
 
 
 func _ready() -> void:
@@ -79,8 +80,9 @@ func _ready() -> void:
 	stealth_orchestrator.setup(player, [forest_clearing.listener])
 	player.distraction_created.connect(_on_distraction_created)
 	_setup_road_laboratory(terrain)
+	_setup_biome_hazard(terrain)
 	_setup_world_progression(terrain)
-	world_phase_developer_panel.setup(world_phase_orchestrator, terrain, world_progression)
+	world_phase_developer_panel.setup(world_phase_orchestrator, terrain, world_progression, biome_hazard)
 
 
 func get_player() -> FirstPersonController:
@@ -143,11 +145,16 @@ func get_world_progression() -> WorldProgressionOrchestrator:
 	return world_progression
 
 
+func get_biome_hazard() -> BiomeHazardOrchestrator:
+	return biome_hazard
+
+
 func initialize_new_session() -> void:
 	_disable_legacy_shelter()
 	biome_visual_controller.show_forest()
 	world_progression.activate_session()
 	road_laboratory.initialize_new_run(Vector3(0, 0, 11.5), Vector3(6.5, 0, 18.5))
+	biome_hazard.activate_session()
 	game_loop_orchestrator.narrative_notice_requested.emit(
 		"ЯВЬ · ПЕРВЫЙ СЛЕД",
 		"Комнаты здесь нет. Миколог оставил в камнях схему обряда: найди зелёное кольцо и восстанови дорожную лабораторию прямо в лесу."
@@ -158,6 +165,7 @@ func apply_session_layout_after_load() -> void:
 	_disable_legacy_shelter()
 	biome_visual_controller.show_forest()
 	world_progression.activate_session()
+	biome_hazard.activate_session()
 
 
 func apply_world_seed(value: int) -> void:
@@ -202,6 +210,16 @@ func _setup_world_progression(terrain: ExpeditionTerrain) -> void:
 	for definition: ContentDefinition in ContentDB.get_all():
 		if definition is IngredientDefinition and definition.id not in mortar_tool.candidate_ingredient_ids:
 			mortar_tool.candidate_ingredient_ids.append(definition.id)
+
+
+func _setup_biome_hazard(terrain: ExpeditionTerrain) -> void:
+	biome_hazard = BiomeHazardOrchestrator.new()
+	biome_hazard.name = "BiomeHazardOrchestrator"
+	add_child(biome_hazard)
+	biome_hazard.setup(player, terrain, world_phase_orchestrator, road_laboratory)
+	biome_hazard.overwhelmed.connect(func(definition: BiomeHazardDefinition, text: String) -> void:
+		game_loop_orchestrator.narrative_notice_requested.emit(definition.display_name.to_upper(), text)
+	)
 
 
 func _disable_legacy_shelter() -> void:

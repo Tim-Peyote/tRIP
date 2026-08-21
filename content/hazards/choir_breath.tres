@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeHazardDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/biome_hazard_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"hazard.choir_breath"
+display_name = "Вдох хора"
+warning_text = "Все шляпки повернулись в одну сторону"
+active_text = "ХОР ДЕЛАЕТ ВДОХ"
+counter_text = "Замри: движение станет словом внутри общего голоса."
+overwhelmed_text = "Хор дописал твоё движение и вытолкнул к последней паузе."
+counter_rule = 0
+visual_family = 1
+calm_duration = 34.0
+warning_duration = 6.0
+active_duration = 14.0
+exposure_rate = 0.13
+recovery_rate = 0.17
+primary_color = Color(0.38, 1, 0.58, 1)
+secondary_color = Color(0.2, 0.08, 0.3, 1)
+audio_pitch = 1.16

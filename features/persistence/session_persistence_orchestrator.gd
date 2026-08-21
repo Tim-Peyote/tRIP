@@ -79,6 +79,7 @@ func capture_save_data() -> Dictionary:
 		"game_loop": _loop.to_save_data(),
 		"road_laboratory": _level.get_road_laboratory().to_save_data(),
 		"world_progression": _level.get_world_progression().to_save_data(),
+		"biome_hazard": _level.get_biome_hazard().to_save_data(),
 		"collected_spawn_ids": _collected_spawn_ids.keys().map(func(value: Variant) -> String: return String(value)),
 		"player": {
 			"position": [player.global_position.x, player.global_position.y, player.global_position.z],
@@ -111,6 +112,7 @@ func apply_save_data(data: Dictionary) -> void:
 		_level.player.global_position = Vector3(float(position_data[0]), float(position_data[1]), float(position_data[2]))
 	_level.player.rotation.y = float(player_data.get("yaw", 0.0))
 	_level.get_world_progression().apply_save_data(data.get("world_progression", {}) as Dictionary)
+	_level.get_biome_hazard().apply_save_data(data.get("biome_hazard", {}) as Dictionary)
 	if data.has("road_laboratory"):
 		_level.get_road_laboratory().apply_save_data(data.get("road_laboratory", {}) as Dictionary)
 	else:

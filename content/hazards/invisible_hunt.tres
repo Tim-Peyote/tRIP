@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeHazardDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/biome_hazard_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"hazard.invisible_hunt"
+display_name = "Невидимый гон"
+warning_text = "Ложные звери начали обходить с флангов"
+active_text = "ГОН НАЧАЛСЯ"
+counter_text = "Иди обычным шагом. Остановка или бег обозначат тебя добычей."
+overwhelmed_text = "Стая настигла твою тень и отбросила к последнему следу."
+counter_rule = 1
+visual_family = 2
+calm_duration = 29.0
+warning_duration = 5.0
+active_duration = 15.0
+exposure_rate = 0.15
+recovery_rate = 0.16
+primary_color = Color(0.2, 0.76, 1, 1)
+secondary_color = Color(0.72, 0.04, 0.015, 1)
+audio_pitch = 0.9

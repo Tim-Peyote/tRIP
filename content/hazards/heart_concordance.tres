@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeHazardDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/biome_hazard_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"hazard.heart_concordance"
+display_name = "Импульс согласования"
+warning_text = "Два горизонта начали сокращаться в одном ритме"
+active_text = "СЕРДЦЕ СВОДИТ ВЕРСИИ МИРА"
+counter_text = "Замри и удержи собственный ритм между двумя ударами."
+overwhelmed_text = "Сердце смешало твою версию с предыдущей и вернуло к устойчивой точке."
+counter_rule = 0
+visual_family = 7
+calm_duration = 25.0
+warning_duration = 5.0
+active_duration = 18.0
+exposure_rate = 0.16
+recovery_rate = 0.14
+primary_color = Color(1, 0.2, 0.78, 1)
+secondary_color = Color(0.16, 0.38, 0.82, 1)
+audio_pitch = 0.94

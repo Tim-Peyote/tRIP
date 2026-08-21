@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeHazardDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/biome_hazard_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"hazard.ash_bell"
+display_name = "Колокол без башни"
+warning_text = "Пепел завис, ожидая удара"
+active_text = "КОЛОКОЛ СТЁР ДАЛЬНОСТЬ"
+counter_text = "Поднимись над дном долины, пока пепел заполняет низины."
+overwhelmed_text = "Пепел стёр расстояние и вернул тебя к последнему ориентиру."
+counter_rule = 4
+visual_family = 4
+calm_duration = 38.0
+warning_duration = 8.0
+active_duration = 17.0
+exposure_rate = 0.1
+recovery_rate = 0.18
+primary_color = Color(0.58, 0.5, 0.42, 1)
+secondary_color = Color(0.08, 0.07, 0.065, 1)
+audio_pitch = 0.52

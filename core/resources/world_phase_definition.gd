@@ -9,6 +9,7 @@ extends Resource
 @export var stabilizing_recipe_id: StringName
 @export var visual_profile: BiomeVisualProfile
 @export var content_pack: BiomeContentPack
+@export var hazard_profile: BiomeHazardDefinition
 @export_range(0, 4, 1) var geometry_family: int = 0
 @export var canopy_low: Color = Color(0.05, 0.2, 0.07)
 @export var canopy_high: Color = Color(0.35, 0.5, 0.1)

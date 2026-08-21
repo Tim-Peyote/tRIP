@@ -9,6 +9,8 @@ global uniform float trip_danger;
 global uniform float trip_world_transition;
 global uniform float trip_world_family;
 global uniform vec4 trip_world_color;
+global uniform float trip_hazard;
+global uniform vec4 trip_hazard_color;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -19,6 +21,7 @@ void fragment() {
 	float quiet = clamp(trip_toxicity * trip_visual_intensity, 0.0, 1.0);
 	float danger = clamp(trip_danger * trip_visual_intensity, 0.0, 1.0);
 	float metamorph = clamp(trip_world_transition * trip_visual_intensity, 0.0, 1.0);
+	float hazard = clamp(trip_hazard * trip_visual_intensity, 0.0, 1.0);
 	vec2 uv = SCREEN_UV;
 	vec2 centered = uv - vec2(0.5);
 	float radius = length(centered);
@@ -27,6 +30,7 @@ void fragment() {
 	float spiral = sin(angle * family + radius * 34.0 - TIME * 5.5);
 	uv += normalize(centered + vec2(0.0001)) * spiral * metamorph * 0.034;
 	uv.x += sin(uv.y * 46.0 + TIME * 7.0) * metamorph * 0.012;
+	uv += vec2(sin(uv.y * 61.0 + TIME * 11.0), cos(uv.x * 47.0 - TIME * 8.0)) * hazard * 0.0017;
 	float breath = sin(TIME * 1.35 - radius * 24.0) * 0.0035 * strength;
 	uv += normalize(centered + vec2(0.0001)) * breath;
 	float wave = sin(uv.y * 31.0 + TIME * 2.1) * 0.0018 * strength;
@@ -56,9 +60,12 @@ void fragment() {
 	color *= 1.0 - smoothstep(0.2, 0.74, radius) * danger * (0.22 + heartbeat * 0.18);
 	float transition_ring = smoothstep(0.08, 0.0, abs(radius - (0.68 - metamorph * 0.56)));
 	float cellular = step(0.68, sin((uv.x + uv.y) * 72.0 + spiral * 3.0)) * metamorph;
-	color = mix(color, color * 0.3 + trip_world_color.rgb * (0.48 + transition_ring), metamorph * 0.72);
+	color = mix(color, color * 0.36 + trip_world_color.rgb * (0.42 + transition_ring * 0.72), metamorph * 0.62);
 	color += trip_world_color.rgb * cellular * 0.11;
-	color += vec3(1.0) * pow(metamorph, 8.0) * 0.38;
+	color += vec3(1.0) * pow(metamorph, 8.0) * 0.2;
 	color *= 1.0 - smoothstep(0.18, 0.76, radius) * metamorph * 0.58;
-	COLOR = vec4(color, max(max(max(strength * 0.92, quiet * 0.72), danger * 0.32), metamorph));
+	float hazard_streak = pow(max(sin((uv.x + uv.y) * 84.0 - TIME * 13.0), 0.0), 12.0) * hazard;
+	color += trip_hazard_color.rgb * hazard_streak * 0.14;
+	color = mix(color, color * 0.72 + trip_hazard_color.rgb * 0.12, hazard * smoothstep(0.22, 0.82, radius) * 0.44);
+	COLOR = vec4(color, max(max(max(max(strength * 0.92, quiet * 0.72), danger * 0.32), metamorph), hazard * 0.46));
 }

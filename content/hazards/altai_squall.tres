@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeHazardDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/biome_hazard_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"hazard.altai_squall"
+display_name = "Шквал с перевала"
+warning_text = "Кедры замолчали перед порывом"
+active_text = "ГОРНЫЙ ШКВАЛ"
+counter_text = "Пригнись и пережди порыв, не выдавая силуэт."
+overwhelmed_text = "Ветер сбил след и вернул тебя к последнему тихому месту."
+counter_rule = 2
+visual_family = 0
+calm_duration = 42.0
+warning_duration = 7.0
+active_duration = 12.0
+exposure_rate = 0.11
+recovery_rate = 0.2
+primary_color = Color(0.68, 0.8, 0.72, 1)
+secondary_color = Color(0.16, 0.24, 0.2, 1)
+audio_pitch = 0.78

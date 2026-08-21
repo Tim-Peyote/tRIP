@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeHazardDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/biome_hazard_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"hazard.mirror_rise"
+display_name = "Подъём отражения"
+warning_text = "Вода показала прилив раньше, чем он начался"
+active_text = "ЗЕРКАЛЬНЫЙ РАЗЛИВ ПОДНИМАЕТСЯ"
+counter_text = "Ищи высокий берег: отражение затапливает низины первым."
+overwhelmed_text = "Вода выбрала твою отражённую версию и вернула тело назад."
+counter_rule = 4
+visual_family = 5
+calm_duration = 31.0
+warning_duration = 6.0
+active_duration = 18.0
+exposure_rate = 0.11
+recovery_rate = 0.16
+primary_color = Color(0.18, 0.92, 0.9, 1)
+secondary_color = Color(0.2, 0.08, 0.36, 1)
+audio_pitch = 1.3

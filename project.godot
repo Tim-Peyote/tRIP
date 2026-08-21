@@ -181,3 +181,11 @@ trip_world_color={
 "type": "color",
 "value": Color(0.55, 0.15, 0.72, 1)
 }
+trip_hazard={
+"type": "float",
+"value": 0.0
+}
+trip_hazard_color={
+"type": "color",
+"value": Color(0.7, 0.8, 0.65, 1)
+}
