@@ -51,10 +51,10 @@ func _apply_idle_grip() -> void:
 		return
 	# Keep the palm in a readable three-quarter view. Resetting the imported wrist
 	# points the fingers straight at the camera and makes the hand look truncated.
-	_pose_bone("wrist.l", Vector3(0.0, tool_wrist_twist, 0.0))
+	_pose_bone("wrist.r", Vector3(0.0, -tool_wrist_twist, 0.0))
 	for side: String in ["r", "l"]:
 		var direction := -1.0 if side == "r" else 1.0
-		var amount := grip_amount * 0.16 if _physical_interaction_active else (grip_amount if side == "l" else grip_amount * 0.3)
+		var amount := grip_amount * 0.16 if _physical_interaction_active else (grip_amount if side == "r" else grip_amount * 0.3)
 		for finger: String in ["pinky", "ring", "middle", "index"]:
 			for segment: int in [1, 2, 3]:
 				_pose_bone("finger_%s%d.%s" % [finger, segment, side], Vector3(0.0, 0.0, amount * direction))
@@ -73,7 +73,7 @@ func set_physical_interaction_pose(active: bool) -> void:
 func _hide_unanimated_offhand() -> void:
 	if _skeleton == null:
 		return
-	var offhand_shoulder := _skeleton.find_bone("shoulder.r")
+	var offhand_shoulder := _skeleton.find_bone("shoulder.l")
 	if offhand_shoulder >= 0:
 		# A second generic arm reads as a mirrored HUD claw. Keep it out until an
 		# authored action (door pull, two-handed lift, cooking) explicitly owns it.

@@ -75,6 +75,8 @@ var _pre_slide_planar_velocity: Vector3 = Vector3.ZERO
 var _surface_wetness: float = 0.0
 var _weather_wind_strength: float = 0.0
 var _gameplay_enabled: bool = true
+var _physical_key_state: Dictionary[Key, bool] = {}
+var _raw_jump_just_pressed: bool = false
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -103,6 +105,24 @@ func _ready() -> void:
 	floor_constant_speed = false
 	safe_margin = 0.035
 	_previously_grounded = is_on_floor()
+
+
+func _input(event: InputEvent) -> void:
+	# Read locomotion before Control nodes can consume keyboard events. This is
+	# also a fallback for embedded-game windows and non-Latin keyboard layouts,
+	# where InputMap polling has proven inconsistent on physical WASD keys.
+	if not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if key.echo:
+		return
+	var physical := key.physical_keycode if key.physical_keycode != KEY_NONE else key.keycode
+	if physical not in [KEY_W, KEY_A, KEY_S, KEY_D, KEY_SPACE]:
+		return
+	var was_pressed := bool(_physical_key_state.get(physical, false))
+	_physical_key_state[physical] = key.pressed
+	if physical == KEY_SPACE and key.pressed and not was_pressed:
+		_raw_jump_just_pressed = true
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -139,8 +159,9 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	_coyote_remaining = coyote_time if is_on_floor() else maxf(_coyote_remaining - delta, 0.0)
 	_jump_buffer_remaining = maxf(_jump_buffer_remaining - delta, 0.0)
-	if _accepts_gameplay_input() and Input.is_action_just_pressed(&"jump"):
+	if _accepts_gameplay_input() and (Input.is_action_just_pressed(&"jump") or _raw_jump_just_pressed):
 		_jump_buffer_remaining = jump_buffer_time
+	_raw_jump_just_pressed = false
 	if _accepts_gameplay_input():
 		_update_gamepad_look(delta)
 		_update_stance(delta)
@@ -152,7 +173,7 @@ func _physics_process(delta: float) -> void:
 		_update_viewmodel(delta, 0.0)
 		return
 
-	var input_vector := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back", 0.15)
+	var input_vector := _get_movement_input()
 	var input_amount := minf(input_vector.length(), 1.0)
 	var local_direction := Vector3(input_vector.x, 0.0, input_vector.y)
 	var world_direction := global_basis * local_direction
@@ -200,6 +221,7 @@ func set_gameplay_enabled(value: bool) -> void:
 	if not value:
 		velocity.x = 0.0
 		velocity.z = 0.0
+		_raw_jump_just_pressed = false
 
 
 func set_viewmodel_interface_hidden(hidden: bool) -> void:
@@ -234,6 +256,21 @@ func is_sprinting() -> bool:
 
 func _accepts_gameplay_input() -> bool:
 	return _gameplay_input_override or (_gameplay_enabled and not get_tree().paused)
+
+
+func _get_movement_input() -> Vector2:
+	var mapped := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back", 0.15)
+	var physical := Vector2(
+		float(int(bool(_physical_key_state.get(KEY_D, false))) - int(bool(_physical_key_state.get(KEY_A, false)))),
+		float(int(bool(_physical_key_state.get(KEY_S, false))) - int(bool(_physical_key_state.get(KEY_W, false))))
+	).limit_length(1.0)
+	return physical if physical.length_squared() > mapped.length_squared() else mapped
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_physical_key_state.clear()
+		_raw_jump_just_pressed = false
 
 
 func set_spore_vision_active(value: bool) -> void:

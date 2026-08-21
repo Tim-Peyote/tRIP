@@ -26,9 +26,9 @@ func _run() -> void:
 	var legacy_grip := _player.get_node("CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel/GripHand") as MeshInstance3D
 	var knife_attachment := _player.knife_viewmodel as BoneAttachment3D
 	_expect(not legacy_grip.visible, "Legacy primitive grip hand is still visible.")
-	_expect(knife_attachment != null and knife_attachment.bone_name == "socket.l", "Authored knife is not attached to the rigged hand socket.")
+	_expect(knife_attachment != null and knife_attachment.bone_name == "socket.r", "Authored knife is not attached to the right-hand rig socket.")
 	_expect(knife_attachment.find_child("AuthoredKnife", true, false) != null, "Authored CC0 knife is missing from the viewmodel.")
-	var offhand_index := arm_skeleton.find_bone("shoulder.r")
+	var offhand_index := arm_skeleton.find_bone("shoulder.l")
 	_expect(offhand_index >= 0 and arm_skeleton.get_bone_pose_scale(offhand_index).x < 0.01, "Unused offhand is still hanging in the normal exploration view.")
 	var held_probe := _add_rigid_box(Vector3(0.0, 0.35, -1.5))
 	_player.interactor.call("_begin_grab", held_probe)
@@ -41,12 +41,18 @@ func _run() -> void:
 	await get_tree().physics_frame
 
 	# Exercise a real physical key event, not Input.action_press(), so broken
-	# device-specific project bindings cannot hide behind the test harness.
+	# device-specific project bindings cannot hide behind the test harness. Remove
+	# the mapped keyboard event first: movement must still pass through the raw
+	# physical-key bridge used by embedded game windows.
+	for event: InputEvent in InputMap.action_get_events(&"move_forward"):
+		if event is InputEventKey:
+			InputMap.action_erase_event(&"move_forward", event)
 	var keyboard_start := _player.global_position
 	_emit_physical_key(KEY_W, true)
 	await _physics_frames(22)
 	_emit_physical_key(KEY_W, false)
-	_expect(_player.global_position.distance_to(keyboard_start) > 0.2, "Physical W key did not reach first-person movement.")
+	_expect(_player.global_position.distance_to(keyboard_start) > 0.2, "Raw physical W key did not reach first-person movement without InputMap.")
+	InputBootstrap.ensure_defaults()
 	await _physics_frames(18)
 
 	# Analog input must preserve magnitude instead of snapping every stick tilt to full speed.
@@ -75,11 +81,15 @@ func _run() -> void:
 
 	# Buffered jump, airborne animation and landing response are one locomotion contract.
 	var takeoff_y := _player.global_position.y
-	Input.action_press(&"jump")
+	for event: InputEvent in InputMap.action_get_events(&"jump"):
+		if event is InputEventKey:
+			InputMap.action_erase_event(&"jump", event)
+	_emit_physical_key(KEY_SPACE, true)
 	await get_tree().physics_frame
-	Input.action_release(&"jump")
+	_emit_physical_key(KEY_SPACE, false)
 	await _physics_frames(8)
-	_expect(_player.global_position.y > takeoff_y + 0.35, "Jump input did not lift the player.")
+	_expect(_player.global_position.y > takeoff_y + 0.35, "Raw physical Space did not lift the player without InputMap.")
+	InputBootstrap.ensure_defaults()
 	_expect(_player.avatar_animator.get_current_state() == &"jump", "Rigged avatar did not enter jump animation.")
 	for _frame: int in 100:
 		await get_tree().physics_frame
