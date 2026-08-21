@@ -7,6 +7,11 @@ signal lightning_struck(origin: Vector3, strength: float)
 
 enum State { CLEAR, DRIZZLE, STORM, FOG, SNOW }
 
+const RAIN_AMBIENCE := preload("res://assets/third_party/open_game_art_audio/rain_long.ogg")
+const WIND_SOFT := preload("res://assets/third_party/open_game_art_audio/wind_soft.ogg")
+const WIND_STRONG := preload("res://assets/third_party/open_game_art_audio/wind_strong.ogg")
+const THUNDERCLAP := preload("res://assets/third_party/open_game_art_audio/thunderclap.wav")
+
 var state: State = State.CLEAR
 var intensity: float = 0.0
 var wetness: float = 0.0
@@ -17,14 +22,14 @@ var _player: FirstPersonController
 var _environment: Environment
 var _precipitation: GPUParticles3D
 var _lightning: DirectionalLight3D
-var _audio: AudioStreamPlayer
-var _playback: AudioStreamGeneratorPlayback
+var _rain_audio: AudioStreamPlayer
+var _wind_audio: AudioStreamPlayer
+var _thunder_audio: AudioStreamPlayer3D
 var _rng := RandomNumberGenerator.new()
 var _state_time: float = 0.0
 var _next_change: float = 105.0
 var _lightning_time: float = 8.0
 var _reactive_tick: float = 0.0
-var _noise: float = 0.0
 var _base_fog_density: float = 0.012
 var _base_volumetric_density: float = 0.012
 
@@ -50,7 +55,7 @@ func _process(delta: float) -> void:
 	_reactive_tick += delta
 	_update_surface_state(delta)
 	_update_lightning(delta)
-	_fill_audio()
+	_update_audio(delta)
 	if automatic and _state_time >= _next_change:
 		_choose_next_weather()
 	if _reactive_tick >= 0.5:
@@ -229,7 +234,9 @@ func _update_lightning(delta: float) -> void:
 	_lightning_time = _rng.randf_range(4.5, 13.0)
 	_lightning.light_energy = lerpf(2.5, 6.0, intensity)
 	var strike_origin := _player.global_position + Vector3(_rng.randf_range(-35, 35), 0, _rng.randf_range(-35, 35))
+	_spawn_lightning_bolt(strike_origin, intensity)
 	lightning_struck.emit(strike_origin, intensity)
+	_schedule_thunder(strike_origin, intensity)
 	for node: Node in get_tree().get_nodes_in_group(&"weather_reactive"):
 		if node is PhysicalPropertyComponent:
 			var parent := node.get_parent() as Node3D
@@ -237,28 +244,98 @@ func _update_lightning(delta: float) -> void:
 				(node as PhysicalPropertyComponent).apply_electricity(intensity)
 
 
+func _spawn_lightning_bolt(strike_origin: Vector3, strength: float) -> void:
+	var bolt := Node3D.new()
+	bolt.name = "LightningBolt"
+	bolt.top_level = true
+	add_child(bolt)
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(0.72, 0.84, 1.0)
+	material.emission_enabled = true
+	material.emission = Color(0.48, 0.68, 1.0)
+	material.emission_energy_multiplier = lerpf(5.0, 10.0, strength)
+	var points: Array[Vector3] = [strike_origin + Vector3(_rng.randf_range(-5.0, 5.0), 48.0, _rng.randf_range(-5.0, 5.0))]
+	for index in range(1, 7):
+		var t := float(index) / 7.0
+		points.append(strike_origin + Vector3(_rng.randf_range(-2.8, 2.8) * (1.0 - t), lerpf(48.0, 0.0, t), _rng.randf_range(-2.8, 2.8) * (1.0 - t)))
+	for index in points.size() - 1:
+		var start := points[index]
+		var finish := points[index + 1]
+		var direction := finish - start
+		var segment := MeshInstance3D.new()
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = 0.035
+		mesh.bottom_radius = 0.055
+		mesh.height = direction.length()
+		mesh.radial_segments = 5
+		mesh.material = material
+		segment.mesh = mesh
+		bolt.add_child(segment)
+		segment.global_position = (start + finish) * 0.5
+		segment.global_basis = Basis(Quaternion(Vector3.UP, direction.normalized()))
+	await get_tree().create_timer(0.13).timeout
+	if is_instance_valid(bolt):
+		bolt.queue_free()
+
+
 func _build_audio() -> void:
 	if DisplayServer.get_name() == "headless":
 		return
-	_audio = AudioStreamPlayer.new()
-	_audio.bus = &"Ambience"
-	var generator := AudioStreamGenerator.new()
-	generator.mix_rate = 22050.0
-	generator.buffer_length = 0.35
-	_audio.stream = generator
-	add_child(_audio)
-	_audio.play()
-	_playback = _audio.get_stream_playback() as AudioStreamGeneratorPlayback
+	_rain_audio = _make_weather_layer("RecordedRain", RAIN_AMBIENCE, -40.0)
+	_wind_audio = _make_weather_layer("RecordedWind", WIND_SOFT, -40.0)
+	_thunder_audio = AudioStreamPlayer3D.new()
+	_thunder_audio.name = "SpatialThunder"
+	_thunder_audio.stream = THUNDERCLAP
+	_thunder_audio.bus = &"Ambience"
+	_thunder_audio.unit_size = 12.0
+	_thunder_audio.max_distance = 180.0
+	_thunder_audio.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	_thunder_audio.top_level = true
+	add_child(_thunder_audio)
 
 
-func _fill_audio() -> void:
-	if _playback == null:
+func _make_weather_layer(layer_name: String, audio_stream: AudioStream, initial_db: float) -> AudioStreamPlayer:
+	var player := AudioStreamPlayer.new()
+	player.name = layer_name
+	player.bus = &"Ambience"
+	player.stream = audio_stream
+	if audio_stream is AudioStreamOggVorbis:
+		(audio_stream as AudioStreamOggVorbis).loop = true
+	elif audio_stream is AudioStreamMP3:
+		(audio_stream as AudioStreamMP3).loop = true
+	player.volume_db = initial_db
+	add_child(player)
+	player.play()
+	return player
+
+
+func _update_audio(delta: float) -> void:
+	if _rain_audio == null or _wind_audio == null:
 		return
-	var frames := _playback.get_frames_available()
-	for _index in frames:
-		var raw := _rng.randf_range(-1.0, 1.0)
-		_noise = lerpf(_noise, raw, 0.08 if state in [State.DRIZZLE, State.STORM] else 0.003)
-		var rain_gain := intensity * (0.085 if state == State.DRIZZLE else 0.16 if state == State.STORM else 0.0)
-		var wind_gain := wind.length() / 8.5 * 0.045
-		var sample := _noise * (rain_gain + wind_gain)
-		_playback.push_frame(Vector2(sample, sample * 0.96))
+	var rain_amount := intensity if state in [State.DRIZZLE, State.STORM] else 0.0
+	var wind_amount := clampf(wind.length() / 8.5, 0.0, 1.0)
+	var rain_target := lerpf(-38.0, -7.0, rain_amount) if rain_amount > 0.01 else -40.0
+	var wind_target := lerpf(-38.0, -12.0, wind_amount) if wind_amount > 0.01 else -40.0
+	_rain_audio.volume_db = move_toward(_rain_audio.volume_db, rain_target, delta * 10.0)
+	_wind_audio.volume_db = move_toward(_wind_audio.volume_db, wind_target, delta * 8.0)
+	var desired_wind := WIND_STRONG if state == State.STORM and intensity > 0.6 else WIND_SOFT
+	if _wind_audio.stream != desired_wind:
+		_wind_audio.stream = desired_wind
+		if desired_wind is AudioStreamOggVorbis:
+			(desired_wind as AudioStreamOggVorbis).loop = true
+		_wind_audio.play()
+
+
+func _schedule_thunder(strike_origin: Vector3, strength: float) -> void:
+	if _thunder_audio == null or _player == null:
+		return
+	var distance := _player.global_position.distance_to(strike_origin)
+	var delay := clampf(distance / 343.0, 0.04, 1.4)
+	await get_tree().create_timer(delay).timeout
+	if not is_instance_valid(_thunder_audio):
+		return
+	_thunder_audio.global_position = strike_origin + Vector3.UP * 14.0
+	_thunder_audio.volume_db = lerpf(-10.0, -2.0, strength)
+	_thunder_audio.pitch_scale = _rng.randf_range(0.88, 1.04)
+	_thunder_audio.play()

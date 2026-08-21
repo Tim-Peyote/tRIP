@@ -1,48 +1,49 @@
 class_name BiomeProceduralAmbience
 extends AudioStreamPlayer
 
+const FOREST := preload("res://assets/third_party/open_game_art_audio/forest_ambience.mp3")
+const CREEPY_FOREST := preload("res://assets/third_party/open_game_art_audio/creepy_forest.ogg")
+const CAVERN := preload("res://assets/third_party/open_game_art_audio/dark_cavern.ogg")
+const DUNGEON := preload("res://assets/third_party/open_game_art_audio/dungeon_ambience.ogg")
+const WIND_SOFT := preload("res://assets/third_party/open_game_art_audio/wind_soft.ogg")
+const WIND_STRONG := preload("res://assets/third_party/open_game_art_audio/wind_strong.ogg")
+
 var ecology_family: int = 0
-var _playback: AudioStreamGeneratorPlayback
-var _rng := RandomNumberGenerator.new()
-var _time := 0.0
-var _noise := 0.0
+var _accent: AudioStreamPlayer
+
+
+func _ready() -> void:
+	bus = &"Ambience"
+	_accent = AudioStreamPlayer.new()
+	_accent.name = "BiomeAccent"
+	_accent.bus = &"Ambience"
+	add_child(_accent)
 
 
 func configure(family: int, seed: int) -> void:
-	ecology_family = family
-	_rng.seed = seed + family * 7919
-	_time = 0.0
+	ecology_family = clampi(family, 0, 7)
 	if DisplayServer.get_name() == "headless":
 		return
-	if stream == null:
-		var generator := AudioStreamGenerator.new()
-		generator.mix_rate = 22050.0
-		generator.buffer_length = 0.35
-		stream = generator
-		bus = &"Ambience"
-		play()
-		_playback = get_stream_playback() as AudioStreamGeneratorPlayback
+	if _accent == null:
+		_ready()
+	var beds: Array[AudioStream] = [FOREST, CAVERN, CREEPY_FOREST, WIND_STRONG, WIND_SOFT, DUNGEON, CAVERN, CREEPY_FOREST]
+	var accents: Array[AudioStream] = [WIND_SOFT, DUNGEON, WIND_SOFT, CAVERN, CREEPY_FOREST, CAVERN, DUNGEON, WIND_STRONG]
+	stream = beds[ecology_family]
+	_accent.stream = accents[ecology_family]
+	_set_looping(stream)
+	_set_looping(_accent.stream)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed + ecology_family * 7919
+	pitch_scale = rng.randf_range(0.96, 1.025)
+	_accent.pitch_scale = rng.randf_range(0.94, 1.035)
+	volume_db = [-12.0, -13.5, -13.0, -15.0, -16.0, -12.5, -13.0, -14.0][ecology_family]
+	_accent.volume_db = [-24.0, -20.0, -23.0, -21.0, -22.0, -21.0, -19.0, -22.0][ecology_family]
+	play(rng.randf_range(0.0, minf(8.0, stream.get_length() * 0.25)))
+	_accent.play(rng.randf_range(0.0, minf(5.0, _accent.stream.get_length() * 0.25)))
 
 
-func _process(_delta: float) -> void:
-	if _playback == null:
-		return
-	var frames := _playback.get_frames_available()
-	var rate := (stream as AudioStreamGenerator).mix_rate
-	for _index in frames:
-		_time += 1.0 / rate
-		_noise = lerpf(_noise, _rng.randf_range(-1.0, 1.0), 0.0018)
-		var fundamental: float = float([37.0, 43.0, 56.0, 83.0, 29.0, 67.0, 34.0, 48.0][ecology_family])
-		var tone := sin(_time * fundamental * TAU)
-		var overtone := sin(_time * fundamental * (1.5 + float(ecology_family % 3) * 0.25) * TAU)
-		var pulse := pow(maxf(0.0, sin(_time * (0.12 + ecology_family * 0.025) * TAU)), 6.0)
-		var noise_amount: float = float([0.1, 0.055, 0.14, 0.035, 0.18, 0.07, 0.045, 0.035][ecology_family])
-		var tonal_amount: float = float([0.008, 0.022, 0.012, 0.026, 0.006, 0.018, 0.025, 0.032][ecology_family])
-		var sample: float = _noise * noise_amount + (tone * 0.7 + overtone * 0.3) * tonal_amount * (0.35 + pulse)
-		sample *= 0.62
-		_playback.push_frame(Vector2(sample, sample * (0.92 + 0.01 * ecology_family)))
-
-
-func _exit_tree() -> void:
-	stop()
-	_playback = null
+func _set_looping(audio_stream: AudioStream) -> void:
+	if audio_stream is AudioStreamMP3:
+		(audio_stream as AudioStreamMP3).loop = true
+	elif audio_stream is AudioStreamOggVorbis:
+		(audio_stream as AudioStreamOggVorbis).loop = true

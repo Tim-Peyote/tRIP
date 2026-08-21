@@ -10,6 +10,7 @@ func _ready() -> void:
 func _run() -> void:
 	_test_project_contract()
 	_test_content_resources()
+	_test_recorded_audio_library()
 	_test_recipe_resolution()
 	_test_main_scene()
 	if _failures.is_empty():
@@ -47,6 +48,26 @@ func _test_content_resources() -> void:
 		_expect(definition.validate().is_empty(), "Definition failed validation: %s" % path)
 		_expect(not ids.has(definition.id), "Duplicate test content id: %s" % definition.id)
 		ids[definition.id] = true
+
+
+func _test_recorded_audio_library() -> void:
+	var paths := [
+		"res://assets/third_party/open_game_art_audio/forest_ambience.mp3",
+		"res://assets/third_party/open_game_art_audio/creepy_forest.ogg",
+		"res://assets/third_party/open_game_art_audio/dark_cavern.ogg",
+		"res://assets/third_party/open_game_art_audio/dungeon_ambience.ogg",
+		"res://assets/third_party/open_game_art_audio/rain_long.ogg",
+		"res://assets/third_party/open_game_art_audio/wind_soft.ogg",
+		"res://assets/third_party/open_game_art_audio/wind_strong.ogg",
+		"res://assets/third_party/open_game_art_audio/wind_gust.ogg",
+		"res://assets/third_party/open_game_art_audio/fire_loop.ogg",
+		"res://assets/third_party/open_game_art_audio/thunderclap.wav",
+	]
+	for path: String in paths:
+		var audio_stream := load(path) as AudioStream
+		_expect(audio_stream != null, "Recorded audio failed to import: %s" % path)
+		if audio_stream != null:
+			_expect(audio_stream.get_length() > 0.05, "Recorded audio is empty: %s" % path)
 
 
 func _test_recipe_resolution() -> void:

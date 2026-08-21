@@ -1385,7 +1385,7 @@ func _rebuild_presentation_layers() -> void:
 	var ecology := pack.ecology_family if pack != null else BiomeContentPack.EcologyFamily.ALTAI_TAIGA
 	if not is_instance_valid(_biome_ambience):
 		_biome_ambience = BIOME_AMBIENCE.new() as AudioStreamPlayer
-		_biome_ambience.name = "BiomeProceduralAmbience"
+		_biome_ambience.name = "BiomeRecordedAmbience"
 		add_child(_biome_ambience)
 	_biome_ambience.call("configure", ecology, base_seed + _run_seed)
 	var rng := RandomNumberGenerator.new()
