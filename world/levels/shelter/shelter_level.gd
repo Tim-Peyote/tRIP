@@ -30,6 +30,7 @@ extends Node3D
 var road_laboratory: RoadLaboratoryOrchestrator
 var world_progression: WorldProgressionOrchestrator
 var biome_hazard: BiomeHazardOrchestrator
+var biome_population: BiomePopulationOrchestrator
 
 
 func _ready() -> void:
@@ -82,6 +83,7 @@ func _ready() -> void:
 	_setup_road_laboratory(terrain)
 	_setup_biome_hazard(terrain)
 	_setup_world_progression(terrain)
+	_setup_biome_population(terrain)
 	world_phase_developer_panel.setup(
 		world_phase_orchestrator,
 		terrain,
@@ -90,7 +92,8 @@ func _ready() -> void:
 		road_laboratory,
 		player,
 		expedition_clock,
-		session_persistence
+		session_persistence,
+		biome_population
 	)
 
 
@@ -156,6 +159,10 @@ func get_world_progression() -> WorldProgressionOrchestrator:
 
 func get_biome_hazard() -> BiomeHazardOrchestrator:
 	return biome_hazard
+
+
+func get_biome_population() -> BiomePopulationOrchestrator:
+	return biome_population
 
 
 func initialize_new_session() -> void:
@@ -229,6 +236,13 @@ func _setup_biome_hazard(terrain: ExpeditionTerrain) -> void:
 	biome_hazard.overwhelmed.connect(func(definition: BiomeHazardDefinition, text: String) -> void:
 		game_loop_orchestrator.narrative_notice_requested.emit(definition.display_name.to_upper(), text)
 	)
+
+
+func _setup_biome_population(terrain: ExpeditionTerrain) -> void:
+	biome_population = BiomePopulationOrchestrator.new()
+	biome_population.name = "BiomePopulationOrchestrator"
+	add_child(biome_population)
+	biome_population.setup(terrain, player, world_phase_orchestrator)
 
 
 func _disable_legacy_shelter() -> void:

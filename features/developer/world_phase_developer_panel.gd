@@ -9,6 +9,7 @@ var _laboratory: RoadLaboratoryOrchestrator
 var _player: FirstPersonController
 var _clock: ExpeditionClock
 var _persistence: SessionPersistenceOrchestrator
+var _population: BiomePopulationOrchestrator
 var _canvas: CanvasLayer
 var _panel: PanelContainer
 var _status: Label
@@ -26,7 +27,8 @@ func setup(
 	laboratory: RoadLaboratoryOrchestrator = null,
 	player: FirstPersonController = null,
 	clock: ExpeditionClock = null,
-	persistence: SessionPersistenceOrchestrator = null
+	persistence: SessionPersistenceOrchestrator = null,
+	population: BiomePopulationOrchestrator = null
 ) -> void:
 	_orchestrator = orchestrator
 	_terrain = terrain
@@ -36,6 +38,7 @@ func setup(
 	_player = player
 	_clock = clock
 	_persistence = persistence
+	_population = population
 	_build_ui()
 	_orchestrator.phase_changed.connect(_on_phase_changed)
 	if _laboratory != null:
@@ -110,6 +113,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_add_current_biome_sample()
 	elif key.keycode == KEY_Y:
 		_cycle_time()
+	elif key.keycode == KEY_K and _population != null:
+		_population.developer_respawn()
+	elif key.keycode == KEY_N and _population != null:
+		_population.developer_cycle_density()
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -145,7 +152,7 @@ func _build_ui() -> void:
 	_seed_label = Label.new()
 	column.add_child(_seed_label)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 340)
+	scroll.custom_minimum_size = Vector2(0, 285)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)
 	var tools := VBoxContainer.new()
@@ -195,6 +202,9 @@ func _build_ui() -> void:
 		_add_action_button(action_grid, "Y · сменить время", _cycle_time)
 	if _persistence != null:
 		_add_action_button(action_grid, "Сохранить сейчас", _persistence.save_now.bind(&"developer_manual"))
+	if _population != null:
+		_add_action_button(action_grid, "K · переселить живность", _population.developer_respawn)
+		_add_action_button(action_grid, "N · плотность фауны", _population.developer_cycle_density)
 	_add_action_button(action_grid, "R · новый seed", _randomize_seed)
 	_add_action_button(action_grid, "Backspace · реальный мир", _orchestrator.clear_developer_override)
 	var help := Label.new()
@@ -335,5 +345,6 @@ func _update_status() -> void:
 		laboratory_state = "метаморфоза" if _laboratory.is_metamorphosing() else ("проявлена" if _laboratory.manifested else ("готова" if _laboratory.unlocked else "не открыта"))
 	var hazard_state := "—" if _hazard == null else "%d · %d%%" % [_hazard.state, roundi(_hazard.exposure * 100.0)]
 	var player_state := "—" if _player == null else "x %.1f · y %.1f · z %.1f · %.1f м/с" % [_player.global_position.x, _player.global_position.y, _player.global_position.z, _player.get_planar_speed()]
-	_status.text = "%s · %s\n%s\n%s" % [definition.display_name, contract, player_state, "Лаба: %s · явление: %s" % [laboratory_state, hazard_state]]
+	var fauna_state := "—" if _population == null else "%d · %s" % [_population.get_active_population_count(), ", ".join(_population.get_active_species_ids())]
+	_status.text = "%s · %s\n%s\n%s\nФауна: %s" % [definition.display_name, contract, player_state, "Лаба: %s · явление: %s" % [laboratory_state, hazard_state], fauna_state]
 	_seed_label.text = "Seed: %d · чанков: %d · время: %s" % [_seed, _terrain.get_loaded_chunk_count(), _clock.get_display_text() if _clock != null else "—"]

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.river_otter"
+display_name = "Речная выдра"
+description = "Живой индикатор настоящего течения среди зеркальных проток."
+tags = Array[StringName]([&"fauna", &"small_mammal", &"water"])
+world_phase_ids = Array[StringName]([&"phase.mirror_flood"])
+body_plan = 3
+temperament = 4
+activity_window = 2
+spawn_weight = 0.7
+group_min = 1
+group_max = 3
+move_speed = 4.6
+awareness_distance = 14.0
+flee_distance = 8.0
+habitat_tags = Array[StringName]([&"river", &"wetland", &"lake_shore"])
+diet_tags = Array[StringName]([&"fish", &"amphibians"])
+natural_basis = "Выдра — реальный обитатель чистых водоёмов региона. Зеркальное поведение принадлежит миру, не фольклорной традиции."
+silhouette_notes = "Длинное обтекаемое тело, плоская голова, толстый сужающийся хвост; на суше корпус изгибается дугой."
+body_color = Color(0.16, 0.095, 0.055, 1)
+accent_color = Color(0.67, 0.52, 0.31, 1)
+visual_scale = 0.62
+animation_states = Array[StringName]([&"surface", &"dive", &"bank_bound", &"play", &"alarm"])
+behavior_traits = Array[String](["Ныряет против настоящего течения", "Играет только у безопасного берега", "Отражение всплывает с задержкой"])
+gameplay_tells = Array[String](["Кольца настоящей воды расходятся неровно", "Двойник не оставляет мокрого следа на камне"])
+player_interactions = Array[StringName]([&"observe", &"follow_current"])
+world_layer_mutation = "Зеркальный двойник плывёт симметрично, но только настоящая выдра ломает отражение неба."
+lore_note = "Игрок получает навигационную информацию наблюдением, без приручения животного."

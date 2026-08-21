@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.altai_maral"
+display_name = "Алтайский марал"
+description = "Крупный олень речных долин; первый надёжный масштаб живого леса."
+tags = Array[StringName]([&"fauna", &"ungulate", &"herd"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.crimson_hunt"])
+body_plan = 0
+temperament = 0
+activity_window = 2
+spawn_weight = 0.78
+group_min = 2
+group_max = 5
+move_speed = 4.4
+awareness_distance = 24.0
+flee_distance = 15.0
+habitat_tags = Array[StringName]([&"taiga_edge", &"river_valley", &"meadow"])
+diet_tags = Array[StringName]([&"grass", &"shoots", &"bark"])
+natural_basis = "Марал — реальный крупный олень Алтая. В Яви ведёт себя естественно; в Багряном гоне игрок видит не культовый символ, а искажённое восприятие сезонной миграции."
+silhouette_notes = "Высокая холка, длинные ноги, вытянутая морда; у самца широкая, но читаемая корона рогов."
+body_color = Color(0.34, 0.16, 0.07, 1)
+accent_color = Color(0.72, 0.46, 0.2, 1)
+visual_scale = 1.35
+animation_states = Array[StringName]([&"graze", &"ear_flick", &"notice", &"trot", &"bound", &"rut_display"])
+behavior_traits = Array[String](["Стадо выставляет одну наблюдающую самку", "Уходит поперёк ветра", "Замирает перед общим бегством"])
+gameplay_tells = Array[String](["Хруст ветки предупреждает о смене направления стада", "Рёв в багряном слое совпадает с ложным маршрутом"])
+player_interactions = Array[StringName]([&"observe", &"track", &"collect_shed_antler"])
+world_layer_mutation = "В Багряном гоне рога оставляют задержанный красный след, а стадо иногда пробегает по ещё не возникшей тропе."
+lore_note = "Брат использовал маршруты маралов как независимую проверку того, перестроился ли ландшафт на самом деле."

@@ -107,7 +107,7 @@ Full cycle and persistence test:
 - `G` — throw a stone to distract creatures
 - `L` — dismiss or manifest the unlocked road laboratory near the player
 - `Esc` — pause
-- `F10` — developer QA panel: `1–8`/`PageUp/PageDown` worlds, `P` resolve POI, `H` start and `Delete` clear hazard, `Enter` formula, `M` animated or `Shift+M` instant laboratory, `T/O/C` teleports, `I` sample, `Y` time, `R` seed, `Backspace` real state
+- `F10` — developer QA panel: `1–8`/`PageUp/PageDown` worlds, `P` resolve POI, `H` start and `Delete` clear hazard, `Enter` formula, `M` animated or `Shift+M` instant laboratory, `T/O/C` teleports, `I` sample, `Y` time, `K` repopulate fauna, `N` fauna density, `R` seed, `Backspace` real state
 
 During inspection: hold left mouse and drag to rotate, use the wheel to zoom, or use `A/D` for stepped rotation. Finding every morphological clue confirms the species hypothesis.
 
@@ -118,6 +118,8 @@ Physical cooking order: grind a clean cap, add water, transfer the mash, light a
 Current playable loop: inspect and harvest the correct forest cap, return to the shelter, prepare a clean spore-sight brew, review the expedition report, then enter the newly unlocked deep-grove route. Slot `0` autosaves and is available through Continue.
 
 ## Design documents
+
+- [`docs/FAUNA_NPC_AND_LORE_BIBLE.md`](docs/FAUNA_NPC_AND_LORE_BIBLE.md) — 18 fauna sheets, 8 NPC sheets, cultural boundaries, authored expedition folklore and population rules.
 
 - `docs/GAME_DESIGN.md`
 - `docs/UX_INTERACTION.md`

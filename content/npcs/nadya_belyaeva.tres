@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NPCArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/npc_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"npc.nadya_belyaeva"
+display_name = "Надя Беляева"
+description = "Фельдшер сезонного поста, фиксирующая реальные симптомы отдельно от видений."
+tags = Array[StringName]([&"story", &"medic", &"safety"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.mirror_flood"])
+encounter_role = 0
+persistence = 2
+affiliation = &"valley_medical_post"
+occupation = "Фельдшер; ведёт журнал отравлений, переохлаждений и поисковых операций."
+public_goal = "Установить состав веществ и не допустить повторного употребления опасных смесей."
+private_need = "Чтобы игрок перестал воспринимать выживание как доказательство правильности рецепта."
+secret = "Один из ранних анализов Ильи показал обычное отравление, но позднейшие образцы физически менялись после хранения."
+relationship_keys = Array[StringName]([&"player_health", &"vera_contact", &"ilya_record"])
+silhouette_notes = "Невысокая фигура, красная медицинская сумка, светлая шапка, закатанные рукава; всегда сначала проверяет зрачки и дыхание."
+clothing_layers = "Термокофта → плотные рабочие брюки → жилет поста → непромокаемая куртка; медицинские перчатки пристёгнуты снаружи."
+carried_gear = Array[String](["медицинская сумка", "пульсоксиметр", "термометр", "ампульница", "блокнот симптомов"])
+palette = PackedColorArray(0.17, 0.21, 0.22, 1, 0.76, 0.8, 0.72, 1, 0.65, 0.08, 0.07, 1)
+expression_states = Array[StringName]([&"calm", &"clinical_focus", &"alarm", &"stern", &"relief"])
+animation_states = Array[StringName]([&"triage", &"check_pupils", &"write_chart", &"prepare_injection", &"support_walk"])
+personality_traits = Array[String](["прямая", "сострадательная", "скептичная", "не путает риск с героизмом"])
+dialogue_themes = Array[String](["дозировка", "согласие", "ненадёжность памяти", "первая помощь"])
+encounter_rules = "Не лечит метаморфозу волшебством. Медицинские решения основаны на стабилизации, жидкости, температуре и эвакуации."
+lore_note = "Позволяет игре показывать опасность грибов без инструкции по реальному употреблению."

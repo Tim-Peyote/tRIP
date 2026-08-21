@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.ash_raven"
+display_name = "Пепельный ворон"
+description = "Искажённый образом пожара ворон, запоминающий звуки стоянок."
+tags = Array[StringName]([&"fauna", &"bird", &"fictional_mutation"])
+world_phase_ids = Array[StringName]([&"phase.ashen_silence", &"phase.distant_heart"])
+body_plan = 4
+temperament = 4
+activity_window = 3
+spawn_weight = 0.74
+group_min = 1
+group_max = 3
+move_speed = 5.0
+awareness_distance = 24.0
+flee_distance = 9.0
+habitat_tags = Array[StringName]([&"burn_scar", &"abandoned_camp"])
+diet_tags = Array[StringName]([&"omnivore", &"carrion"])
+natural_basis = "Основа — реальный ворон; способность воспроизводить целые звуковые сцены является вымышленным эффектом Пепельной тишины."
+silhouette_notes = "Крупный чёрный врановый, клиновидный хвост, тяжёлый клюв; края перьев распадаются на пепельные частицы."
+body_color = Color(0.025, 0.028, 0.032, 1)
+accent_color = Color(0.36, 0.22, 0.48, 1)
+visual_scale = 0.78
+animation_states = Array[StringName]([&"perch", &"head_tilt", &"mimic", &"hop", &"heavy_takeoff"])
+behavior_traits = Array[String](["Повторяет звук с задержкой", "Собирает фрагменты этикеток", "Летит к высокой точке"])
+gameplay_tells = Array[String](["Живой голос имеет дыхание между повторами", "Чужая фраза указывает на существовавшую стоянку"])
+player_interactions = Array[StringName]([&"observe", &"offer_shiny", &"follow"])
+world_layer_mutation = "В Сердце повторяет голоса из нескольких вариантов одного забега."
+lore_note = "Персонажи спорят, действительно ли ворон запомнил речь или препарат заставляет игрока достраивать шум."

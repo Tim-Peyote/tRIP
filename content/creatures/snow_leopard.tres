@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.snow_leopard"
+display_name = "Снежный барс"
+description = "Почти невидимый редкий наблюдатель высокогорья."
+tags = Array[StringName]([&"fauna", &"predator", &"protected", &"rare"])
+world_phase_ids = Array[StringName]([&"phase.glass_frost"])
+body_plan = 1
+temperament = 1
+activity_window = 2
+spawn_weight = 0.08
+move_speed = 4.2
+awareness_distance = 34.0
+flee_distance = 18.0
+habitat_tags = Array[StringName]([&"cliff", &"glacial_cirque", &"scree"])
+diet_tags = Array[StringName]([&"ibex", &"argali"])
+natural_basis = "Снежный барс — редчайший реальный хищник Алтая. Он не охотится на игрока и не выдаёт трофеев."
+silhouette_notes = "Низкий длинный корпус, небольшая голова, чрезвычайно длинный толстый хвост, широкие лапы."
+body_color = Color(0.56, 0.6, 0.61, 1)
+accent_color = Color(0.24, 0.29, 0.31, 1)
+visual_scale = 1.02
+animation_states = Array[StringName]([&"hidden_rest", &"tail_balance", &"watch", &"ledge_walk", &"vanish"])
+behavior_traits = Array[String](["Наблюдает сверху", "Уходит до сближения", "Появляется один раз за редкий seed"])
+gameplay_tells = Array[String](["Сначала виден хвост на контровом свету", "Иней сыплется с пустого карниза после ухода"])
+player_interactions = Array[StringName]([&"observe", &"photograph"])
+world_layer_mutation = "В Стеклянной изморози его отражения остаются на прежних карнизах, но живое животное всегда одно."
+lore_note = "Наблюдение открывает полевую карточку и тихую сюжетную заметку брата, но не ресурс."

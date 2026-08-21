@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.concordance_herd"
+display_name = "Согласованное стадо"
+description = "Финальная невозможная популяция из узнаваемых фрагментов прежних наблюдений."
+tags = Array[StringName]([&"apparition", &"finale", &"fictional"])
+world_phase_ids = Array[StringName]([&"phase.distant_heart"])
+body_plan = 0
+temperament = 5
+activity_window = 3
+spawn_weight = 0.62
+group_min = 3
+group_max = 6
+move_speed = 3.5
+awareness_distance = 30.0
+flee_distance = 12.0
+habitat_tags = Array[StringName]([&"floating_plateau", &"concordant_grove"])
+diet_tags = Array[StringName]([&"none"])
+natural_basis = "Полностью вымышленная финальная метаморфоза; её детали процедурно зависят от заполненного полевого атласа игрока."
+silhouette_notes = "Общий корпус марала, балансирующий хвост барса, разновременные рога и крылатые тени; каждая особь сохраняет одну чистую читаемую доминанту."
+body_color = Color(0.13, 0.08, 0.28, 1)
+accent_color = Color(1, 0.2, 0.58, 1)
+visual_scale = 1.38
+animation_states = Array[StringName]([&"phase_idle", &"remember", &"split_gait", &"converge", &"dissolve"])
+behavior_traits = Array[String](["Повторяет изученные походки", "Не появляется без достаточного атласа", "Собирается у финальной формулы"])
+gameplay_tells = Array[String](["Правильная особь движется в одном ритме с устойчивой формулой", "Ошибочное стадо распадается на несовместимые анимации"])
+player_interactions = Array[StringName]([&"observe", &"stabilize", &"choose_memory"])
+world_layer_mutation = "Состав стада — визуальный итог решений, наблюдений и чистоты переходных рецептов всего прохождения."
+lore_note = "Финал показывает, что игрок не покорил лес, а научился различать живое, память и собственную интерпретацию."

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.brown_bear"
+display_name = "Бурый медведь"
+description = "Редкий территориальный хозяин кормовых участков."
+tags = Array[StringName]([&"fauna", &"bear", &"danger"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.root_dream"])
+body_plan = 2
+temperament = 2
+activity_window = 3
+spawn_weight = 0.16
+move_speed = 3.2
+awareness_distance = 22.0
+flee_distance = 10.0
+habitat_tags = Array[StringName]([&"berry_slope", &"river", &"windfall"])
+diet_tags = Array[StringName]([&"omnivore", &"berries", &"roots"])
+natural_basis = "Реальный бурый медведь Алтая. Не рядовой противник: большинство встреч решается дистанцией, ветром и отходом."
+silhouette_notes = "Массивные плечи выше крупа, короткая шея, тяжёлая голова; широкий разворот корпуса перед предупреждением."
+body_color = Color(0.2, 0.105, 0.055, 1)
+accent_color = Color(0.42, 0.25, 0.11, 1)
+visual_scale = 1.55
+animation_states = Array[StringName]([&"forage", &"sniff_air", &"stand_notice", &"bluff_charge", &"charge", &"withdraw"])
+behavior_traits = Array[String](["Защищает источник пищи", "Предупреждает до атаки", "Проверяет запах игрока"])
+gameplay_tells = Array[String](["Фырканье и щелчок челюстью — последняя граница", "Вставание на задние лапы означает проверку, а не атаку"])
+player_interactions = Array[StringName]([&"observe", &"avoid", &"distract"])
+world_layer_mutation = "В Корневом сне виден лишь движущийся горб земли; тело появляется, когда игрок нарушает ритм корней."
+lore_note = "Персонажи никогда не называют медведя духом или тотемом: сверхъестественен слой восприятия, а не реальное животное."

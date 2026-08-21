@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NPCArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/npc_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"npc.marina_chernykh"
+display_name = "Марина Черных"
+description = "Независимая химик-аналитик, идущая по следу формулы ради патента и признания."
+tags = Array[StringName]([&"story", &"rival", &"chemist"])
+world_phase_ids = Array[StringName]([&"phase.mycelial_choir", &"phase.crimson_hunt", &"phase.mirror_flood"])
+encounter_role = 3
+persistence = 1
+affiliation = &"private_expedition"
+occupation = "Химик-аналитик и организатор частной экспедиции."
+public_goal = "Воспроизвести переходный состав в контролируемой форме и вынести образец."
+private_need = "Получить признание после того, как институт присвоил её раннюю работу."
+secret = "Она финансировала часть оборудования Ильи и заранее знала о когнитивных эффектах."
+relationship_keys = Array[StringName]([&"ilya_funder", &"player_rival", &"nadya_conflict"])
+silhouette_notes = "Чёткий треугольный силуэт длинного дождевика, жёсткий кейс, защитная полумаска; всегда выглядит слишком чистой для текущей глубины маршрута."
+clothing_layers = "Комбинезон → лабораторный жилет → длинный непромокаемый плащ → полумаска и очки при работе."
+carried_gear = Array[String](["герметичный кейс", "портативный спектрометр", "пробирки", "сигнальный пистолет"])
+palette = PackedColorArray(0.04, 0.05, 0.07, 1, 0.18, 0.22, 0.27, 1, 0.04, 0.72, 0.65, 1)
+expression_states = Array[StringName]([&"controlled", &"amused", &"calculating", &"furious", &"withdrawal"])
+animation_states = Array[StringName]([&"scan_sample", &"seal_case", &"negotiate", &"dose_self", &"phase_stagger"])
+personality_traits = Array[String](["умная", "настойчивая", "манипулятивная", "не бессердечная"])
+dialogue_themes = Array[String](["владение знанием", "научная этика", "контроль дозы", "цена доказательства"])
+encounter_rules = "Её версия в зеркальном мире может оказаться отражением с устаревшей целью. Игрок проверяет Марину по содержимому кейса, а не по внешности."
+lore_note = "Ривал предлагает альтернативные рецептурные методы, но не является карикатурным злодеем."

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.wolverine"
+display_name = "Росомаха"
+description = "Одиночный упрямый зверь больших пустых дистанций."
+tags = Array[StringName]([&"fauna", &"predator", &"scavenger"])
+world_phase_ids = Array[StringName]([&"phase.ashen_silence"])
+body_plan = 3
+temperament = 2
+activity_window = 3
+spawn_weight = 0.24
+move_speed = 3.0
+awareness_distance = 18.0
+flee_distance = 8.0
+habitat_tags = Array[StringName]([&"tundra", &"burn_scar", &"scree"])
+diet_tags = Array[StringName]([&"carrion", &"small_mammals"])
+natural_basis = "Росомаха реальна для горной тайги и тундры Южной Сибири; редкая, одиночная, способная долго идти одним маршрутом."
+silhouette_notes = "Низкая тяжёлая форма, высокая дуга спины, широкая голова, короткий пушистый хвост, светлые боковые полосы."
+body_color = Color(0.12, 0.075, 0.045, 1)
+accent_color = Color(0.62, 0.42, 0.2, 1)
+visual_scale = 0.74
+animation_states = Array[StringName]([&"lope", &"dig", &"sniff", &"stand_ground", &"detour"])
+behavior_traits = Array[String](["Не спешит уступать тропу", "Обходит огонь", "Раскапывает старые тайники"])
+gameplay_tells = Array[String](["Широкая парная дорожка следов", "Свежая яма может открыть вещь брата"])
+player_interactions = Array[StringName]([&"observe", &"give_space", &"follow_track"])
+world_layer_mutation = "В Пепле её дорожка пересекает исчезнувшие стоянки и доказывает, что земля под ними существует."
+lore_note = "Росомаха создаёт небольшие динамические истории вокруг тайников, а не боевую арену."

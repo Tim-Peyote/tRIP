@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.argali"
+display_name = "Аргали"
+description = "Редкий горный баран, читающий скальный рельеф лучше игрока."
+tags = Array[StringName]([&"fauna", &"ungulate", &"protected"])
+world_phase_ids = Array[StringName]([&"phase.crimson_hunt", &"phase.glass_frost"])
+body_plan = 0
+temperament = 0
+activity_window = 0
+spawn_weight = 0.3
+group_min = 2
+group_max = 6
+move_speed = 4.0
+awareness_distance = 30.0
+flee_distance = 20.0
+habitat_tags = Array[StringName]([&"high_steppe", &"scree", &"ridge"])
+diet_tags = Array[StringName]([&"alpine_grass", &"sedges"])
+natural_basis = "Аргали — реальный редкий горный баран Алтая. В игре только наблюдается; добыча исключена."
+silhouette_notes = "Мощное тело, светлое седло, у взрослых самцов тяжёлые спиральные рога, низко вынесенные в стороны."
+body_color = Color(0.45, 0.36, 0.24, 1)
+accent_color = Color(0.75, 0.65, 0.45, 1)
+visual_scale = 1.15
+animation_states = Array[StringName]([&"graze", &"ridge_scan", &"hoof_test", &"climb", &"group_flee"])
+behavior_traits = Array[String](["Держится выше игрока", "Перед прыжком проверяет камень", "Стадо знает безопасный траверс"])
+gameplay_tells = Array[String](["Каменная крошка падает с настоящей полки", "Ложная осыпь не удерживает копыта"])
+player_interactions = Array[StringName]([&"observe", &"photograph", &"follow_route"])
+world_layer_mutation = "Между Гоном и Стеклом стадо проходит по склону, которого ещё нет, заранее показывая будущий карниз."
+lore_note = "Любая охотничья механика для аргали запрещена дизайн-контрактом."

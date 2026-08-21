@@ -463,3 +463,11 @@ Effect snapshot → perception layers ──┘
 Gameplay HUD владеет взаимоисключающими полевыми overlay: inventory, journal и inspection. Открытый overlay освобождает мышь и выключает `InteractionOrchestrator`; Escape сначала закрывает верхний overlay и только затем передаётся pause flow. Главное меню аналогично блокирует фоновые кнопки под settings modal.
 
 `WorldPhaseDeveloperPanel` является только QA-адаптером над публичными контрактами phase, progression, hazard, laboratory, terrain, clock и persistence. Он не меняет их внутренние поля напрямую. Телепорты используют terrain height provider, laboratory test hooks проходят тот же lifecycle, а hazard reset публикует обычные state/exposure signals.
+
+## 21. Fauna and narrative cast
+
+`CreatureArchetypeDefinition` хранит экологическую и производственную character sheet: допустимые world phases, body plan, редкость и размер группы, сенсорные дистанции, природную основу, силуэт, палитру, обязательные анимации, поведенческие tell и изменение восприятия между слоями. `NPCArchetypeDefinition` отдельно хранит драматическую роль, persistence encounter, одежду по слоям, снаряжение, выражения, анимации, публичную цель, скрытую потребность и секрет. Оба типа обнаруживаются обычным `ContentDB`; центральная таблица персонажей в коде не требуется.
+
+`BiomePopulationOrchestrator` читает только загруженные terrain chunks и текущий `WorldPhaseOrchestrator`. Seed и координата детерминированно выбирают совместимый вид и группу. Уход чанка освобождает популяцию, смена слоя переселяет активное окно, а developer hooks позволяют повторить раскладку и переключить плотность. `BiomeCreatureActor` является процедурным low-poly runtime-прототипом общего locomotion-контракта; финальные скелетные сцены заменят визуальную сборку, сохранив state machine и данные character sheet.
+
+NPC не проходят через общий scatter. Их встречами владеет будущий authored encounter director, потому что сюжетный персонаж требует условий, проверки подлинности и последствий, а не одного spawn weight.

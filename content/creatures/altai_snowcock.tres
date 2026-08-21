@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.altai_snowcock"
+display_name = "Алтайский улар"
+description = "Высокогорная птица, голос которой проходит дальше видимости."
+tags = Array[StringName]([&"fauna", &"bird", &"sound_guide"])
+world_phase_ids = Array[StringName]([&"phase.glass_frost", &"phase.ashen_silence"])
+body_plan = 4
+temperament = 0
+activity_window = 0
+spawn_weight = 0.62
+group_min = 2
+group_max = 4
+move_speed = 5.8
+awareness_distance = 20.0
+flee_distance = 12.0
+habitat_tags = Array[StringName]([&"alpine_slope", &"scree"])
+diet_tags = Array[StringName]([&"seeds", &"shoots"])
+natural_basis = "Алтайский улар — реальная высокогорная птица. Его крик используется как пространственная подсказка."
+silhouette_notes = "Тяжёлая куриная форма, короткий хвост, широкие закруглённые крылья; полёт быстрый вниз по склону."
+body_color = Color(0.44, 0.42, 0.38, 1)
+accent_color = Color(0.76, 0.69, 0.54, 1)
+visual_scale = 0.62
+animation_states = Array[StringName]([&"slope_walk", &"call", &"notice", &"burst_takeoff", &"glide"])
+behavior_traits = Array[String](["Кричит на рассвете", "Взлетает всей группой", "Садится выше источника угрозы"])
+gameplay_tells = Array[String](["Настоящее эхо затухает вниз по долине", "Пепельный колокол не повторяет ритм улара"])
+player_interactions = Array[StringName]([&"observe", &"navigate_by_sound"])
+world_layer_mutation = "В Пепельной тишине голос птицы остаётся единственным честным эхом."
+lore_note = "Звуковой ориентир связывает два мира без магического объяснения самой птицы."

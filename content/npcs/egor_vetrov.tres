@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NPCArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/npc_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"npc.egor_vetrov"
+display_name = "Егор Ветров"
+description = "Смотритель старой метеостанции, слышащий погоду в неисправных приборах."
+tags = Array[StringName]([&"story", &"weather", &"witness"])
+world_phase_ids = Array[StringName]([&"phase.glass_frost", &"phase.ashen_silence"])
+encounter_role = 1
+persistence = 1
+affiliation = &"abandoned_weather_station"
+occupation = "Бывший техник метеостанции; поддерживает один рабочий анемометр и журнал осадков."
+public_goal = "Дождаться вертолёта с запчастями, который уже несколько лет не обещали."
+private_need = "Признать, что он остаётся не из долга, а потому что боится возвращения к людям."
+secret = "Его бумажные журналы содержат повторяющийся день задолго до приезда братьев."
+relationship_keys = Array[StringName]([&"ilya_weather_source", &"player_shelter"])
+silhouette_notes = "Высокая худощавая фигура, ватная куртка, огромные рукавицы, наушники вокруг шеи; на ветру наклоняется всем телом."
+clothing_layers = "Шерстяной свитер → ватные брюки и куртка → старый штормовой плащ → страховочный пояс станции."
+carried_gear = Array[String](["механический барометр", "ключи", "керосиновый фонарь", "журнал погоды"])
+palette = PackedColorArray(0.13, 0.16, 0.18, 1, 0.3, 0.37, 0.4, 1, 0.84, 0.54, 0.12, 1)
+expression_states = Array[StringName]([&"distant", &"listening", &"annoyed", &"lucid", &"afraid"])
+animation_states = Array[StringName]([&"tap_barometer", &"write_weather", &"brace_wind", &"light_lamp", &"point_horizon"])
+personality_traits = Array[String](["педантичный", "суеверен только в отношении приборов", "гостеприимный", "избегает прямых ответов"])
+dialogue_themes = Array[String](["повторяющаяся погода", "одиночество", "прибор против ощущения"])
+encounter_rules = "Станция может перемещаться между seed-маршрутами, но внутренний порядок предметов всегда подтверждает подлинность Егора."
+lore_note = "Вымышленная локальная легенда строится вокруг труда и памяти, не заимствуя религиозный образ."

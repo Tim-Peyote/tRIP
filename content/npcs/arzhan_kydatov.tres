@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NPCArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/npc_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"npc.arzhan_kydatov"
+display_name = "Аржан Кыдатов"
+description = "Инспектор природного парка, знающий современные тропы, сезонные запреты и людей долины."
+tags = Array[StringName]([&"story", &"ranger", &"altai_local"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.crimson_hunt"])
+encounter_role = 4
+persistence = 2
+affiliation = &"distant_forest_park"
+occupation = "Инспектор вымышленного природного парка «Дальний лес»; отвечает за маршруты, пожары и редкие виды."
+public_goal = "Закрыть незаконный кордон и вывести людей из зоны приближающегося пожара."
+private_need = "Перестать отвечать за чужую романтизацию места, которое для него является работой и домом."
+secret = "Он видел Илью после официальной даты исчезновения, но скрыл встречу, исполняя просьбу не приводить туда поисковую группу."
+relationship_keys = Array[StringName]([&"vera_partner", &"ilya_last_witness", &"player_gatekeeper"])
+silhouette_notes = "Широкий спокойный силуэт, зелёная форменная куртка, потёртая фетровая шляпа от солнца, бинокль и сигнальный мешок; движения экономные."
+clothing_layers = "Термослой → современная рабочая рубашка → форменная куртка парка → дождевой плащ в рюкзаке. Никакой церемониальной одежды."
+carried_gear = Array[String](["бинокль", "рация", "пожарная хлопушка", "аптечка", "фотоловушка"])
+palette = PackedColorArray(0.11, 0.17, 0.12, 1, 0.31, 0.4, 0.22, 1, 0.74, 0.35, 0.08, 1)
+expression_states = Array[StringName]([&"watchful", &"dry_amusement", &"disapproval", &"fatigue", &"trust"])
+animation_states = Array[StringName]([&"scan_binoculars", &"check_track", &"block_route", &"radio", &"open_gate"])
+personality_traits = Array[String](["наблюдательный", "немногословный", "не мистифицирует природу", "жёстко защищает редких животных"])
+dialogue_themes = Array[String](["правила парка", "следы зверей", "туристическая экзотизация", "ответственность перед живыми людьми"])
+encounter_rules = "Не выдаёт сакральных секретов и не служит мистическим проводником. Доступ открывает доверием, практической помощью и соблюдением охранных правил."
+lore_note = "Персонаж требует культурной консультации до финального текста и озвучания."

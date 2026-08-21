@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NPCArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/npc_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"npc.bell_keeper"
+display_name = "Смотритель без башни"
+description = "Авторская фигура Пепельной тишины, собранная из брошенной противопожарной экипировки."
+tags = Array[StringName]([&"apparition", &"fictional", &"horror"])
+world_phase_ids = Array[StringName]([&"phase.ashen_silence", &"phase.root_dream"])
+encounter_role = 5
+persistence = 3
+affiliation = &"distant_forest_memory"
+occupation = "Не человек: повторяет незавершённую работу исчезнувшей пожарной бригады."
+public_goal = "Поднимать игрока из низин до того, как их заполнит пепел."
+private_need = "Получить ответ на перекличку и закончить счёт людей."
+secret = "Колокол — звук удара пустого кислородного баллона; башни никогда не существовало."
+relationship_keys = Array[StringName]([&"ash_hazard", &"lost_fire_crew"])
+silhouette_notes = "Длинный плащ из обгоревшей палатки, вместо головы пустой капюшон с качающимся латунным отражателем, за спиной цилиндрический баллон."
+clothing_layers = "Обгоревшая полевая роба → фрагменты теплоотражающего покрытия → плащ-палатка; детали узнаваемы как рабочие, не церемониальные."
+carried_gear = Array[String](["пустой баллон", "пожарный щуп", "связка жетонов переклички"])
+palette = PackedColorArray(0.025, 0.025, 0.022, 1, 0.24, 0.21, 0.18, 1, 0.82, 0.34, 0.08, 1)
+expression_states = Array[StringName]([&"faceless", &"listening", &"counting"])
+animation_states = Array[StringName]([&"still_smoke", &"raise_reflector", &"strike_tank", &"count_tags", &"collapse_to_ash"])
+personality_traits = Array[String](["молчаливый", "настойчивый", "не враждебный", "невозможно подтвердить"])
+dialogue_themes = Array[String](["перекличка", "память труда", "кто считается вернувшимся"])
+encounter_rules = "Никогда не называется шаманом, духом реального народа или предком. Появляется только при совпадении пожара, препарата и найденных жетонов."
+lore_note = "Собственная хоррор-мифология TRip из материальной истории места."

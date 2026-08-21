@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.choir_moth"
+display_name = "Споровая пяденица"
+description = "Вымышленная ночная бабочка, чей рой реагирует на дыхание мицелия."
+tags = Array[StringName]([&"fauna", &"insect", &"fictional"])
+world_phase_ids = Array[StringName]([&"phase.mycelial_choir", &"phase.root_dream"])
+body_plan = 6
+temperament = 5
+activity_window = 1
+spawn_weight = 0.9
+group_min = 3
+group_max = 8
+move_speed = 2.2
+awareness_distance = 10.0
+flee_distance = 4.0
+habitat_tags = Array[StringName]([&"fungal_nursery", &"root_mouth"])
+diet_tags = Array[StringName]([&"fungal_spores", &"nectar"])
+natural_basis = "Полностью вымышленный вид TRip, вдохновлённый формой пядениц, но не заявленный как реальная фауна Алтая."
+silhouette_notes = "Тонкое тело, широкие треугольные крылья с кольцевым пятном; рой складывается в прерывистые ленты."
+body_color = Color(0.23, 0.08, 0.3, 1)
+accent_color = Color(0.95, 0.13, 0.72, 1)
+visual_scale = 0.28
+animation_states = Array[StringName]([&"cling", &"wake", &"pulse_swarm", &"scatter", &"settle"])
+behavior_traits = Array[String](["Взлетает на вдохе грибницы", "Садится перед безопасной паузой", "Тянется к перегретому вареву"])
+gameplay_tells = Array[String](["Синхронный взмах предваряет опасный вдох", "Разорванная лента показывает место, где можно замереть"])
+player_interactions = Array[StringName]([&"observe", &"read_rhythm", &"lure_with_heat"])
+world_layer_mutation = "В Корневом сне рой повторяет форму ближайшей подземной полости."
+lore_note = "Это собственная мифоэкология игры, не приписанная ни одному реальному народу."

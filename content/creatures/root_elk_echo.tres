@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.root_elk_echo"
+display_name = "Корневой сохатый"
+description = "Вымышленный отпечаток лося, собранный слушающей сетью из памяти следов."
+tags = Array[StringName]([&"apparition", &"ungulate", &"fictional"])
+world_phase_ids = Array[StringName]([&"phase.root_dream", &"phase.distant_heart"])
+body_plan = 0
+temperament = 5
+activity_window = 3
+spawn_weight = 0.36
+move_speed = 2.1
+awareness_distance = 26.0
+flee_distance = 7.0
+habitat_tags = Array[StringName]([&"root_nave", &"sinkhole"])
+diet_tags = Array[StringName]([&"memory", &"mineral_salt"])
+natural_basis = "Вымышленная сущность. Силуэт основан на лосе, но это не биологический вид и не существо из реального алтайского фольклора."
+silhouette_notes = "Очень высокая холка, длинная тяжёлая морда, лопатообразные рога заменены ветвящимися корнями; ноги растворяются в грунте."
+body_color = Color(0.16, 0.055, 0.018, 1)
+accent_color = Color(0.94, 0.28, 0.025, 1)
+visual_scale = 1.7
+animation_states = Array[StringName]([&"rooted_idle", &"listen_below", &"unfold", &"earth_walk", &"sink"])
+behavior_traits = Array[String](["Возникает из нескольких следов", "Поворачивается к голосу брата", "Не пересекает сухой камень"])
+gameplay_tells = Array[String](["Корни вокруг копыт сокращаются раньше шага", "Силуэт ведёт к акустически активной полости"])
+player_interactions = Array[StringName]([&"observe", &"follow", &"answer_with_rhythm"])
+world_layer_mutation = "В Сердце получает фрагменты реальных животных, которых игрок внимательно изучил ранее."
+lore_note = "Одна из собственных тайн TRip: грибница умеет хранить не души животных, а статистическую память их движений."

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.common_crane"
+display_name = "Серый журавль"
+description = "Осторожная болотная птица с далеко слышным дуэтом."
+tags = Array[StringName]([&"fauna", &"bird", &"wetland"])
+world_phase_ids = Array[StringName]([&"phase.mirror_flood"])
+body_plan = 4
+temperament = 0
+activity_window = 2
+spawn_weight = 0.46
+group_min = 2
+group_max = 4
+move_speed = 5.2
+awareness_distance = 28.0
+flee_distance = 19.0
+habitat_tags = Array[StringName]([&"marsh", &"reed_island"])
+diet_tags = Array[StringName]([&"plants", &"invertebrates"])
+natural_basis = "Серый журавль встречается на болотах и озёрных долинах Алтая."
+silhouette_notes = "Очень длинные ноги и шея, тяжёлое тело, прямой клиновидный полёт; пара держит дистанцию."
+body_color = Color(0.42, 0.45, 0.46, 1)
+accent_color = Color(0.58, 0.08, 0.055, 1)
+visual_scale = 1.05
+animation_states = Array[StringName]([&"wade", &"probe", &"duet_call", &"alarm", &"run_takeoff", &"flight"])
+behavior_traits = Array[String](["Пара отвечает друг другу", "Взлетает после разбега", "Не садится на ложную воду"])
+gameplay_tells = Array[String](["Два голоса сходятся над настоящим островом", "Отражённая пара отвечает слишком рано"])
+player_interactions = Array[StringName]([&"observe", &"navigate_by_sound"])
+world_layer_mutation = "Отражение начинает крик до живой птицы и тем самым выдаёт ложный берег."
+lore_note = "Журавли создают хор пространства, не являются носителями заимствованного обряда."

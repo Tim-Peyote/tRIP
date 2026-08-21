@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.siberian_salamander"
+display_name = "Сибирский углозуб"
+description = "Холодоустойчивое земноводное, проявляющее влажные корневые полости."
+tags = Array[StringName]([&"fauna", &"amphibian", &"microfauna"])
+world_phase_ids = Array[StringName]([&"phase.root_dream"])
+body_plan = 6
+temperament = 0
+activity_window = 1
+spawn_weight = 0.84
+group_min = 1
+group_max = 3
+move_speed = 0.65
+awareness_distance = 5.0
+flee_distance = 2.5
+habitat_tags = Array[StringName]([&"wet_root", &"cold_pool", &"moss"])
+diet_tags = Array[StringName]([&"invertebrates"])
+natural_basis = "Сибирский углозуб — реальное холодоустойчивое земноводное Северной Азии; локальное присутствие требует влажного микробиотопа."
+silhouette_notes = "Низкое вытянутое тело, короткие лапы с четырьмя пальцами, длинный сжатый хвост; почти сливается с мокрой корой."
+body_color = Color(0.19, 0.17, 0.09, 1)
+accent_color = Color(0.68, 0.58, 0.24, 1)
+visual_scale = 0.3
+animation_states = Array[StringName]([&"still", &"crawl", &"tail_wave", &"hide", &"surface"])
+behavior_traits = Array[String](["Выходит после конденсата", "Прячется под корень", "Не реагирует на дальний шум"])
+gameplay_tells = Array[String](["Появляется только у настоящей влаги", "Цепочка особей отмечает безопасный холодный карман"])
+player_interactions = Array[StringName]([&"observe", &"habitat_sample"])
+world_layer_mutation = "В Корневом сне виден увеличенный теневой контур, но физическое животное остаётся маленьким."
+lore_note = "Микрофауна делает мир экологией разных масштабов, а не только набором крупных силуэтов."

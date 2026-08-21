@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.siberian_sable"
+display_name = "Соболь"
+description = "Быстрый таёжный зверёк, крадущий блестящие лабораторные мелочи."
+tags = Array[StringName]([&"fauna", &"small_mammal", &"curious"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.ashen_silence"])
+body_plan = 3
+temperament = 4
+activity_window = 3
+spawn_weight = 0.72
+move_speed = 4.8
+awareness_distance = 12.0
+flee_distance = 6.0
+habitat_tags = Array[StringName]([&"cedar_taiga", &"windfall"])
+diet_tags = Array[StringName]([&"rodents", &"berries", &"seeds"])
+natural_basis = "Соболь естественен для алтайской тайги. Вымышленная игровая черта — интерес к стеклу и фольге из лагеря."
+silhouette_notes = "Длинное гибкое тело, низкие лапы, пушистый хвост, светлое горловое пятно."
+body_color = Color(0.14, 0.075, 0.04, 1)
+accent_color = Color(0.72, 0.54, 0.28, 1)
+visual_scale = 0.48
+animation_states = Array[StringName]([&"listen", &"bound", &"rear_up", &"steal", &"stash", &"flee"])
+behavior_traits = Array[String](["Появляется у бурелома", "Перетаскивает один блестящий предмет", "Может привести к тайнику"])
+gameplay_tells = Array[String](["Шорох идёт выше уровня травы", "Цепочка бликов ведёт к украденной вещи"])
+player_interactions = Array[StringName]([&"observe", &"bait", &"follow"])
+world_layer_mutation = "В Пепельной тишине оставляет на золе единственную непрерывную линию к настоящей высоте."
+lore_note = "Это экологический проводник, а не говорящий фамильяр."

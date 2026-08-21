@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NPCArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/npc_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"npc.second_brother"
+display_name = "Второй брат"
+description = "Отражение игрока, убеждённое, что именно оно пришло спасать оригинал."
+tags = Array[StringName]([&"apparition", &"mirror", &"player_double"])
+world_phase_ids = Array[StringName]([&"phase.mirror_flood", &"phase.distant_heart"])
+encounter_role = 6
+persistence = 3
+affiliation = &"mirror_memory"
+occupation = "Повторяет действия игрока с задержкой в один значимый выбор."
+public_goal = "Забрать правильный журнал и первым добраться до Ильи."
+private_need = "Доказать, что непрожитая версия решений тоже имеет право продолжиться."
+secret = "Он состоит из сохранённых состояний прошлых забегов и знает рецепты, которые игрок открыл, но затем потерял физически."
+relationship_keys = Array[StringName]([&"player_double", &"ilya_false_rescuer"])
+silhouette_notes = "Текущий силуэт игрока с зеркально переставленным снаряжением; лицо скрыто влажной засвеченной плёнкой, движения на полсекунды слишком ранние."
+clothing_layers = "Точная инверсия текущей экипировки игрока; грязь и повреждения соответствуют не текущему, а предыдущему забегу."
+carried_gear = Array[String](["зеркальная копия активного инструмента", "утраченная карточка рецепта", "мокрый полевой журнал"])
+palette = PackedColorArray(0.03, 0.18, 0.19, 1, 0.06, 0.68, 0.62, 1, 0.68, 0.09, 0.5, 1)
+expression_states = Array[StringName]([&"obscured", &"recognition", &"resentment", &"pleading"])
+animation_states = Array[StringName]([&"mirror_idle", &"anticipate_input", &"show_lost_item", &"copy_interaction", &"walk_into_water"])
+personality_traits = Array[String](["знает привычки игрока", "не считает себя копией", "боится завершения забега"])
+dialogue_themes = Array[String](["сохранение и потеря", "кто является продолжением", "знание без опыта"])
+encounter_rules = "Его нельзя победить уроном. Разрешение строится на несовпадении инвентаря, заметок и сделанных игроком выборов."
+lore_note = "Фигура целиком вымышлена и связана с roguelite-памятью сохранений."

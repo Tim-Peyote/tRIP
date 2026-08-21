@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.golden_eagle"
+display_name = "Беркут"
+description = "Дальний ориентир над хребтом и индикатор настоящего восходящего потока."
+tags = Array[StringName]([&"fauna", &"bird", &"landmark"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.glass_frost", &"phase.distant_heart"])
+body_plan = 4
+temperament = 1
+activity_window = 0
+spawn_weight = 0.34
+move_speed = 5.5
+awareness_distance = 30.0
+flee_distance = 8.0
+habitat_tags = Array[StringName]([&"cliff", &"open_slope", &"plateau"])
+diet_tags = Array[StringName]([&"small_mammals", &"birds"])
+natural_basis = "Беркут встречается в Алтае. Используется как экологически правдоподобный дальний ориентир, не как заимствованный сакральный символ."
+silhouette_notes = "Очень широкие крылья с пальчатыми концами, небольшой хвост, медленные круги без частых взмахов."
+body_color = Color(0.16, 0.105, 0.045, 1)
+accent_color = Color(0.74, 0.48, 0.12, 1)
+visual_scale = 1.2
+animation_states = Array[StringName]([&"soar", &"bank", &"scan", &"stoop", &"perch"])
+behavior_traits = Array[String](["Кружит над тёплым склоном", "Избегает густого леса", "Повторяет устойчивые воздушные маршруты"])
+gameplay_tells = Array[String](["Настоящий беркут отбрасывает одну тень", "В Стекле отражения птицы замерзают, оригинал продолжает круг"])
+player_interactions = Array[StringName]([&"observe", &"navigate"])
+world_layer_mutation = "В Сердце его круг прошивает несколько высот мира и на секунду совмещает горизонты."
+lore_note = "Брат помечал круги беркута на полевых картах для проверки ветровой модели."

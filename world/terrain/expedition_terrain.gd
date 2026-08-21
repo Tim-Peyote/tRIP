@@ -117,6 +117,12 @@ func get_loaded_chunk_count() -> int:
 	return _chunks.size()
 
 
+func get_loaded_chunk_nodes() -> Array[StaticBody3D]:
+	var result: Array[StaticBody3D] = []
+	result.assign(_chunks.values())
+	return result
+
+
 func get_generated_mesh_cache_size() -> int:
 	return _generated_mesh_cache.size()
 
@@ -259,6 +265,7 @@ func _build_chunk(coordinate: Vector2i) -> void:
 	body.collision_layer = 1
 	body.collision_mask = 0
 	body.set_meta(&"landscape_chunk", true)
+	body.set_meta(&"chunk_coordinate", coordinate)
 	add_child(body)
 	var mesh := _build_chunk_mesh(coordinate)
 	if mesh.get_surface_count() > 0:

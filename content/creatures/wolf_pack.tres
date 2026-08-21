@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.altai_wolf"
+display_name = "Серый волк"
+description = "Стайный наблюдатель открытых долин, опасный при ошибке маршрута."
+tags = Array[StringName]([&"fauna", &"predator", &"pack"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.crimson_hunt", &"phase.ashen_silence"])
+body_plan = 1
+temperament = 3
+activity_window = 2
+spawn_weight = 0.28
+group_min = 2
+group_max = 4
+move_speed = 4.6
+awareness_distance = 28.0
+flee_distance = 11.0
+habitat_tags = Array[StringName]([&"steppe", &"valley", &"forest_edge"])
+diet_tags = Array[StringName]([&"ungulates", &"carrion"])
+natural_basis = "Реальный серый волк; избегает человека, но слой сознания может превратить дистанционное сопровождение в механическую охоту."
+silhouette_notes = "Глубокая грудь, длинные ноги, опущенный прямой хвост; стая держит разную дистанцию, не строится шеренгой."
+body_color = Color(0.28, 0.3, 0.29, 1)
+accent_color = Color(0.68, 0.72, 0.67, 1)
+visual_scale = 0.92
+animation_states = Array[StringName]([&"trot", &"stop_listen", &"circle", &"stalk", &"feint", &"disengage"])
+behavior_traits = Array[String](["Сопровождает вне прямой видимости", "Проверяет отставшего", "Отступает от огня и группы звуков"])
+gameplay_tells = Array[String](["Один вой отмечает положение, второй — направление ветра", "В Багряном гоне тени бегут раньше тел"])
+player_interactions = Array[StringName]([&"observe", &"distract", &"repel_with_fire"])
+world_layer_mutation = "В Гоне стая атакует ритм движения: безопасно продолжать обычный шаг. В Пепле волки существуют главным образом как звуковой контур."
+lore_note = "Ни один волк не является злым духом; хищная логика рождается из препарата и страха игрока."

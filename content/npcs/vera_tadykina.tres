@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="NPCArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/npc_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"npc.vera_tadykina"
+display_name = "Вера Тадыкина"
+description = "Геоботаник и координатор полевой экспедиции, остающаяся на связи у границы долины."
+tags = Array[StringName]([&"story", &"scientist", &"altai_local"])
+world_phase_ids = Array[StringName]([&"phase.ordinary", &"phase.ashen_silence"])
+encounter_role = 0
+persistence = 0
+affiliation = &"katun_field_institute"
+occupation = "Геоботаник; специалист по высотной поясности и восстановлению участков после пожаров."
+public_goal = "Вернуть братьев и полевые журналы до следующего штормового окна."
+private_need = "Сохранить доверие местных жителей после того, как институт проигнорировал их предупреждения о маршруте."
+secret = "Она удалила координаты первого лагеря из общего отчёта, потому что там находился уязвимый участок и следы незаконной группы."
+relationship_keys = Array[StringName]([&"ilya_colleague", &"arzhan_partner", &"player_radio"])
+silhouette_notes = "Компактная фигура, яркая жёлтая штормовка, планшетная сумка, длинная коса убрана под капюшон; жестикулирует карандашом."
+clothing_layers = "Шерстяной базовый слой → рабочий комбинезон → мембранная штормовка → компактная страховочная система. Современная полевая одежда без этнографического костюма."
+carried_gear = Array[String](["гербарная папка", "GPS", "радиостанция", "почвенный бур", "аптечка"])
+palette = PackedColorArray(0.08, 0.11, 0.1, 1, 0.9, 0.62, 0.08, 1, 0.24, 0.39, 0.34, 1)
+expression_states = Array[StringName]([&"professional", &"impatient", &"concerned", &"angry", &"guarded"])
+animation_states = Array[StringName]([&"radio_check", &"mark_map", &"sample_plant", &"argue", &"wait_in_wind"])
+personality_traits = Array[String](["практичная", "строгая к источникам", "сухой юмор", "не терпит мистификаций"])
+dialogue_themes = Array[String](["экология высотных поясов", "ответственность исследователя", "разница между знанием и присвоением"])
+encounter_rules = "В Яви даёт проверяемые ориентиры по радио. В Пепле её голос может копироваться вороном; настоящий канал всегда содержит кодовую ботаническую поправку."
+lore_note = "Вера прямо разделяет живые алтайские культуры, археологию и вымышленный феномен долины."

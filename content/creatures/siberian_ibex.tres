@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"creature.siberian_ibex"
+display_name = "Сибирский козерог"
+description = "Стадный житель отвесных полок и ледниковых каров."
+tags = Array[StringName]([&"fauna", &"ungulate", &"mountain"])
+world_phase_ids = Array[StringName]([&"phase.glass_frost", &"phase.distant_heart"])
+body_plan = 0
+temperament = 0
+activity_window = 0
+spawn_weight = 0.5
+group_min = 2
+group_max = 5
+move_speed = 4.5
+awareness_distance = 26.0
+flee_distance = 17.0
+habitat_tags = Array[StringName]([&"cliff", &"moraine"])
+diet_tags = Array[StringName]([&"alpine_grass", &"lichen"])
+natural_basis = "Реальный сибирский козерог. Его движение задаёт правдоподобные проходимые линии высокого рельефа."
+silhouette_notes = "Коренастый корпус, борода, длинные саблевидные рога с поперечными валиками."
+body_color = Color(0.38, 0.31, 0.24, 1)
+accent_color = Color(0.73, 0.64, 0.5, 1)
+visual_scale = 1.0
+animation_states = Array[StringName]([&"ledge_idle", &"hoof_probe", &"notice", &"scramble", &"long_jump"])
+behavior_traits = Array[String](["Выбирает сухую полку", "Сбрасывает мелкую осыпь", "Не спускается в лес"])
+gameplay_tells = Array[String](["Три удара копыта перед прыжком", "Безопасный карниз сохраняет естественный цвет"])
+player_interactions = Array[StringName]([&"observe", &"follow_route"])
+world_layer_mutation = "В Сердце прыжок продолжается через разрыв пласта, подтверждая временный мост."
+lore_note = "Экологическая навигация: игрок учится читать животных вместо маркеров интерфейса."
