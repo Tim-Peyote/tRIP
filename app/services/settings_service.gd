@@ -60,21 +60,21 @@ func reset_to_defaults() -> void:
 func _apply_setting(section: StringName, key: StringName, value: Variant) -> void:
 	if section != &"audio":
 		return
-	var bus_by_key: Dictionary = {
-		&"master": &"Master",
-		&"music": &"Music",
-		&"ambience": &"Ambience",
-		&"effects": &"Interactions",
-		&"voice": &"Voice",
+	var buses_by_key: Dictionary = {
+		&"master": [&"Master"],
+		&"music": [&"Music"],
+		&"ambience": [&"Ambience"],
+		&"effects": [&"UI", &"PlayerFoley", &"Creatures", &"Interactions"],
+		&"voice": [&"Voice"],
 	}
-	if not bus_by_key.has(key):
+	if not buses_by_key.has(key):
 		return
-	var bus_index := AudioServer.get_bus_index(bus_by_key[key])
-	if bus_index >= 0:
-		AudioServer.set_bus_volume_db(bus_index, linear_to_db(clampf(float(value), 0.0, 1.0)))
+	for bus_name: StringName in buses_by_key[key]:
+		var bus_index := AudioServer.get_bus_index(bus_name)
+		if bus_index >= 0:
+			AudioServer.set_bus_volume_db(bus_index, linear_to_db(clampf(float(value), 0.0, 1.0)))
 
 
 func _apply_audio_settings() -> void:
 	for key: String in ["master", "music", "ambience", "effects", "voice"]:
 		_apply_setting(&"audio", StringName(key), get_value(&"audio", StringName(key)))
-

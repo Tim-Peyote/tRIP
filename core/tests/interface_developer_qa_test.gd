@@ -16,9 +16,12 @@ func _run() -> void:
 			if event is InputEventKey and event.device < 0:
 				has_keyboard_binding = true
 		_expect(has_keyboard_binding, "Gameplay action has no normal-keyboard binding: %s" % action)
+	_expect(_action_has_physical_key(&"inventory", KEY_I), "Inventory is not bound to the expected I key.")
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame
+	var cue := main.audio_director.call("_make_cue", 0.1, 300.0, 600.0, 0.02, 7) as AudioStreamWAV
+	_expect(cue != null and cue.data.size() > 1000, "Audio director did not generate audible UI feedback data.")
 	main.main_menu.call("_show_settings")
 	await get_tree().process_frame
 	var settings_panel := main.main_menu.settings_panel
@@ -41,7 +44,6 @@ func _run() -> void:
 	player.inventory.add_item(ItemInstance.new(&"ingredient.mooncap"))
 	var inventory_stacks := player.inventory.get_stacks()
 	_expect(inventory_stacks.size() == 1 and is_equal_approx(float(inventory_stacks[0]["quantity"]), 2.0), "Inventory did not present duplicate samples as a readable stack.")
-	player.set_gameplay_input_override_for_testing(true)
 	var hud := main.gameplay_hud
 	var start_position := player.global_position
 	Input.action_press(&"move_forward")
@@ -55,7 +57,6 @@ func _run() -> void:
 		await get_tree().physics_frame
 	_expect(player.is_crouched() and player.camera_rig.position.y < 1.5, "Crouch did not lower the first-person stance.")
 	Input.action_release(&"crouch")
-	player.set_gameplay_input_override_for_testing(false)
 
 	var old_fov := float(SettingsService.get_value(&"video", &"fov", 75.0))
 	SettingsService.set_value(&"video", &"fov", 82.0)
@@ -63,11 +64,14 @@ func _run() -> void:
 	SettingsService.set_value(&"video", &"fov", old_fov)
 
 	# Field overlays are exclusive and own cursor/interactor state.
-	hud.call("_toggle_inventory")
+	var inventory_key := _make_physical_key(KEY_I, true)
+	_expect(InputMap.event_is_action(inventory_key, &"inventory"), "Physical I event does not match the inventory InputMap action.")
+	main.call("_unhandled_key_input", inventory_key)
 	_expect(hud.inventory_panel.visible, "Inventory did not open.")
 	_expect(hud.inventory_list.get_child_count() == 1, "Inventory stack did not create one selectable UI card.")
 	_expect(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Inventory did not release the cursor.")
 	_expect(not player.interactor.is_processing(), "World interaction stayed active behind inventory.")
+	_expect(not player.viewmodel.visible, "First-person hands remained visible behind the inventory.")
 	hud.call("_toggle_journal")
 	_expect(not hud.inventory_panel.visible and hud.get_node("JournalPanel").visible, "Journal did not replace inventory exclusively.")
 	_expect(hud.close_top_overlay(), "Escape contract could not close the active field overlay.")
@@ -128,8 +132,9 @@ func _run() -> void:
 
 	main.call("_pause_game")
 	_expect(get_tree().paused and hud.pause_panel.visible, "Pause UI did not own the paused state.")
+	_expect(not player.viewmodel.visible, "First-person hands remained visible behind the pause menu.")
 	main.call("_resume_game")
-	_expect(not get_tree().paused and not hud.pause_panel.visible, "Resume did not restore gameplay state.")
+	_expect(not get_tree().paused and not hud.pause_panel.visible and player.viewmodel.visible, "Resume did not restore gameplay state.")
 
 	main.queue_free()
 	await get_tree().process_frame
@@ -139,6 +144,21 @@ func _run() -> void:
 func _expect(condition: bool, message: String) -> void:
 	if not condition:
 		_failures.append(message)
+
+
+func _action_has_physical_key(action: StringName, keycode: Key) -> bool:
+	for event: InputEvent in InputMap.action_get_events(action):
+		if event is InputEventKey and event.device < 0 and event.physical_keycode == keycode:
+			return true
+	return false
+
+
+func _make_physical_key(keycode: Key, pressed: bool) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.device = 0
+	event.physical_keycode = keycode
+	event.pressed = pressed
+	return event
 
 
 func _finish() -> void:

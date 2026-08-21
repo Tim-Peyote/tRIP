@@ -24,6 +24,7 @@ func _ready() -> void:
 	frontend_orchestrator.quit_requested.connect(_on_quit_requested)
 	gameplay_hud.resume_requested.connect(_resume_game)
 	gameplay_hud.main_menu_requested.connect(_return_to_main_menu)
+	gameplay_hud.audio_cue_requested.connect(audio_director.play_ui_cue)
 	presentation_director.set_visual_intensity(SettingsService.get_value("accessibility", "visual_intensity", 1.0))
 	SettingsService.setting_changed.connect(_on_setting_changed)
 	ContentDB.rebuild()
@@ -33,6 +34,15 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _active_level != null and not get_tree().paused and not event is InputEventKey:
+		if event.is_action_pressed(&"inventory"):
+			gameplay_hud.call("_toggle_inventory")
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed(&"journal"):
+			gameplay_hud.call("_toggle_journal")
+			get_viewport().set_input_as_handled()
+			return
 	if _active_level != null and event.is_action_pressed(&"pause"):
 		if _active_level.world_phase_developer_panel.is_panel_visible():
 			_active_level.world_phase_developer_panel.set_panel_visible(false)
@@ -48,9 +58,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _unhandled_key_input(event: InputEvent) -> void:
+	if _active_level == null or get_tree().paused or not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if not key.pressed or key.echo:
+		return
+	var physical := key.physical_keycode if key.physical_keycode != 0 else key.keycode
+	if physical == KEY_I:
+		gameplay_hud.call("_toggle_inventory")
+		get_viewport().set_input_as_handled()
+	elif physical == KEY_J:
+		gameplay_hud.call("_toggle_journal")
+		get_viewport().set_input_as_handled()
+
+
 func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	if _active_level != null:
 		return
+	get_tree().paused = false
 	main_menu.visible = false
 	_active_level = SHELTER_SCENE.instantiate() as ShelterLevel
 	world_root.add_child(_active_level)
@@ -81,10 +107,14 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	# Capture explicitly after the menu click and save initialization. Relying on
 	# Player._ready() alone lets the embedded game window return focus to the UI.
 	_active_player.capture_mouse()
+	_active_player.set_gameplay_enabled(true)
 	_active_player.inventory.consumable_used.connect(effect_orchestrator.apply_effects)
 	_active_player.inventory.consumable_used.connect(_active_player.play_consumption_animation)
 	effect_orchestrator.gameplay_channels_changed.connect(_on_effect_gameplay_channels_changed)
 	audio_director.set_snapshot(&"default")
+	audio_director.play_ui_cue(&"confirm")
+	_active_player.interactor.physical_hold_changed.connect(func(active: bool) -> void: audio_director.play_ui_cue(&"grab" if active else &"release"))
+	_active_player.interactor.interaction_completed.connect(audio_director.play_ui_cue.bind(&"confirm"))
 
 
 func _on_quit_requested() -> void:
@@ -96,6 +126,7 @@ func _pause_game() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	gameplay_hud.set_paused(true)
 	audio_director.set_snapshot(&"pause")
+	audio_director.play_ui_cue(&"pause")
 
 
 func _resume_game() -> void:
@@ -103,6 +134,7 @@ func _resume_game() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	gameplay_hud.set_paused(false)
 	audio_director.set_snapshot(&"default")
+	audio_director.play_ui_cue(&"close")
 
 
 func _return_to_main_menu() -> void:

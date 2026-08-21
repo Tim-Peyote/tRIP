@@ -8,6 +8,7 @@ signal hold_progress_changed(progress: float)
 signal inspection_requested(title: String, description: String)
 signal inspection_definition_requested(definition_id: StringName, title: String, description: String)
 signal physical_hold_changed(active: bool)
+signal interaction_completed
 
 var actor: Node
 var focused: InteractableComponent
@@ -130,6 +131,7 @@ func _complete_active() -> void:
 	_hold_elapsed = 0.0
 	hold_progress_changed.emit(0.0)
 	completed.complete_interaction(actor)
+	interaction_completed.emit()
 
 
 func _cancel_active() -> void:

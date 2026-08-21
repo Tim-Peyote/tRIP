@@ -39,7 +39,7 @@ func _process(_delta: float) -> void:
 		var noise_amount: float = float([0.1, 0.055, 0.14, 0.035, 0.18, 0.07, 0.045, 0.035][ecology_family])
 		var tonal_amount: float = float([0.008, 0.022, 0.012, 0.026, 0.006, 0.018, 0.025, 0.032][ecology_family])
 		var sample: float = _noise * noise_amount + (tone * 0.7 + overtone * 0.3) * tonal_amount * (0.35 + pulse)
-		sample *= 0.22
+		sample *= 0.62
 		_playback.push_frame(Vector2(sample, sample * (0.92 + 0.01 * ecology_family)))
 
 

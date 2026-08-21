@@ -3,7 +3,7 @@ extends Node3D
 
 const ARM_ALBEDO = preload("res://assets/third_party/wrad_arms/arm_albedo_pale.png")
 
-@export_range(0.0, 1.4, 0.05) var grip_amount: float = 1.2
+@export_range(0.0, 1.4, 0.05) var grip_amount: float = 0.32
 @export_range(-1.2, 1.2, 0.05) var tool_wrist_twist: float = -0.55
 
 var _skeleton: Skeleton3D
@@ -11,10 +11,17 @@ var _physical_interaction_active: bool = false
 
 
 func _ready() -> void:
+	process_priority = 100
 	_skeleton = find_child("Skeleton3D", true, false) as Skeleton3D
 	_apply_viewmodel_material()
 	set_physical_interaction_pose(false)
 	_apply_idle_grip()
+
+
+func _process(_delta: float) -> void:
+	# Imported animation players may restore tracked bone scales after _ready().
+	# Reassert the viewmodel mask at the end of the normal process order.
+	_hide_unanimated_offhand()
 
 
 func _apply_viewmodel_material() -> void:
@@ -59,12 +66,18 @@ func set_physical_interaction_pose(active: bool) -> void:
 	if _skeleton == null:
 		return
 	_physical_interaction_active = active
+	_hide_unanimated_offhand()
+	_apply_idle_grip()
+
+
+func _hide_unanimated_offhand() -> void:
+	if _skeleton == null:
+		return
 	var offhand_shoulder := _skeleton.find_bone("shoulder.r")
 	if offhand_shoulder >= 0:
 		# A second generic arm reads as a mirrored HUD claw. Keep it out until an
 		# authored action (door pull, two-handed lift, cooking) explicitly owns it.
 		_skeleton.set_bone_pose_scale(offhand_shoulder, Vector3(0.001, 0.001, 0.001))
-	_apply_idle_grip()
 
 
 func _pose_bone(bone_name: String, rotation_value: Vector3) -> void:

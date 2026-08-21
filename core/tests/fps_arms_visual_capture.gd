@@ -13,6 +13,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	if "--vial" in capture_args:
 		player.toolbelt.cycle_active_tool()
+	if "--open" in capture_args:
+		player.first_person_arm_rig.grip_amount = 0.0
+		player.first_person_arm_rig.call("_apply_idle_grip")
 	if "--hold" in capture_args:
 		player.interactor.set_physics_process(false)
 		player.call("_on_physical_hold_changed", true)
@@ -39,7 +42,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var image := get_viewport().get_texture().get_image()
-	var output_path := "/tmp/trip_fps_arms_hold_capture.png" if "--hold" in capture_args else OUTPUT_PATH
+	var output_path := "/tmp/trip_fps_arms_hold_capture.png" if "--hold" in capture_args else ("/tmp/trip_fps_arms_open_capture.png" if "--open" in capture_args else OUTPUT_PATH)
 	var error := image.save_png(output_path)
 	if error == OK:
 		print("FPS arms capture saved: %s" % output_path)

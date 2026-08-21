@@ -4,6 +4,7 @@ extends Control
 signal resume_requested
 signal main_menu_requested
 signal overlay_state_changed(is_open: bool)
+signal audio_cue_requested(cue_id: StringName)
 
 @onready var prompt_label: Label = %PromptLabel
 @onready var hold_progress: ProgressBar = %HoldProgress
@@ -13,7 +14,7 @@ signal overlay_state_changed(is_open: bool)
 @onready var notice_timer: Timer = %NoticeTimer
 @onready var inspection_panel: PanelContainer = %InspectionPanel
 @onready var inventory_panel: PanelContainer = %InventoryPanel
-@onready var inventory_list: VBoxContainer = %InventoryList
+@onready var inventory_list: GridContainer = %InventoryList
 @onready var inventory_detail_title: Label = %InventoryDetailTitle
 @onready var inventory_detail_body: Label = %InventoryDetailBody
 @onready var inventory_mass_bar: ProgressBar = %InventoryMassBar
@@ -44,6 +45,7 @@ var _weather: WeatherOrchestrator
 var _notice_tween: Tween
 var _last_interaction_context: Dictionary = {}
 var _selected_inventory_id: StringName
+var _inventory_filter: StringName = &"all"
 
 
 func _ready() -> void:
@@ -53,6 +55,10 @@ func _ready() -> void:
 	%MainMenuButton.pressed.connect(func() -> void: main_menu_requested.emit())
 	%ContinueCycleButton.pressed.connect(_acknowledge_cycle_result)
 	inventory_use_button.pressed.connect(_use_selected_inventory_item)
+	%InventoryFilterAll.pressed.connect(_set_inventory_filter.bind(&"all"))
+	%InventoryFilterIngredients.pressed.connect(_set_inventory_filter.bind(&"ingredients"))
+	%InventoryFilterConsumables.pressed.connect(_set_inventory_filter.bind(&"consumables"))
+	%InventoryFilterTools.pressed.connect(_set_inventory_filter.bind(&"tools"))
 	notice_timer.timeout.connect(func() -> void: notice_label.visible = false)
 	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
 	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
@@ -76,6 +82,7 @@ func setup(player: FirstPersonController) -> void:
 	inspection_view.closed.connect(_on_inspection_closed)
 	visible = true
 	set_paused(false)
+	player.set_gameplay_enabled(true)
 	_update_inventory_label()
 	%ToolLabel.text = player.toolbelt.get_display_name() + "  [Q]"
 	_on_distraction_count_changed(player.distraction_thrower.remaining)
@@ -208,6 +215,8 @@ func set_paused(is_paused: bool) -> void:
 	if is_paused:
 		close_top_overlay()
 	pause_panel.visible = is_paused
+	if _player != null:
+		_player.set_viewmodel_interface_hidden(is_paused)
 	if is_paused:
 		%ResumeButton.grab_focus()
 
@@ -238,6 +247,7 @@ func _on_hold_progress_changed(progress: float) -> void:
 
 
 func _on_item_added(item: ItemInstance, display_name: String) -> void:
+	audio_cue_requested.emit(&"pickup")
 	var part := String(item.processing_state.get(&"part", ""))
 	var quality := ""
 	if not part.is_empty():
@@ -299,6 +309,7 @@ func _toggle_inventory() -> void:
 	var should_open := not inventory_panel.visible
 	_close_field_panels()
 	inventory_panel.visible = should_open
+	audio_cue_requested.emit(&"open" if should_open else &"close")
 	_update_inventory_panel()
 	_apply_field_overlay_state()
 	if should_open:
@@ -311,6 +322,7 @@ func _toggle_journal() -> void:
 	var should_open: bool = not bool(%JournalPanel.visible)
 	_close_field_panels()
 	%JournalPanel.visible = should_open
+	audio_cue_requested.emit(&"open" if should_open else &"close")
 	_update_journal()
 	_apply_field_overlay_state()
 
@@ -442,6 +454,7 @@ func _on_inspection_requested(title: String, description: String) -> void:
 	%InspectionTitle.text = title
 	%InspectionDescription.text = description
 	inspection_panel.visible = not inspection_panel.visible
+	audio_cue_requested.emit(&"open" if inspection_panel.visible else &"close")
 
 
 func _on_inspection_definition_requested(definition_id: StringName, title: String, description: String) -> void:
@@ -450,7 +463,10 @@ func _on_inspection_definition_requested(definition_id: StringName, title: Strin
 		_on_inspection_requested(title, description)
 		return
 	inspection_panel.visible = false
+	audio_cue_requested.emit(&"open")
 	_player.interactor.set_process(false)
+	_player.set_gameplay_enabled(false)
+	_player.set_viewmodel_interface_hidden(true)
 	prompt_label.visible = false
 	overlay_state_changed.emit(true)
 
@@ -459,6 +475,8 @@ func _on_inspection_closed() -> void:
 	if _player == null:
 		return
 	_player.interactor.set_process(true)
+	_player.set_gameplay_enabled(true)
+	_player.set_viewmodel_interface_hidden(false)
 	_player.capture_mouse()
 	focus_card.visible = not _last_interaction_context.is_empty()
 	overlay_state_changed.emit(false)
@@ -488,6 +506,8 @@ func _apply_field_overlay_state() -> void:
 	var is_open: bool = inventory_panel.visible or bool(%JournalPanel.visible)
 	if _player != null:
 		_player.interactor.set_process(not is_open)
+		_player.set_gameplay_enabled(not is_open)
+		_player.set_viewmodel_interface_hidden(is_open)
 		if is_open:
 			_player.release_mouse()
 		else:
@@ -524,7 +544,7 @@ func _update_inventory_label() -> void:
 	if _player == null:
 		inventory_label.text = ""
 		return
-	inventory_label.text = "СУМКА  %.1f/%.1f л  ·  %.1f/%.1f кг  [B]" % [
+	inventory_label.text = "СУМКА  %.1f/%.1f л  ·  %.1f/%.1f кг  [I]" % [
 		_player.inventory.current_volume(), _player.inventory.maximum_volume,
 		_player.inventory.current_mass(), _player.inventory.maximum_mass,
 	]
@@ -539,22 +559,30 @@ func _update_inventory_panel() -> void:
 	for stack: Dictionary in stacks:
 		var definition_id: StringName = stack["definition_id"]
 		var definition := ContentDB.get_definition(definition_id)
+		if not _inventory_definition_matches_filter(definition):
+			continue
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(310.0, 50.0)
+		button.custom_minimum_size = Vector2(132.0, 108.0)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.text = "%s\n  × %.0f   ·   качество %d%%" % [
+		button.text = "%s\n%s\n× %.0f   ·   %d%%" % [
+			_inventory_category_title(definition),
 			definition.display_name if definition != null else String(definition_id),
 			float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0),
 		]
+		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		button.add_theme_font_size_override("font_size", 13)
+		button.add_theme_color_override("font_color", _inventory_category_color(definition))
 		button.tooltip_text = definition.description if definition != null else String(definition_id)
 		button.pressed.connect(_select_inventory_stack.bind(definition_id))
 		inventory_list.add_child(button)
-	if stacks.is_empty():
+	if inventory_list.get_child_count() == 0:
 		var empty := Label.new()
-		empty.text = "Сумка пуста. Собранные образцы появятся здесь."
+		empty.custom_minimum_size = Vector2(420.0, 100.0)
+		empty.text = "В этой категории пока пусто.\nИщи образцы, тайники и инструменты в мире."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		inventory_list.add_child(empty)
-		_selected_inventory_id = &""
+		if stacks.is_empty():
+			_selected_inventory_id = &""
 	elif _selected_inventory_id == &"" or _player.inventory.count(_selected_inventory_id) <= 0.0:
 		_select_inventory_stack(stacks[0]["definition_id"])
 	else:
@@ -576,6 +604,7 @@ func _clear_inventory_list() -> void:
 
 
 func _select_inventory_stack(definition_id: StringName) -> void:
+	audio_cue_requested.emit(&"select")
 	_selected_inventory_id = definition_id
 	var definition := ContentDB.get_definition(definition_id)
 	if definition == null:
@@ -583,9 +612,18 @@ func _select_inventory_stack(definition_id: StringName) -> void:
 		inventory_detail_body.text = "Нет данных об образце."
 		inventory_use_button.disabled = true
 		return
-	var category := "СОСТАВ" if definition is ConsumableDefinition else ("ИНГРЕДИЕНТ" if definition is IngredientDefinition else "СНАРЯЖЕНИЕ")
+	var category := _inventory_category_title(definition)
+	var unit_mass: float = float(definition.unit_mass) if definition is IngredientDefinition else (float(definition.mass) if definition is ItemDefinition else 0.0)
+	var unit_volume: float = float(definition.unit_volume) if definition is IngredientDefinition else (float(definition.volume) if definition is ItemDefinition else 0.0)
+	var field_notes := ""
+	if definition is IngredientDefinition:
+		var ingredient := definition as IngredientDefinition
+		if not ingredient.allowed_operations.is_empty():
+			field_notes = "\n\nОБРАБОТКА  %s" % ", ".join(PackedStringArray(ingredient.allowed_operations))
 	inventory_detail_title.text = definition.display_name
-	inventory_detail_body.text = "%s\n\n%s\n\nВ сумке: %.0f" % [category, definition.description, _player.inventory.count(definition_id)]
+	inventory_detail_body.text = "%s\n\n%s\n\nВ СУМКЕ  × %.0f\nЕДИНИЦА  %.2f кг  ·  %.2f л%s" % [
+		category, definition.description, _player.inventory.count(definition_id), unit_mass, unit_volume, field_notes,
+	]
 	inventory_use_button.disabled = not definition is ConsumableDefinition
 	inventory_use_button.text = "Принять состав" if definition is ConsumableDefinition else "Нельзя применить напрямую"
 
@@ -594,7 +632,39 @@ func _use_selected_inventory_item() -> void:
 	if _player == null or _selected_inventory_id == &"":
 		return
 	if _player.inventory.use_consumable(_selected_inventory_id):
+		audio_cue_requested.emit(&"confirm")
 		_update_inventory_panel()
+
+
+func _set_inventory_filter(filter_id: StringName) -> void:
+	_inventory_filter = filter_id
+	_selected_inventory_id = &""
+	audio_cue_requested.emit(&"select")
+	_update_inventory_panel()
+
+
+func _inventory_definition_matches_filter(definition: ContentDefinition) -> bool:
+	match _inventory_filter:
+		&"ingredients": return definition is IngredientDefinition
+		&"consumables": return definition is ConsumableDefinition
+		&"tools": return definition is ItemDefinition and not definition is ConsumableDefinition
+		_: return true
+
+
+func _inventory_category_title(definition: ContentDefinition) -> String:
+	if definition is ConsumableDefinition:
+		return "СОСТАВ"
+	if definition is IngredientDefinition:
+		return "СЫРЬЁ"
+	return "СНАРЯЖЕНИЕ"
+
+
+func _inventory_category_color(definition: ContentDefinition) -> Color:
+	if definition is ConsumableDefinition:
+		return Color("e89555")
+	if definition is IngredientDefinition:
+		return Color("b7d36f")
+	return Color("82b9c7")
 
 
 func _update_journal() -> void:

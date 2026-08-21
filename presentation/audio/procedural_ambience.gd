@@ -1,7 +1,7 @@
 class_name ProceduralAmbience
 extends AudioStreamPlayer
 
-@export_range(0.0, 1.0, 0.01) var intensity: float = 0.18
+@export_range(0.0, 1.0, 0.01) var intensity: float = 0.42
 @export var seed: int = 7419
 
 var _playback: AudioStreamGeneratorPlayback

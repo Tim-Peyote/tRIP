@@ -8,7 +8,7 @@ const KEY_BINDINGS: Dictionary = {
 	&"move_back": KEY_S,
 	&"interact": KEY_E,
 	&"inspect": KEY_F,
-	&"inventory": KEY_B,
+	&"inventory": KEY_I,
 	&"journal": KEY_J,
 	&"map": KEY_M,
 	&"pause": KEY_ESCAPE,
@@ -55,6 +55,7 @@ static func ensure_defaults() -> void:
 	# Always install a device-agnostic physical-key binding as the durable source.
 	for action: StringName in KEY_BINDINGS:
 		_ensure_action(action)
+		_remove_device_locked_keys(action)
 		if not _has_universal_key(action, KEY_BINDINGS[action]):
 			var event := InputEventKey.new()
 			event.device = -1
@@ -79,6 +80,12 @@ static func ensure_defaults() -> void:
 static func _ensure_action(action: StringName) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action, 0.15)
+
+
+static func _remove_device_locked_keys(action: StringName) -> void:
+	for event: InputEvent in InputMap.action_get_events(action):
+		if event is InputEventKey and event.device >= 0:
+			InputMap.action_erase_event(action, event)
 
 
 static func _has_joy_motion(action: StringName) -> bool:

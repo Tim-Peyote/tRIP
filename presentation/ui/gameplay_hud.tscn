@@ -513,10 +513,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -440.0
-offset_top = -270.0
-offset_right = 440.0
-offset_bottom = 270.0
+offset_left = -540.0
+offset_top = -310.0
+offset_right = 540.0
+offset_bottom = 310.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
@@ -537,6 +537,34 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
 theme_override_font_sizes/font_size = 26
 text = "ПОЛЕВАЯ СУМКА"
+
+[node name="FilterBar" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InventoryFilterAll" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "ВСЁ"
+
+[node name="InventoryFilterIngredients" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 36)
+layout_mode = 2
+text = "СЫРЬЁ"
+
+[node name="InventoryFilterConsumables" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 36)
+layout_mode = 2
+text = "СОСТАВЫ"
+
+[node name="InventoryFilterTools" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+text = "СНАРЯЖЕНИЕ"
 
 [node name="InventoryCapacityLabel" type="Label" parent="InventoryPanel/Margin/Layout"]
 unique_name_in_owner = true
@@ -569,16 +597,18 @@ size_flags_vertical = 3
 theme_override_constants/separation = 20
 
 [node name="ListScroll" type="ScrollContainer" parent="InventoryPanel/Margin/Layout/Body"]
-custom_minimum_size = Vector2(330, 0)
+custom_minimum_size = Vector2(585, 0)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="InventoryList" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body/ListScroll"]
+[node name="InventoryList" type="GridContainer" parent="InventoryPanel/Margin/Layout/Body/ListScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 7
+theme_override_constants/h_separation = 9
+theme_override_constants/v_separation = 9
+columns = 4
 
 [node name="Detail" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body"]
 layout_mode = 2
@@ -609,7 +639,7 @@ text = "Нельзя применить напрямую"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.46, 0.52, 0.44, 1)
 theme_override_font_sizes/font_size = 13
-text = "[B] закрыть  ·  [1] быстро принять первый готовый состав  ·  выбор мышью или геймпадом"
+text = "[I] закрыть  ·  [1] быстро принять первый готовый состав  ·  выбор мышью или геймпадом"
 
 [node name="JournalPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true

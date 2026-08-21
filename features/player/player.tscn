@@ -162,7 +162,7 @@ scale = Vector3(0.8, 0.8, 0.8)
 [node name="RiggedFirstPersonArms" parent="CameraRig/Camera3D/ViewModel" instance=ExtResource("11_fps_arms")]
 unique_name_in_owner = true
 position = Vector3(0, -0.56, 0.04)
-rotation = Vector3(0, 0, 3.14159)
+rotation = Vector3(0, 0, 2.84)
 scale = Vector3(0.095, 0.095, 0.095)
 script = ExtResource("12_fps_arm_driver")
 
@@ -353,7 +353,7 @@ bone_name = "socket.l"
 bone_idx = 45
 
 [node name="AuthoredBottle" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel" instance=ExtResource("14_bottle")]
-position = Vector3(0, -0.7, 0)
+position = Vector3(0, -0.3, 0)
 scale = Vector3(8.5, 8.5, 8.5)
 
 [node name="bottle" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel/AuthoredBottle" index="0"]

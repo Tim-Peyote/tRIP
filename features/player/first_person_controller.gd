@@ -74,6 +74,7 @@ var _gameplay_input_override: bool = false
 var _pre_slide_planar_velocity: Vector3 = Vector3.ZERO
 var _surface_wetness: float = 0.0
 var _weather_wind_strength: float = 0.0
+var _gameplay_enabled: bool = true
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -109,12 +110,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		capture_mouse()
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed(&"inventory"):
-		inventory_requested.emit()
-		get_viewport().set_input_as_handled()
-	if event.is_action_pressed(&"journal"):
-		journal_requested.emit()
-		get_viewport().set_input_as_handled()
 	if event.is_action_pressed(&"quick_use"):
 		inventory.use_first_consumable()
 		get_viewport().set_input_as_handled()
@@ -200,6 +195,17 @@ func set_gameplay_input_override_for_testing(value: bool) -> void:
 	_gameplay_input_override = value
 
 
+func set_gameplay_enabled(value: bool) -> void:
+	_gameplay_enabled = value
+	if not value:
+		velocity.x = 0.0
+		velocity.z = 0.0
+
+
+func set_viewmodel_interface_hidden(hidden: bool) -> void:
+	viewmodel.visible = not hidden
+
+
 func get_stealth_exposure() -> float:
 	var planar_speed := Vector2(velocity.x, velocity.z).length()
 	var movement_exposure := remap(clampf(planar_speed, 0.0, sprint_speed), 0.0, sprint_speed, 0.72, 1.35)
@@ -227,7 +233,7 @@ func is_sprinting() -> bool:
 
 
 func _accepts_gameplay_input() -> bool:
-	return _gameplay_input_override or Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	return _gameplay_input_override or (_gameplay_enabled and not get_tree().paused)
 
 
 func set_spore_vision_active(value: bool) -> void:
