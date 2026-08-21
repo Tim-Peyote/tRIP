@@ -1,4 +1,4 @@
-[gd_scene load_steps=67 format=3]
+[gd_scene load_steps=68 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -29,6 +29,7 @@
 [ext_resource type="PackedScene" path="res://world/props/shelter/shelter_progression_visuals.tscn" id="27_shelter_progression"]
 [ext_resource type="RecipeDefinition" path="res://content/recipes/emberberry_tonic.tres" id="28_ember_recipe"]
 [ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="29_recipe_script"]
+[ext_resource type="PackedScene" path="res://features/investigation/investigation_board.tscn" id="30_board"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -236,6 +237,11 @@ forest_profile = ExtResource("25_forest_profile")
 
 [node name="ShelterProgressionVisuals" parent="." instance=ExtResource("27_shelter_progression")]
 unique_name_in_owner = true
+
+[node name="InvestigationBoard" parent="." instance=ExtResource("30_board")]
+unique_name_in_owner = true
+position = Vector3(4.74, 1.75, -1.4)
+rotation = Vector3(0, -1.5708, 0)
 
 [node name="CookingOrchestrator" type="Node" parent="."]
 unique_name_in_owner = true

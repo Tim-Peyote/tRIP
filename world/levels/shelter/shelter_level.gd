@@ -19,6 +19,7 @@ extends Node3D
 @onready var forest_trail: Node3D = $ForestTrail
 @onready var deep_grove: Node3D = $DeepGrove
 @onready var shelter_progression_visuals: ShelterProgressionVisuals = %ShelterProgressionVisuals
+@onready var investigation_board: InvestigationBoard = %InvestigationBoard
 @onready var spore_tide: SporeTideOrchestrator = deep_grove.get_node("SporeTideOrchestrator") as SporeTideOrchestrator
 
 
@@ -33,6 +34,7 @@ func _ready() -> void:
 	game_loop_orchestrator.setup(objective_orchestrator, cooking_orchestrator, expedition_clock, knowledge_orchestrator)
 	game_loop_orchestrator.route_unlock_changed.connect(_on_route_unlock_changed)
 	shelter_progression_visuals.setup(game_loop_orchestrator)
+	investigation_board.setup(game_loop_orchestrator)
 	spore_tide.setup(player)
 	_on_route_unlock_changed(game_loop_orchestrator.route_unlocked)
 	for node: Node in find_children("*", "HarvestableIngredient", true, false):
@@ -98,6 +100,10 @@ func get_session_persistence() -> SessionPersistenceOrchestrator:
 
 func get_spore_tide() -> SporeTideOrchestrator:
 	return spore_tide
+
+
+func get_investigation_board() -> InvestigationBoard:
+	return investigation_board
 
 
 func setup_visual_environment(world_environment: WorldEnvironment) -> void:

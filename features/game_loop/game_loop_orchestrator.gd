@@ -6,6 +6,7 @@ signal result_ready(summary: Dictionary)
 signal route_unlock_changed(is_unlocked: bool)
 signal autosave_requested(reason: StringName)
 signal narrative_notice_requested(title: String, text: String)
+signal root_well_plan_changed(plan_id: StringName, plan_title: String)
 
 enum Stage { EXPEDITION, BREW, REWARD, DEEP_GROVE }
 
@@ -19,6 +20,7 @@ var emberberry_collected: bool = false
 var second_expedition_complete: bool = false
 var counteragent_brewed: bool = false
 var spore_quiet_active: bool = false
+var root_well_plan: StringName = &""
 var _objective: ExpeditionObjectiveOrchestrator
 var _cooking: CookingOrchestrator
 var _clock: ExpeditionClock
@@ -54,7 +56,13 @@ func get_objective_text() -> String:
 			return "ЦИКЛ ЗАВЕРШЁН · разобрать результаты"
 		_:
 			if mycologist_clues.has(&"mycologist.ring.surge_trace"):
-				return "КООРДИНАТЫ НАЙДЕНЫ · подготовиться к корневому колодцу"
+				match root_well_plan:
+					&"warded_descent":
+						return "ПЛАН: ТИХАЯ КРОВЬ · открыть спуск в корневой колодец"
+					&"resonant_descent":
+						return "ПЛАН: РЕЗОНАНС · открыть спуск в корневой колодец"
+					_:
+						return "КООРДИНАТЫ НАЙДЕНЫ · изучить доску в убежище"
 			if counteragent_brewed and spore_quiet_active:
 				return "ТИХАЯ КРОВЬ · пережить споровый прилив и исследовать кольцо"
 			if counteragent_brewed and spore_vision_active:
@@ -93,6 +101,30 @@ func record_trail_clue(clue_id: StringName, title: String, text: String) -> void
 	narrative_notice_requested.emit(title, text)
 	_emit_state()
 	autosave_requested.emit(&"mycologist_clue")
+
+
+func can_choose_root_well_plan() -> bool:
+	return stage == Stage.DEEP_GROVE and mycologist_clues.has(&"mycologist.ring.surge_trace") and counteragent_brewed
+
+
+func select_root_well_plan(plan_id: StringName) -> bool:
+	if not can_choose_root_well_plan() or plan_id not in [&"warded_descent", &"resonant_descent"]:
+		return false
+	if root_well_plan == plan_id:
+		return true
+	root_well_plan = plan_id
+	var is_warded := plan_id == &"warded_descent"
+	var title := "ТИХАЯ КРОВЬ" if is_warded else "РЕЗОНАНС"
+	var description := (
+		"Контрагент подавит голос грибницы. Путь будет длиннее, зато заражение под контролем."
+		if is_warded
+		else "Спорозрение позволит идти по пульсу мицелия. Путь короче, но колодец заметит тебя."
+	)
+	root_well_plan_changed.emit(root_well_plan, title)
+	narrative_notice_requested.emit("ПЛАН ЭКСПЕДИЦИИ: %s" % title, description)
+	_emit_state()
+	autosave_requested.emit(&"root_well_plan")
+	return true
 
 
 func set_spore_vision_active(value: bool) -> void:
@@ -144,6 +176,7 @@ func to_save_data() -> Dictionary:
 		"emberberry_collected": emberberry_collected,
 		"second_expedition_complete": second_expedition_complete,
 		"counteragent_brewed": counteragent_brewed,
+		"root_well_plan": String(root_well_plan),
 	}
 
 
@@ -158,7 +191,9 @@ func apply_save_data(data: Dictionary) -> void:
 	emberberry_collected = bool(data.get("emberberry_collected", false))
 	second_expedition_complete = bool(data.get("second_expedition_complete", false))
 	counteragent_brewed = bool(data.get("counteragent_brewed", false))
+	root_well_plan = StringName(data.get("root_well_plan", ""))
 	route_unlock_changed.emit(route_unlocked)
+	root_well_plan_changed.emit(root_well_plan, "")
 	_emit_state()
 
 
