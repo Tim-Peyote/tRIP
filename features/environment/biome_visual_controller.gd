@@ -2,6 +2,7 @@ class_name BiomeVisualController
 extends Node
 
 signal profile_changed(profile_id: StringName)
+signal atmosphere_baseline_changed(fog_density: float, volumetric_density: float)
 
 @export var shelter_profile: BiomeVisualProfile
 @export var forest_profile: BiomeVisualProfile
@@ -89,6 +90,7 @@ func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void
 			_tween.tween_property(_sky_material, "sky_horizon_color", profile.sky_horizon_color, 1.2)
 			_tween.tween_property(_sky_material, "sky_energy_multiplier", profile.sky_energy, 1.2)
 	profile_changed.emit(profile.id)
+	atmosphere_baseline_changed.emit(profile.fog_density, profile.volumetric_density)
 
 
 func _set_values(profile: BiomeVisualProfile) -> void:

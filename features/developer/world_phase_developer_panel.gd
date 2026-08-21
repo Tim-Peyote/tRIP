@@ -10,6 +10,7 @@ var _player: FirstPersonController
 var _clock: ExpeditionClock
 var _persistence: SessionPersistenceOrchestrator
 var _population: BiomePopulationOrchestrator
+var _weather: WeatherOrchestrator
 var _canvas: CanvasLayer
 var _panel: PanelContainer
 var _status: Label
@@ -56,6 +57,12 @@ func set_panel_visible(value: bool) -> void:
 		else:
 			Input.mouse_mode = _previous_mouse_mode
 	_update_status()
+
+
+func setup_weather(value: WeatherOrchestrator) -> void:
+	_weather = value
+	if _panel != null:
+		_rebuild_weather_controls()
 
 
 func is_panel_visible() -> bool:
@@ -117,6 +124,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_population.developer_respawn()
 	elif key.keycode == KEY_N and _population != null:
 		_population.developer_cycle_density()
+	elif key.keycode == KEY_W and _weather != null:
+		_weather.developer_cycle()
+	elif key.keycode == KEY_B:
+		_teleport_to_physics_lab()
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -132,6 +143,7 @@ func _build_ui() -> void:
 	_panel.visible = false
 	_panel.position = Vector2(18, 44)
 	_panel.custom_minimum_size = Vector2(610, 560)
+	_panel.theme = TripUITheme.build()
 	_canvas.add_child(_panel)
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 18)
@@ -156,6 +168,7 @@ func _build_ui() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)
 	var tools := VBoxContainer.new()
+	tools.name = "DeveloperTools"
 	tools.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tools.add_theme_constant_override("separation", 9)
 	scroll.add_child(tools)
@@ -206,12 +219,36 @@ func _build_ui() -> void:
 		_add_action_button(action_grid, "K · переселить живность", _population.developer_respawn)
 		_add_action_button(action_grid, "N · плотность фауны", _population.developer_cycle_density)
 	_add_action_button(action_grid, "R · новый seed", _randomize_seed)
+	_add_action_button(action_grid, "B · физический стенд", _teleport_to_physics_lab)
+	if _weather != null:
+		_add_action_button(action_grid, "W · следующая погода", _weather.developer_cycle)
 	_add_action_button(action_grid, "Backspace · реальный мир", _orchestrator.clear_developer_override)
 	var help := Label.new()
 	help.text = "PgUp/PgDn — соседний мир · 1–8 — прямой выбор · F10 — закрыть"
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.modulate = Color(0.68, 0.76, 0.62)
 	column.add_child(help)
+
+
+func _rebuild_weather_controls() -> void:
+	if _panel == null or _weather == null:
+		return
+	var column := _panel.find_child("WeatherDeveloperControls", true, false) as HBoxContainer
+	if column != null:
+		return
+	column = HBoxContainer.new()
+	column.name = "WeatherDeveloperControls"
+	column.add_theme_constant_override("separation", 6)
+	# Keep quick weather controls inside the existing scroll region at 720p.
+	var tools := _panel.find_child("DeveloperTools", true, false) as VBoxContainer
+	if tools == null:
+		return
+	tools.add_child(column)
+	for weather_state: int in WeatherOrchestrator.State.values():
+		var button := Button.new()
+		button.text = ["Ясно", "Дождь", "Гроза", "Туман", "Снег"][weather_state]
+		button.pressed.connect(_weather.developer_set.bind(weather_state))
+		column.add_child(button)
 
 
 func _add_action_button(parent: Control, text_value: String, callback: Callable) -> void:
@@ -245,6 +282,17 @@ func _teleport_route_ahead() -> void:
 	_terrain.ensure_area_at(position)
 	_player.global_position = position
 	_player.velocity = Vector3.ZERO
+	_update_status()
+
+
+func _teleport_to_physics_lab() -> void:
+	if _player == null:
+		return
+	var destination := Vector3(0.0, 0.0, 10.5)
+	destination.y = _terrain.get_height_at_global(destination) + 0.18
+	_player.global_position = destination
+	_player.velocity = Vector3.ZERO
+	_player.look_at(Vector3(0.0, destination.y + 0.8, 13.4), Vector3.UP)
 	_update_status()
 
 
@@ -346,5 +394,6 @@ func _update_status() -> void:
 	var hazard_state := "—" if _hazard == null else "%d · %d%%" % [_hazard.state, roundi(_hazard.exposure * 100.0)]
 	var player_state := "—" if _player == null else "x %.1f · y %.1f · z %.1f · %.1f м/с" % [_player.global_position.x, _player.global_position.y, _player.global_position.z, _player.get_planar_speed()]
 	var fauna_state := "—" if _population == null else "%d · %s" % [_population.get_active_population_count(), ", ".join(_population.get_active_species_ids())]
-	_status.text = "%s · %s\n%s\n%s\nФауна: %s" % [definition.display_name, contract, player_state, "Лаба: %s · явление: %s" % [laboratory_state, hazard_state], fauna_state]
+	var weather_state := "—" if _weather == null else _weather.get_debug_text()
+	_status.text = "%s · %s\n%s\n%s\nФауна: %s\nПогода: %s" % [definition.display_name, contract, player_state, "Лаба: %s · явление: %s" % [laboratory_state, hazard_state], fauna_state, weather_state]
 	_seed_label.text = "Seed: %d · чанков: %d · время: %s" % [_seed, _terrain.get_loaded_chunk_count(), _clock.get_display_text() if _clock != null else "—"]

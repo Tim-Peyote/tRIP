@@ -69,6 +69,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	gameplay_hud.setup_spore_tide(_active_level.get_spore_tide())
 	gameplay_hud.setup_root_pressure(_active_level.get_root_pressure())
 	gameplay_hud.setup_biome_hazard(_active_level.get_biome_hazard())
+	gameplay_hud.setup_weather(_active_level.get_weather())
 	var persistence := _active_level.get_session_persistence()
 	persistence.setup(_active_level, _active_level.get_game_loop_orchestrator(), slot_id)
 	gameplay_hud.setup_persistence(persistence)

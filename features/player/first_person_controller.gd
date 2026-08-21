@@ -71,6 +71,8 @@ var _is_sprinting: bool = false
 var _wish_direction: Vector3 = Vector3.ZERO
 var _gameplay_input_override: bool = false
 var _pre_slide_planar_velocity: Vector3 = Vector3.ZERO
+var _surface_wetness: float = 0.0
+var _weather_wind_strength: float = 0.0
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -119,6 +121,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"jump"):
 		_jump_buffer_remaining = jump_buffer_time
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if interactor != null and interactor.is_rotating_held_body():
+			return
 		var motion := event as InputEventMouseMotion
 		_viewmodel_look_offset += Vector2(motion.relative.x, motion.relative.y) * viewmodel_look_inertia
 		_viewmodel_look_offset = _viewmodel_look_offset.limit_length(0.075)
@@ -158,7 +162,8 @@ func _physics_process(delta: float) -> void:
 	_wish_direction = world_direction
 	var target_speed := _get_target_speed()
 	var has_input := input_amount > 0.01
-	var acceleration := (ground_acceleration if has_input else ground_deceleration) if is_on_floor() else air_acceleration
+	var wet_traction := lerpf(1.0, 0.72, _surface_wetness)
+	var acceleration := ((ground_acceleration if has_input else ground_deceleration) * wet_traction) if is_on_floor() else air_acceleration
 	velocity.x = move_toward(velocity.x, world_direction.x * target_speed * input_amount, acceleration * delta)
 	velocity.z = move_toward(velocity.z, world_direction.z * target_speed * input_amount, acceleration * delta)
 	_try_jump()
@@ -229,6 +234,11 @@ func set_spore_resistance(value: float) -> void:
 
 func set_crimson_drive(value: float) -> void:
 	_crimson_drive_amount = clampf(value, 0.0, 1.0)
+
+
+func set_weather_modifiers(surface_wetness: float, wind_strength: float) -> void:
+	_surface_wetness = clampf(surface_wetness, 0.0, 1.0)
+	_weather_wind_strength = maxf(wind_strength, 0.0)
 
 
 func play_consumption_animation(_effect_ids: Array[StringName], _display_name: String) -> void:

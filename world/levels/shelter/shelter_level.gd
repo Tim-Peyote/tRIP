@@ -31,6 +31,8 @@ var road_laboratory: RoadLaboratoryOrchestrator
 var world_progression: WorldProgressionOrchestrator
 var biome_hazard: BiomeHazardOrchestrator
 var biome_population: BiomePopulationOrchestrator
+var weather: WeatherOrchestrator
+var physical_showcase: PhysicalInteractionShowcase
 
 
 func _ready() -> void:
@@ -84,6 +86,7 @@ func _ready() -> void:
 	_setup_biome_hazard(terrain)
 	_setup_world_progression(terrain)
 	_setup_biome_population(terrain)
+	_setup_physical_interaction(terrain)
 	world_phase_developer_panel.setup(
 		world_phase_orchestrator,
 		terrain,
@@ -165,6 +168,10 @@ func get_biome_population() -> BiomePopulationOrchestrator:
 	return biome_population
 
 
+func get_weather() -> WeatherOrchestrator:
+	return weather
+
+
 func initialize_new_session() -> void:
 	_disable_legacy_shelter()
 	biome_visual_controller.show_forest()
@@ -192,6 +199,12 @@ func apply_world_seed(value: int) -> void:
 
 func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	biome_visual_controller.setup(world_environment)
+	weather = WeatherOrchestrator.new()
+	weather.name = "WeatherOrchestrator"
+	add_child(weather)
+	weather.setup(world_environment, player)
+	biome_visual_controller.atmosphere_baseline_changed.connect(weather.set_atmosphere_baseline)
+	world_phase_developer_panel.setup_weather(weather)
 
 
 func _setup_road_laboratory(terrain: ExpeditionTerrain) -> void:
@@ -243,6 +256,13 @@ func _setup_biome_population(terrain: ExpeditionTerrain) -> void:
 	biome_population.name = "BiomePopulationOrchestrator"
 	add_child(biome_population)
 	biome_population.setup(terrain, player, world_phase_orchestrator)
+
+
+func _setup_physical_interaction(terrain: ExpeditionTerrain) -> void:
+	physical_showcase = PhysicalInteractionShowcase.new()
+	physical_showcase.name = "PhysicalInteractionShowcase"
+	add_child(physical_showcase)
+	physical_showcase.setup(terrain)
 
 
 func _disable_legacy_shelter() -> void:

@@ -13,6 +13,8 @@ signal inspection_requested(actor: Node)
 @export_range(0.0, 10.0, 0.05, "suffix:s") var hold_duration: float = 0.0
 @export var enabled: bool = true
 @export_multiline var inspection_description: String
+@export_enum("use", "collect", "examine", "operate", "ritual") var affordance: String = "use"
+@export var input_hint: String = "E"
 
 
 func get_prompt(actor: Node) -> String:
@@ -21,6 +23,17 @@ func get_prompt(actor: Node) -> String:
 	if get_parent().has_method("get_interaction_prompt"):
 		return String(get_parent().call("get_interaction_prompt", actor))
 	return "%s: %s" % [primary_verb, object_name]
+
+
+func get_context(actor: Node) -> Dictionary:
+	return {
+		"key": input_hint,
+		"title": object_name,
+		"action": get_prompt(actor),
+		"affordance": affordance,
+		"hold": hold_duration > 0.0,
+		"physical": false,
+	}
 
 
 func can_interact(actor: Node, action: StringName = primary_action) -> bool:

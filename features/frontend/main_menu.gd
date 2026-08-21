@@ -13,6 +13,7 @@ signal quit_requested
 
 
 func _ready() -> void:
+	theme = TripUITheme.build()
 	%ContinueButton.pressed.connect(func() -> void: continue_requested.emit())
 	%NewGameButton.pressed.connect(func() -> void: new_game_requested.emit())
 	%SettingsButton.pressed.connect(_show_settings)
@@ -21,6 +22,17 @@ func _ready() -> void:
 	settings_panel.closed.connect(_hide_settings)
 	%NewGameButton.grab_focus()
 	refresh_progress()
+	_animate_entrance()
+
+
+func _animate_entrance() -> void:
+	var layout := $SafeArea/Layout as Control
+	layout.modulate.a = 0.0
+	layout.position.x -= 24.0
+	var tween := create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	tween.tween_property(layout, "modulate:a", 1.0, 0.7)
+	tween.tween_property(layout, "position:x", layout.position.x + 24.0, 0.7)
 
 
 func refresh_progress() -> void:

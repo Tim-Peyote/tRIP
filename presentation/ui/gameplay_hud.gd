@@ -14,6 +14,10 @@ signal overlay_state_changed(is_open: bool)
 @onready var inspection_panel: PanelContainer = %InspectionPanel
 @onready var inventory_panel: PanelContainer = %InventoryPanel
 @onready var inspection_view: SampleInspectionView = %SampleInspectionView
+@onready var focus_card: PanelContainer = %FocusCard
+@onready var focus_key: Label = %FocusKey
+@onready var focus_title: Label = %FocusTitle
+@onready var focus_action: Label = %FocusAction
 
 var _player: FirstPersonController
 var _cooking: CookingOrchestrator
@@ -29,19 +33,26 @@ var _spore_tide: SporeTideOrchestrator
 var _root_pressure: RootPressureOrchestrator
 var _biome_hazard: BiomeHazardOrchestrator
 var _inside_root_well: bool = false
+var _weather: WeatherOrchestrator
+var _notice_tween: Tween
+var _last_interaction_context: Dictionary = {}
 
 
 func _ready() -> void:
+	theme = TripUITheme.build()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	%ResumeButton.pressed.connect(func() -> void: resume_requested.emit())
 	%MainMenuButton.pressed.connect(func() -> void: main_menu_requested.emit())
 	%ContinueCycleButton.pressed.connect(_acknowledge_cycle_result)
 	notice_timer.timeout.connect(func() -> void: notice_label.visible = false)
+	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
+	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
 
 
 func setup(player: FirstPersonController) -> void:
 	_player = player
 	player.interactor.prompt_changed.connect(_on_prompt_changed)
+	player.interactor.context_changed.connect(_on_interaction_context_changed)
 	player.interactor.hold_progress_changed.connect(_on_hold_progress_changed)
 	player.interactor.inspection_requested.connect(_on_inspection_requested)
 	player.interactor.inspection_definition_requested.connect(_on_inspection_definition_requested)
@@ -59,6 +70,15 @@ func setup(player: FirstPersonController) -> void:
 	_update_inventory_label()
 	%ToolLabel.text = player.toolbelt.get_display_name() + "  [Q]"
 	_on_distraction_count_changed(player.distraction_thrower.remaining)
+	_on_interaction_context_changed({})
+
+
+func setup_weather(weather: WeatherOrchestrator) -> void:
+	_weather = weather
+	weather.state_changed.connect(_on_weather_state_changed)
+	weather.wetness_changed.connect(_on_weather_wetness_changed)
+	_on_weather_state_changed(weather.state, weather.get_state_title(), weather.intensity)
+	_on_weather_wetness_changed(weather.wetness)
 
 
 func setup_cooking(cooking: CookingOrchestrator) -> void:
@@ -161,8 +181,10 @@ func clear() -> void:
 	_spore_tide = null
 	_root_pressure = null
 	_biome_hazard = null
+	_weather = null
 	_inside_root_well = false
 	prompt_label.text = ""
+	focus_card.visible = false
 	hold_progress.visible = false
 	notice_label.visible = false
 	inspection_panel.visible = false
@@ -183,6 +205,22 @@ func set_paused(is_paused: bool) -> void:
 
 func _on_prompt_changed(text: String) -> void:
 	prompt_label.text = text
+
+
+func _on_interaction_context_changed(context: Dictionary) -> void:
+	_last_interaction_context = context
+	var available := not context.is_empty()
+	focus_card.visible = available
+	prompt_label.visible = false
+	if not available:
+		return
+	focus_key.text = String(context.get("key", "E"))
+	focus_title.text = String(context.get("title", "ОБЪЕКТ")).to_upper()
+	focus_action.text = String(context.get("action", context.get("prompt", "Взаимодействовать")))
+	var physical := bool(context.get("physical", false))
+	var accent := TripUITheme.EMBER if physical else TripUITheme.MOSS
+	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel(accent))
+	focus_key.modulate = accent
 
 
 func _on_hold_progress_changed(progress: float) -> void:
@@ -409,7 +447,7 @@ func _on_inspection_closed() -> void:
 		return
 	_player.interactor.set_process(true)
 	_player.capture_mouse()
-	prompt_label.visible = true
+	focus_card.visible = not _last_interaction_context.is_empty()
 	overlay_state_changed.emit(false)
 
 
@@ -441,14 +479,32 @@ func _apply_field_overlay_state() -> void:
 			_player.release_mouse()
 		else:
 			_player.capture_mouse()
-	prompt_label.visible = not is_open
+	focus_card.visible = not is_open and not _last_interaction_context.is_empty()
 	overlay_state_changed.emit(is_open)
 
 
 func show_notice(text: String) -> void:
 	notice_label.text = text
 	notice_label.visible = true
+	notice_label.modulate.a = 0.0
+	notice_label.position.y += 8.0
+	if _notice_tween != null and _notice_tween.is_valid():
+		_notice_tween.kill()
+	_notice_tween = create_tween().set_parallel(true)
+	_notice_tween.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	_notice_tween.tween_property(notice_label, "modulate:a", 1.0, 0.2)
+	_notice_tween.tween_property(notice_label, "position:y", notice_label.position.y - 8.0, 0.24)
 	notice_timer.start()
+
+
+func _on_weather_state_changed(_state: int, title: String, value: float) -> void:
+	%WeatherLabel.text = title.to_upper()
+	%WeatherLabel.visible = _state != WeatherOrchestrator.State.CLEAR or value > 0.05
+
+
+func _on_weather_wetness_changed(value: float) -> void:
+	%WeatherBar.value = value * 100.0
+	%WeatherBar.visible = value > 0.04
 
 
 func _update_inventory_label() -> void:
