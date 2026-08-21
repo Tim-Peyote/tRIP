@@ -13,4 +13,4 @@ var quality: Quality = Quality.SPOILED
 var score: float = 0.0
 var result_item_id: StringName
 var explanation_tags: Array[StringName] = []
-
+var yield_count: int = 1

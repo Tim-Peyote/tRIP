@@ -69,6 +69,19 @@ func get_entries() -> Array[Dictionary]:
 		var recipe := _cooking.find_recipe_by_id(recipe_id)
 		if recipe == null:
 			continue
+		var step_entries: Array[Dictionary] = []
+		for step: RecipeStepDefinition in recipe.steps:
+			step_entries.append({
+				"operation": step.operation,
+				"hint": step.player_hint,
+				"temperature_min": step.minimum_temperature,
+				"temperature_max": step.maximum_temperature,
+				"duration_min": step.minimum_duration,
+				"duration_max": step.maximum_duration,
+				"turns_min": step.minimum_hourglass_turns,
+				"turns_max": step.maximum_hourglass_turns,
+				"sensory_cue": step.sensory_cue,
+			})
 		result.append({
 			"id": recipe.id,
 			"title": recipe.display_name,
@@ -78,6 +91,11 @@ func get_entries() -> Array[Dictionary]:
 			"primary_ingredient_id": recipe.primary_ingredient_id,
 			"result_item_id": recipe.result_item_id,
 			"step_count": recipe.steps.size(),
+			"steps": step_entries,
+			"base_id": recipe.required_base_id,
+			"finish_method": recipe.finish_method,
+			"station_tier": recipe.minimum_station_tier,
+			"base_yield": recipe.base_yield,
 		})
 	return result
 

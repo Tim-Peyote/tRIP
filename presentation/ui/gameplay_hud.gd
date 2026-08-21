@@ -329,7 +329,7 @@ func _on_cooking_action_recorded(operation: StringName, step_count: int) -> void
 
 func _on_cooking_result_created(result: RecipeResolution, display_name: String) -> void:
 	var quality_names := ["испорчено", "нестабильно", "рабочее", "чистое", "открытие"]
-	show_notice("Готово: %s · %s · [1] применить" % [display_name, quality_names[result.quality]])
+	show_notice("Готово: %s ×%d · %s · [1] применить" % [display_name, result.yield_count, quality_names[result.quality]])
 
 
 func _on_vessel_state_changed(state: ThermalVesselState) -> void:
@@ -340,11 +340,18 @@ func _on_vessel_state_changed(state: ThermalVesselState) -> void:
 func _on_physical_cooking_action(action: StringName) -> void:
 	var messages: Dictionary = {
 		&"add_water": "В котёл налита холодная вода",
+		&"add_kvass": "Основа: кислый зерновой квас",
+		&"add_spirit": "Основа: хлебный спирт — держи вдали от бурного огня",
 		&"transfer": "Измельчённая шляпка добавлена в воду",
 		&"heat_0": "Очаг погашен",
 		&"heat_1": "Слабый огонь",
 		&"heat_2": "Сильный огонь — следи за температурой",
 		&"stir": "Состав перемешан",
+		&"bellows": "Мехи усилили жар — наблюдай за пузырями",
+		&"hourglass": "Песочные часы перевёрнуты · один оборот 8 секунд",
+		&"lower_vessel": "Котёл опущен к огню",
+		&"raise_vessel": "Котёл снят с прямого жара",
+		&"station_upgrade": "ПОЛЕВАЯ ЛАБОРАТОРИЯ УЛУЧШЕНА · открыта новая точность",
 	}
 	if messages.has(action):
 		show_notice(messages[action])
@@ -1024,9 +1031,20 @@ func _show_recipe_entry(entry: Dictionary) -> void:
 	journal_detail_title.text = String(entry["title"])
 	var primary := ContentDB.get_definition(entry["primary_ingredient_id"])
 	var result := ContentDB.get_definition(entry["result_item_id"])
-	journal_detail_meta.text = "ОСНОВА  %s   ·   ЭТАПОВ  %d" % [primary.display_name if primary != null else String(entry["primary_ingredient_id"]), int(entry["step_count"])]
+	var base_names: Dictionary = {&"base.water": "РОДНИКОВАЯ ВОДА", &"base.kvass": "КИСЛЫЙ КВАС", &"base.spirit": "ХЛЕБНЫЙ СПИРТ"}
+	var finish_names := ["РАЗЛИВ", "ПЕРЕГОНКА", "ПОРЦИЯ"]
+	journal_detail_meta.text = "%s   ·   %s   ·   ЛАБОРАТОРИЯ %d" % [base_names.get(StringName(entry["base_id"]), String(entry["base_id"])), finish_names[int(entry["finish_method"])], int(entry["station_tier"])]
 	journal_progress.value = 1.0 if bool(entry["learned"]) else 0.35
-	journal_detail_body.text = "[color=#99a395]ПОЛЕВАЯ ЗАПИСЬ[/color]\n%s\n\n%s\n\n[color=#99a395]ОЖИДАЕМЫЙ РЕЗУЛЬТАТ[/color]\n%s" % [String(entry.get("description", "")), String(entry["field_notes"]), result.display_name if result != null else String(entry["result_item_id"])]
+	var operation_names: Dictionary = {&"wash": "ПРОМЫТЬ", &"slice": "РАЗДЕЛИТЬ", &"grind": "РАСТОЛОЧЬ", &"heat": "ВЫДЕРЖАТЬ"}
+	var body := "[color=#99a395]ПОЛЕВАЯ ЗАПИСЬ[/color]\n%s\n\n%s\n\n[color=#99a395]ПОРЯДОК РАБОТЫ[/color]\n" % [String(entry.get("description", "")), String(entry["field_notes"])]
+	var index := 1
+	for step: Dictionary in entry.get("steps", []):
+		body += "%d. [color=#c6d98a]%s[/color]  %s\n" % [index, operation_names.get(StringName(step["operation"]), String(step["operation"]).to_upper()), String(step["hint"])]
+		if StringName(step["operation"]) == &"heat":
+			body += "   %d–%d°C · %d–%d c · часы %d–%d\n" % [roundi(step["temperature_min"]), roundi(step["temperature_max"]), roundi(step["duration_min"]), roundi(step["duration_max"]), int(step["turns_min"]), int(step["turns_max"])]
+		index += 1
+	body += "\n[color=#99a395]ОЖИДАЕМЫЙ РЕЗУЛЬТАТ[/color]\n%s · базовый выход ×%d" % [result.display_name if result != null else String(entry["result_item_id"]), int(entry["base_yield"])]
+	journal_detail_body.text = body
 
 
 func _show_empty_journal() -> void:

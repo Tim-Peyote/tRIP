@@ -2,7 +2,14 @@ class_name RecipeResolver
 extends RefCounted
 
 
-func resolve(process: CookingProcess, recipe: RecipeDefinition) -> RecipeResolution:
+func resolve(
+	process: CookingProcess,
+	recipe: RecipeDefinition,
+	base_id: StringName = &"base.water",
+	finish_method: RecipeDefinition.FinishMethod = RecipeDefinition.FinishMethod.BOTTLE,
+	station_tier: int = 0,
+	hourglass_turns: int = -1
+) -> RecipeResolution:
 	var result := RecipeResolution.new()
 	result.result_item_id = recipe.result_item_id
 	if recipe.steps.is_empty() or process.events.is_empty():
@@ -18,7 +25,21 @@ func resolve(process: CookingProcess, recipe: RecipeDefinition) -> RecipeResolut
 		var step_score := _score_step(event, step, result.explanation_tags)
 		matches += step_score
 		source_quality = minf(source_quality, event.source_quality)
-	result.score = (matches / float(recipe.steps.size())) * source_quality
+	var process_score := matches / float(recipe.steps.size())
+	if base_id != recipe.required_base_id:
+		process_score *= 0.62
+		result.explanation_tags.append(&"wrong_base")
+	if finish_method != recipe.finish_method:
+		process_score *= 0.72
+		result.explanation_tags.append(&"wrong_finish")
+	if station_tier < recipe.minimum_station_tier:
+		process_score *= 0.65
+		result.explanation_tags.append(&"station_too_primitive")
+	var heat_step := _find_heat_step(recipe)
+	if heat_step != null and hourglass_turns >= 0 and (hourglass_turns < heat_step.minimum_hourglass_turns or hourglass_turns > heat_step.maximum_hourglass_turns):
+		process_score *= 0.72
+		result.explanation_tags.append(&"wrong_turn_count")
+	result.score = process_score * source_quality
 	if source_quality < 0.9:
 		result.explanation_tags.append(&"damaged_source")
 	if process.events.size() != recipe.steps.size():
@@ -32,7 +53,19 @@ func resolve(process: CookingProcess, recipe: RecipeDefinition) -> RecipeResolut
 		result.quality = RecipeResolution.Quality.UNSTABLE
 	else:
 		result.quality = RecipeResolution.Quality.SPOILED
+	result.yield_count = recipe.base_yield
+	if result.quality == RecipeResolution.Quality.PURE and station_tier >= 1:
+		result.yield_count += 1
+	if station_tier >= recipe.minimum_station_tier + 2 and result.quality >= RecipeResolution.Quality.WORKING:
+		result.yield_count += 1
 	return result
+
+
+func _find_heat_step(recipe: RecipeDefinition) -> RecipeStepDefinition:
+	for step: RecipeStepDefinition in recipe.steps:
+		if step.operation == &"heat":
+			return step
+	return null
 
 
 func _score_step(event: CookingProcessEvent, step: RecipeStepDefinition, reasons: Array[StringName]) -> float:

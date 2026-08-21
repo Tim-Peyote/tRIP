@@ -2,10 +2,19 @@ class_name ThermalVesselState
 extends RefCounted
 
 enum HeatLevel { OFF, LOW, HIGH }
+enum VesselPosition { RAISED, LOWERED }
+enum HeatRegime { COLD, WARM, SIMMER, BOIL, VIOLENT }
 
 var water_amount: float = 0.0
+var base_id: StringName = &""
 var temperature: float = 20.0
 var heat_level: HeatLevel = HeatLevel.OFF
+var vessel_position: VesselPosition = VesselPosition.LOWERED
+var bellows_pulls: int = 0
+var fire_momentum: float = 0.0
+var hourglass_running: bool = false
+var hourglass_elapsed: float = 0.0
+var completed_hourglass_turns: int = 0
 var ingredient_loaded: bool = false
 var ingredient_id: StringName
 var ingredient_tags: Array[StringName] = []
@@ -20,11 +29,19 @@ var peak_temperature: float = 20.0
 const TARGET_MIN: float = 72.0
 const TARGET_MAX: float = 86.0
 const OVERHEAT_THRESHOLD: float = 92.0
+const HOURGLASS_TURN_SECONDS: float = 8.0
 
 
 func add_water(amount: float) -> bool:
+	return add_base(&"base.water", amount)
+
+
+func add_base(id: StringName, amount: float) -> bool:
 	if amount <= 0.0 or water_amount >= 1.5:
 		return false
+	if base_id != &"" and base_id != id:
+		return false
+	base_id = id
 	water_amount = minf(1.5, water_amount + amount)
 	return true
 
@@ -44,6 +61,27 @@ func cycle_heat() -> HeatLevel:
 	return heat_level
 
 
+func toggle_vessel_position() -> VesselPosition:
+	vessel_position = VesselPosition.LOWERED if vessel_position == VesselPosition.RAISED else VesselPosition.RAISED
+	return vessel_position
+
+
+func pump_bellows() -> bool:
+	if heat_level == HeatLevel.OFF:
+		return false
+	bellows_pulls += 1
+	fire_momentum = clampf(fire_momentum + 0.34, 0.0, 1.0)
+	return true
+
+
+func flip_hourglass() -> bool:
+	if hourglass_running:
+		return false
+	hourglass_running = true
+	hourglass_elapsed = 0.0
+	return true
+
+
 func stir() -> bool:
 	if not ingredient_loaded or water_amount <= 0.0:
 		return false
@@ -53,14 +91,24 @@ func stir() -> bool:
 
 
 func simulate(delta: float) -> void:
+	if hourglass_running:
+		hourglass_elapsed += delta
+		if hourglass_elapsed >= HOURGLASS_TURN_SECONDS:
+			hourglass_running = false
+			hourglass_elapsed = HOURGLASS_TURN_SECONDS
+			completed_hourglass_turns += 1
+	fire_momentum = move_toward(fire_momentum, 0.0, delta * 0.075)
 	var target_temperature := 20.0
 	var rate := 2.2
-	if heat_level == HeatLevel.LOW:
-		target_temperature = 84.0
-		rate = 5.4 / maxf(water_amount, 0.35)
+	if vessel_position == VesselPosition.RAISED and heat_level != HeatLevel.OFF:
+		target_temperature = 42.0 + fire_momentum * 8.0
+		rate = 2.8
+	elif heat_level == HeatLevel.LOW:
+		target_temperature = 84.0 + fire_momentum * 8.0
+		rate = (5.4 + fire_momentum * 2.0) / maxf(water_amount, 0.35)
 	elif heat_level == HeatLevel.HIGH:
-		target_temperature = 112.0
-		rate = 10.5 / maxf(water_amount, 0.35)
+		target_temperature = 112.0 + fire_momentum * 12.0
+		rate = (10.5 + fire_momentum * 3.0) / maxf(water_amount, 0.35)
 	temperature = move_toward(temperature, target_temperature, rate * delta)
 	peak_temperature = maxf(peak_temperature, temperature)
 	if not ingredient_loaded:
@@ -84,24 +132,55 @@ func is_ruined() -> bool:
 
 func get_stage_text() -> String:
 	if water_amount <= 0.0:
-		return "КОТЁЛ ПУСТ · нужна вода"
+		return "КОТЁЛ ПУСТ · выбери основу"
+	var base_title := get_base_title()
+	var position_title := "НАД ОГНЁМ" if vessel_position == VesselPosition.LOWERED else "ПОДНЯТ"
 	if not ingredient_loaded:
-		return "ВОДА %d°C · добавить измельчённый образец" % roundi(temperature)
+		return "%s · %d°C · %s · добавить образец" % [base_title, roundi(temperature), position_title]
 	if is_ruined():
 		return "СМЕСЬ ПЕРЕГРЕТА · запах гари"
 	if is_ready():
-		return "ТЁМНО-КРАСНЫЙ ПАР · можно разливать" if ingredient_id == &"ingredient.emberberry" else "СЕРЕБРИСТЫЙ ПАР · можно разливать"
+		return "%s · %d обор. часов · можно завершать" % [get_sensory_cue(), completed_hourglass_turns]
 	if temperature < TARGET_MIN:
-		return "НАГРЕВ %d°C · однородность %d%%" % [roundi(temperature), roundi(homogeneity * 100.0)]
+		return "%s · НАГРЕВ %d°C · однородность %d%%" % [position_title, roundi(temperature), roundi(homogeneity * 100.0)]
 	if temperature <= TARGET_MAX:
-		return "НУЖНЫЙ РЕЖИМ %d°C · выдержка %ds" % [roundi(temperature), roundi(effective_target_duration)]
+		var timer := "часы %d%%" % roundi(hourglass_elapsed / HOURGLASS_TURN_SECONDS * 100.0) if hourglass_running else "%d обор. часов" % completed_hourglass_turns
+		return "%s · %d°C · %s" % [get_sensory_cue(), roundi(temperature), timer]
 	return "СЛИШКОМ ГОРЯЧО %d°C · убавить огонь" % roundi(temperature)
+
+
+func get_base_title() -> String:
+	return {&"base.water": "РОДНИКОВАЯ ВОДА", &"base.kvass": "КИСЛЫЙ КВАС", &"base.spirit": "ХЛЕБНЫЙ СПИРТ"}.get(base_id, "НЕИЗВЕСТНАЯ ОСНОВА")
+
+
+func get_sensory_cue() -> String:
+	match get_heat_regime():
+		HeatRegime.COLD: return "ЖИДКОСТЬ МОЛЧИТ"
+		HeatRegime.WARM: return "ТОНКИЙ ПАР"
+		HeatRegime.SIMMER: return "РЕДКИЕ ПУЗЫРИ"
+		HeatRegime.BOIL: return "РОВНОЕ КИПЕНИЕ"
+		_: return "БУРНОЕ КИПЕНИЕ"
+
+
+func get_heat_regime() -> HeatRegime:
+	if temperature < 42.0: return HeatRegime.COLD
+	if temperature < 68.0: return HeatRegime.WARM
+	if temperature < 88.0: return HeatRegime.SIMMER
+	if temperature < 98.0: return HeatRegime.BOIL
+	return HeatRegime.VIOLENT
 
 
 func reset() -> void:
 	water_amount = 0.0
+	base_id = &""
 	temperature = 20.0
 	heat_level = HeatLevel.OFF
+	vessel_position = VesselPosition.LOWERED
+	bellows_pulls = 0
+	fire_momentum = 0.0
+	hourglass_running = false
+	hourglass_elapsed = 0.0
+	completed_hourglass_turns = 0
 	ingredient_loaded = false
 	ingredient_id = &""
 	ingredient_tags.clear()
@@ -117,8 +196,15 @@ func reset() -> void:
 func to_save_data() -> Dictionary:
 	return {
 		"water_amount": water_amount,
+		"base_id": String(base_id),
 		"temperature": temperature,
 		"heat_level": int(heat_level),
+		"vessel_position": int(vessel_position),
+		"bellows_pulls": bellows_pulls,
+		"fire_momentum": fire_momentum,
+		"hourglass_running": hourglass_running,
+		"hourglass_elapsed": hourglass_elapsed,
+		"completed_hourglass_turns": completed_hourglass_turns,
 		"ingredient_loaded": ingredient_loaded,
 		"ingredient_id": String(ingredient_id),
 		"ingredient_tags": ingredient_tags.map(func(value: StringName) -> String: return String(value)),
@@ -134,8 +220,15 @@ func to_save_data() -> Dictionary:
 
 func apply_save_data(data: Dictionary) -> void:
 	water_amount = clampf(float(data.get("water_amount", 0.0)), 0.0, 1.5)
+	base_id = StringName(data.get("base_id", "base.water" if water_amount > 0.0 else ""))
 	temperature = clampf(float(data.get("temperature", 20.0)), -20.0, 150.0)
 	heat_level = clampi(int(data.get("heat_level", HeatLevel.OFF)), HeatLevel.OFF, HeatLevel.HIGH) as HeatLevel
+	vessel_position = clampi(int(data.get("vessel_position", VesselPosition.LOWERED)), VesselPosition.RAISED, VesselPosition.LOWERED) as VesselPosition
+	bellows_pulls = maxi(0, int(data.get("bellows_pulls", 0)))
+	fire_momentum = clampf(float(data.get("fire_momentum", 0.0)), 0.0, 1.0)
+	hourglass_running = bool(data.get("hourglass_running", false))
+	hourglass_elapsed = clampf(float(data.get("hourglass_elapsed", 0.0)), 0.0, HOURGLASS_TURN_SECONDS)
+	completed_hourglass_turns = maxi(0, int(data.get("completed_hourglass_turns", 0)))
 	ingredient_loaded = bool(data.get("ingredient_loaded", false))
 	ingredient_id = StringName(data.get("ingredient_id", ""))
 	ingredient_tags.clear()

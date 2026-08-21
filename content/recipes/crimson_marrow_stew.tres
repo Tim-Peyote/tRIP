@@ -28,6 +28,9 @@ maximum_duration = 29.0
 minimum_stirs = 3
 minimum_homogeneity = 0.74
 maximum_overheat_duration = 2.0
+minimum_hourglass_turns = 2
+maximum_hourglass_turns = 4
+sensory_cue = &"iron_thump"
 player_hint = "Трижды перемешать против часовой стрелки и снять при первом глухом ударе."
 
 [resource]
@@ -40,5 +43,9 @@ primary_ingredient_id = &"ingredient.blood_antler"
 steps = Array[ExtResource("2")]([SubResource("Step_grind"), SubResource("Step_heat")])
 result_item_id = &"item.crimson_marrow_stew"
 effect_ids = Array[StringName]([&"effect.crimson_drive"])
+required_base_id = &"base.kvass"
+finish_method = 2
+minimum_station_tier = 1
+base_yield = 1
 acceptable_error = 0.2
 field_notes = "Роговик виден только после настоя спорозрения. Красный пар не должен перейти в чёрный."

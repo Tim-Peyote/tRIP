@@ -1,4 +1,4 @@
-[gd_scene load_steps=78 format=3]
+[gd_scene load_steps=79 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -37,6 +37,7 @@
 [ext_resource type="Script" path="res://features/developer/world_phase_developer_panel.gd" id="35_phase_developer"]
 [ext_resource type="RecipeDefinition" path="res://content/recipes/crimson_marrow_stew.tres" id="36_crimson_recipe"]
 [ext_resource type="Script" path="res://features/cooking/recipe_knowledge_orchestrator.gd" id="37_recipe_knowledge"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/bottle.glb" id="41_bottle"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -675,8 +676,13 @@ collision_layer = 4
 collision_mask = 0
 
 [node name="Body" type="MeshInstance3D" parent="BottleRack"]
+visible = false
 mesh = SubResource("Mesh_pestle")
 material_override = SubResource("Material_bottle")
+
+[node name="BottleVisual" parent="BottleRack" instance=ExtResource("41_bottle")]
+position = Vector3(0, -0.12, 0)
+scale = Vector3(3.6, 3.6, 3.6)
 
 [node name="Collision" type="CollisionShape3D" parent="BottleRack"]
 shape = SubResource("Shape_small_tool")
@@ -692,6 +698,207 @@ inspection_description = "Стекло простерилизовано. Ран�
 [node name="PhysicalCookingStationComponent" type="Node" parent="BottleRack"]
 script = ExtResource("16_physical_cooking")
 role = "bottle"
+
+[node name="KvassJug" type="StaticBody3D" parent="."]
+position = Vector3(2.0, 1.08, -2.4)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="KvassJug"]
+position = Vector3(0, 0.11, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+mesh = SubResource("Mesh_mortar")
+material_override = SubResource("Material_table")
+
+[node name="Collision" type="CollisionShape3D" parent="KvassJug"]
+position = Vector3(0, 0.11, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="KvassJug"]
+script = ExtResource("7_interactable")
+object_name = "Фляга кислого кваса"
+primary_action = &"add_kvass"
+primary_verb = "Налить кислый квас"
+hold_duration = 0.35
+inspection_description = "Кислая зерновая основа вытягивает плоть корней и ягод, но портит тонкие грибные настои."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="KvassJug"]
+script = ExtResource("16_physical_cooking")
+role = "add_kvass"
+
+[node name="SpiritFlask" type="StaticBody3D" parent="."]
+position = Vector3(2.34, 1.12, -2.42)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="SpiritFlask"]
+visible = false
+scale = Vector3(0.56, 0.8, 0.56)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_bottle")
+
+[node name="BottleVisual" parent="SpiritFlask" instance=ExtResource("41_bottle")]
+position = Vector3(0, -0.12, 0)
+scale = Vector3(3.1, 4.0, 3.1)
+
+[node name="Collision" type="CollisionShape3D" parent="SpiritFlask"]
+scale = Vector3(0.56, 0.8, 0.56)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="SpiritFlask"]
+script = ExtResource("7_interactable")
+object_name = "Склянка хлебного спирта"
+primary_action = &"add_spirit"
+primary_verb = "Налить хлебный спирт"
+hold_duration = 0.35
+inspection_description = "Летучая основа для перегонки редких формул. У открытого огня требует точного режима."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="SpiritFlask"]
+script = ExtResource("16_physical_cooking")
+role = "add_spirit"
+
+[node name="PotCrane" type="StaticBody3D" parent="."]
+position = Vector3(0.98, 1.02, -1.92)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="PotCrane"]
+rotation = Vector3(0, 0, 0.35)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_cauldron")
+
+[node name="Collision" type="CollisionShape3D" parent="PotCrane"]
+rotation = Vector3(0, 0, 0.35)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="PotCrane"]
+script = ExtResource("7_interactable")
+object_name = "Крюк котла"
+primary_action = &"vessel_position"
+primary_verb = "Поднять котёл"
+hold_duration = 0.3
+inspection_description = "Крюк быстро снимает котёл с жара, не сбивая ход состава."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="PotCrane"]
+script = ExtResource("16_physical_cooking")
+role = "vessel_position"
+
+[node name="Bellows" type="StaticBody3D" parent="."]
+position = Vector3(1.72, 0.42, -1.65)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Bellows"]
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1.1, 1.5, 1.1)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_table")
+
+[node name="Collision" type="CollisionShape3D" parent="Bellows"]
+rotation = Vector3(0, 0, 1.5708)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Bellows"]
+script = ExtResource("7_interactable")
+object_name = "Кожаные мехи"
+primary_action = &"bellows"
+primary_verb = "Качнуть мехи"
+hold_duration = 0.28
+inspection_description = "Короткий толчок воздуха ускоряет нагрев. Лишние качки легко срывают состав в бурное кипение."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Bellows"]
+script = ExtResource("16_physical_cooking")
+role = "bellows"
+
+[node name="Hourglass" type="StaticBody3D" parent="."]
+position = Vector3(1.24, 1.33, -2.75)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Hourglass"]
+scale = Vector3(0.42, 0.62, 0.42)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_bottle")
+
+[node name="Collision" type="CollisionShape3D" parent="Hourglass"]
+scale = Vector3(0.42, 0.62, 0.42)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Hourglass"]
+script = ExtResource("7_interactable")
+object_name = "Песочные часы"
+primary_action = &"hourglass"
+primary_verb = "Перевернуть песочные часы"
+hold_duration = 0.22
+inspection_description = "Один оборот — восемь секунд. Полевые формулы записаны оборотами, а не цифрами термометра."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Hourglass"]
+script = ExtResource("16_physical_cooking")
+role = "hourglass"
+
+[node name="Distiller" type="StaticBody3D" parent="."]
+position = Vector3(-2.0, 1.16, -2.45)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Distiller"]
+rotation = Vector3(0, 0, 1.25)
+scale = Vector3(0.75, 1.35, 0.75)
+mesh = SubResource("Mesh_pestle")
+material_override = SubResource("Material_cauldron")
+
+[node name="Receiver" type="MeshInstance3D" parent="Distiller"]
+visible = false
+position = Vector3(0.22, -0.08, 0)
+scale = Vector3(0.48, 0.62, 0.48)
+mesh = SubResource("Mesh_mortar")
+material_override = SubResource("Material_bottle")
+
+[node name="ReceiverBottle" parent="Distiller" instance=ExtResource("41_bottle")]
+position = Vector3(0.22, -0.15, 0)
+scale = Vector3(2.7, 3.3, 2.7)
+
+[node name="Collision" type="CollisionShape3D" parent="Distiller"]
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Distiller"]
+script = ExtResource("7_interactable")
+object_name = "Полевой змеевик"
+primary_action = &"distill"
+primary_verb = "Перегнать состав"
+hold_duration = 0.9
+inspection_description = "Медная трубка отделяет летучую память настоя от тяжёлого осадка."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Distiller"]
+script = ExtResource("16_physical_cooking")
+role = "distill"
+
+[node name="ServingBowl" type="StaticBody3D" parent="."]
+position = Vector3(-2.34, 1.08, -2.35)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="ServingBowl"]
+scale = Vector3(0.68, 0.5, 0.68)
+mesh = SubResource("Mesh_mortar")
+material_override = SubResource("Material_stone")
+
+[node name="Collision" type="CollisionShape3D" parent="ServingBowl"]
+scale = Vector3(0.68, 0.5, 0.68)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="ServingBowl"]
+script = ExtResource("7_interactable")
+object_name = "Походная миска"
+primary_action = &"serve"
+primary_verb = "Снять походную порцию"
+hold_duration = 0.5
+inspection_description = "Плотные отвары не разливают в склянки: их снимают с огня и едят тёплыми."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="ServingBowl"]
+script = ExtResource("16_physical_cooking")
+role = "serve"
 
 [node name="Rug" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.11, 0.75)

@@ -25,6 +25,9 @@ maximum_duration = 28.0
 minimum_stirs = 1
 minimum_homogeneity = 0.62
 maximum_overheat_duration = 2.5
+minimum_hourglass_turns = 2
+maximum_hourglass_turns = 3
+sensory_cue = &"fading_chime"
 player_hint = "Перемешать один раз и слушать, пока звон не уйдёт в воду."
 [resource]
 script = ExtResource("1")
@@ -36,5 +39,7 @@ primary_ingredient_id = &"ingredient.ashen_bell"
 steps = Array[ExtResource("2")]([SubResource("grind"), SubResource("heat")])
 result_item_id = &"item.ashen_bell_tea"
 effect_ids = Array[StringName]([&"effect.ashen_hearing"])
+required_base_id = &"base.water"
+finish_method = 0
 acceptable_error = 0.22
 field_notes = "У состава нет визуального признака готовности — ориентироваться только на затихающий звон."

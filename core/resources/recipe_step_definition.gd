@@ -12,6 +12,9 @@ extends Resource
 @export_range(0, 20, 1) var minimum_stirs: int = 0
 @export_range(0.0, 1.0, 0.01) var minimum_homogeneity: float = 0.0
 @export_range(0.0, 120.0, 0.1, "suffix:s") var maximum_overheat_duration: float = 120.0
+@export_range(0, 12, 1) var minimum_hourglass_turns: int = 0
+@export_range(0, 12, 1) var maximum_hourglass_turns: int = 12
+@export var sensory_cue: StringName
 @export_multiline var player_hint: String
 
 
@@ -25,4 +28,6 @@ func validate(index: int) -> PackedStringArray:
 		messages.append("Step %d temperature range is inverted." % index)
 	if minimum_duration > maximum_duration:
 		messages.append("Step %d duration range is inverted." % index)
+	if minimum_hourglass_turns > maximum_hourglass_turns:
+		messages.append("Step %d hourglass range is inverted." % index)
 	return messages

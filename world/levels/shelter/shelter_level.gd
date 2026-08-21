@@ -33,6 +33,7 @@ var biome_hazard: BiomeHazardOrchestrator
 var biome_population: BiomePopulationOrchestrator
 var weather: WeatherOrchestrator
 var physical_showcase: PhysicalInteractionShowcase
+var cooking_station_progression_visuals: CookingStationProgressionVisuals
 
 
 func _ready() -> void:
@@ -220,11 +221,16 @@ func _setup_road_laboratory(terrain: ExpeditionTerrain) -> void:
 	for path: NodePath in [
 		NodePath("Table"), NodePath("Mooncap"), NodePath("Mortar"), NodePath("Cauldron"),
 		NodePath("WashBasin"), NodePath("PrepBoard"), NodePath("WaterJug"), NodePath("FireControl"), NodePath("Ladle"), NodePath("BottleRack"),
+		NodePath("KvassJug"), NodePath("SpiritFlask"), NodePath("PotCrane"), NodePath("Bellows"), NodePath("Hourglass"), NodePath("Distiller"), NodePath("ServingBowl"),
 		NodePath("Rug"), NodePath("CookingStationVisuals"), NodePath("CookingStationAudio"),
 		NodePath("ShelterProgressionVisuals"), NodePath("InvestigationBoard")
 	]:
 		portable_nodes.append(get_node(path))
 	road_laboratory.setup(player, terrain, portable_nodes)
+	cooking_station_progression_visuals = CookingStationProgressionVisuals.new()
+	cooking_station_progression_visuals.name = "CookingStationProgressionVisuals"
+	add_child(cooking_station_progression_visuals)
+	cooking_station_progression_visuals.setup(cooking_orchestrator, road_laboratory.get_node("PortableLaboratory"))
 	road_laboratory.laboratory_entered.connect(objective_orchestrator.record_return)
 	road_laboratory.autosave_requested.connect(session_persistence.request_autosave)
 	road_laboratory.metamorphosis_started.connect(func() -> void:

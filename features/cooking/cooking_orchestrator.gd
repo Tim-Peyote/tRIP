@@ -7,6 +7,7 @@ signal process_reset
 signal result_created(result: RecipeResolution, display_name: String)
 signal vessel_state_changed(state: ThermalVesselState)
 signal physical_action_recorded(action: StringName)
+signal mastery_changed(tier: int, batches_completed: int)
 
 @export var recipe: RecipeDefinition
 @export var recipes: Array[RecipeDefinition] = []
@@ -14,6 +15,8 @@ signal physical_action_recorded(action: StringName)
 var process := CookingProcess.new()
 var vessel := ThermalVesselState.new()
 var active_recipe: RecipeDefinition
+var batches_completed: int = 0
+var station_tier: int = 0
 
 
 func _ready() -> void:
@@ -31,10 +34,14 @@ func _process(delta: float) -> void:
 
 
 func add_water() -> bool:
-	if not vessel.add_water(1.0):
-		action_rejected.emit("В котле уже достаточно воды.")
+	return add_base(&"base.water")
+
+
+func add_base(base_id: StringName) -> bool:
+	if not vessel.add_base(base_id, 1.0):
+		action_rejected.emit("Котёл уже заполнен другой основой.")
 		return false
-	physical_action_recorded.emit(&"add_water")
+	physical_action_recorded.emit(StringName("add_%s" % String(base_id).get_slice(".", 1)))
 	vessel_state_changed.emit(vessel)
 	return true
 
@@ -71,7 +78,44 @@ func stir_vessel() -> bool:
 	return true
 
 
+func toggle_vessel_position() -> bool:
+	var position := vessel.toggle_vessel_position()
+	physical_action_recorded.emit(&"lower_vessel" if position == ThermalVesselState.VesselPosition.LOWERED else &"raise_vessel")
+	vessel_state_changed.emit(vessel)
+	return true
+
+
+func pump_bellows() -> bool:
+	if not vessel.pump_bellows():
+		action_rejected.emit("Сначала разожги очаг.")
+		return false
+	physical_action_recorded.emit(&"bellows")
+	vessel_state_changed.emit(vessel)
+	return true
+
+
+func flip_hourglass() -> bool:
+	if not vessel.flip_hourglass():
+		action_rejected.emit("Песок ещё не высыпался.")
+		return false
+	physical_action_recorded.emit(&"hourglass")
+	vessel_state_changed.emit(vessel)
+	return true
+
+
 func bottle_result(actor: Node) -> bool:
+	return finish_result(actor, RecipeDefinition.FinishMethod.BOTTLE)
+
+
+func distill_result(actor: Node) -> bool:
+	return finish_result(actor, RecipeDefinition.FinishMethod.DISTILL)
+
+
+func serve_result(actor: Node) -> bool:
+	return finish_result(actor, RecipeDefinition.FinishMethod.SERVE)
+
+
+func finish_result(actor: Node, finish_method: RecipeDefinition.FinishMethod) -> bool:
 	if not vessel.ingredient_loaded:
 		action_rejected.emit("В котле нет состава.")
 		return false
@@ -97,7 +141,8 @@ func bottle_result(actor: Node) -> bool:
 	event.overheat_duration = vessel.overheat_duration
 	process.append_event(event)
 	action_recorded.emit(&"heat", process.events.size())
-	_resolve(inventory)
+	physical_action_recorded.emit(StringName(RecipeDefinition.FinishMethod.keys()[finish_method].to_lower()))
+	_resolve(inventory, finish_method)
 	return true
 
 
@@ -172,6 +217,8 @@ func to_save_data() -> Dictionary:
 		"process": process.to_save_data(),
 		"vessel": vessel.to_save_data(),
 		"active_recipe_id": String(active_recipe.id) if active_recipe != null else "",
+		"batches_completed": batches_completed,
+		"station_tier": station_tier,
 	}
 
 
@@ -182,23 +229,69 @@ func apply_save_data(data: Dictionary) -> void:
 	active_recipe = _find_recipe_by_id(saved_recipe_id)
 	if active_recipe == null:
 		active_recipe = _find_recipe(vessel.ingredient_id) if vessel.ingredient_id != &"" else recipe
+	batches_completed = maxi(0, int(data.get("batches_completed", 0)))
+	station_tier = clampi(int(data.get("station_tier", _tier_for_batches(batches_completed))), 0, 3)
+	mastery_changed.emit(station_tier, batches_completed)
 	vessel_state_changed.emit(vessel)
 
 
-func _resolve(inventory: InventoryComponent) -> void:
+func _resolve(inventory: InventoryComponent, finish_method: RecipeDefinition.FinishMethod = RecipeDefinition.FinishMethod.BOTTLE) -> void:
 	var current_recipe := active_recipe if active_recipe != null else recipe
-	var resolution := RecipeResolver.new().resolve(process, current_recipe)
+	var physical_batch := vessel.ingredient_loaded
+	var resolved_base := vessel.base_id if vessel.base_id != &"" else current_recipe.required_base_id
+	var resolved_turns := vessel.completed_hourglass_turns
+	var resolved_finish := finish_method
+	var resolved_tier := station_tier
+	if not physical_batch:
+		# Direct semantic actions are retained for automated fixtures and migration
+		# of old saves. Player-facing stations always use the strict physical path.
+		resolved_finish = current_recipe.finish_method
+		resolved_tier = maxi(station_tier, current_recipe.minimum_station_tier)
+		for step: RecipeStepDefinition in current_recipe.steps:
+			if step.operation == &"heat":
+				resolved_turns = step.minimum_hourglass_turns
+				break
+	var resolution := RecipeResolver.new().resolve(
+		process,
+		current_recipe,
+		resolved_base,
+		resolved_finish,
+		resolved_tier,
+		resolved_turns
+	)
+	if not physical_batch:
+		resolution.yield_count = current_recipe.base_yield
 	var result_definition := ContentDB.get_definition(resolution.result_item_id)
 	var result_name := result_definition.display_name if result_definition != null else String(resolution.result_item_id)
 	if resolution.quality < RecipeResolution.Quality.WORKING:
 		action_rejected.emit("Смесь испорчена. Проверь порядок и признаки процесса.")
 		reset_process()
 		return
-	if not inventory.add_item(ItemInstance.new(resolution.result_item_id, 1.0)):
+	var result_item := ItemInstance.new(resolution.result_item_id, float(resolution.yield_count))
+	result_item.quality = clampf(resolution.score, 0.0, 1.0)
+	result_item.processing_state[&"batch_quality"] = RecipeResolution.Quality.keys()[resolution.quality].to_lower()
+	result_item.processing_state[&"finish_method"] = RecipeDefinition.FinishMethod.keys()[finish_method].to_lower()
+	if not inventory.add_item(result_item):
 		action_rejected.emit("В сумке нет места для готового состава.")
 		return
+	batches_completed += 1
+	var previous_tier := station_tier
+	station_tier = _tier_for_batches(batches_completed)
+	if station_tier != previous_tier:
+		physical_action_recorded.emit(&"station_upgrade")
+	mastery_changed.emit(station_tier, batches_completed)
 	result_created.emit(resolution, result_name)
 	reset_process()
+
+
+func _tier_for_batches(value: int) -> int:
+	if value >= 12:
+		return 3
+	if value >= 5:
+		return 2
+	if value >= 2:
+		return 1
+	return 0
 
 
 func _find_recipe(ingredient_id: StringName) -> RecipeDefinition:

@@ -28,6 +28,9 @@ maximum_duration = 32.0
 minimum_stirs = 2
 minimum_homogeneity = 0.65
 maximum_overheat_duration = 3.5
+minimum_hourglass_turns = 1
+maximum_hourglass_turns = 3
+sensory_cue = &"dark_red_steam"
 player_hint = "Выдержать до тёмно-красного пара и снять до вспышки."
 
 [resource]
@@ -40,6 +43,8 @@ primary_ingredient_id = &"ingredient.emberberry"
 steps = Array[ExtResource("2")]([SubResource("Step_grind"), SubResource("Step_heat")])
 result_item_id = &"item.emberberry_tonic"
 effect_ids = Array[StringName]([&"effect.spore_quiet"])
+required_base_id = &"base.kvass"
+finish_method = 0
+base_yield = 1
 acceptable_error = 0.25
 field_notes = "Ягоды раздавить, но не дробить семена. Красный пар означает готовность."
-

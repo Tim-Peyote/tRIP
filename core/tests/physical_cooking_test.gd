@@ -26,6 +26,7 @@ func _run() -> void:
 	_expect(cooking.add_water(), "Water could not be added.")
 	_expect(cooking.transfer_prepared_ingredient(), "Ground cap could not be transferred.")
 	cooking.cycle_heat()
+	cooking.flip_hourglass()
 	while cooking.vessel.temperature < 50.0:
 		cooking.vessel.simulate(0.1)
 	cooking.stir_vessel()
@@ -34,13 +35,17 @@ func _run() -> void:
 	while not cooking.vessel.is_ready() and safety < 400:
 		cooking.vessel.simulate(0.1)
 		safety += 1
+	while cooking.vessel.hourglass_running and safety < 500:
+		cooking.vessel.simulate(0.1)
+		safety += 1
 	_expect(cooking.vessel.is_ready(), "Low heat never reached a valid ready state.")
 	_expect(not cooking.vessel.is_ruined(), "Low heat ruined a correctly managed brew.")
 	_expect(cooking.bottle_result(player), "Ready brew could not be bottled.")
 	_expect(_result_quality == RecipeResolution.Quality.PURE, "Managed physical brew was not PURE.")
-	_expect(player.inventory.count(&"item.spore_sight_brew") == 1.0, "Physical cooking did not create a brew item.")
+	_expect(player.inventory.count(&"item.spore_sight_brew") >= 1.0, "Physical cooking did not create a brew item.")
 
-	player.inventory.remove_one(&"item.spore_sight_brew")
+	while player.inventory.count(&"item.spore_sight_brew") > 0.0:
+		player.inventory.remove_one(&"item.spore_sight_brew")
 	_add_clean_cap(player)
 	_expect(_grind_cap(cooking, player), "Second cap could not be ground.")
 	cooking.add_water()

@@ -10,6 +10,14 @@ func _ready() -> void:
 	main.call("_on_game_requested", 95, true)
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	level.road_laboratory.developer_toggle(false)
+	var portable := level.road_laboratory.get_node("PortableLaboratory") as Node3D
+	var cauldron := portable.get_node("Cauldron") as Node3D
+	var capture_camera := Camera3D.new()
+	level.add_child(capture_camera)
+	capture_camera.global_position = cauldron.global_position + Vector3(0.2, 1.45, 3.0)
+	capture_camera.look_at(cauldron.global_position + Vector3(0.0, 0.12, -0.15), Vector3.UP)
+	capture_camera.current = true
 	var vessel := level.cooking_orchestrator.vessel
 	vessel.add_water(1.0)
 	vessel.add_ingredient(&"ingredient.mooncap", 1.0)

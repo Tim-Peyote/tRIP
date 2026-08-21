@@ -16,12 +16,24 @@ var _tool_tween: Tween
 var _pestle_rest: Transform3D
 var _jug_rest: Transform3D
 var _ladle_rest: Transform3D
+var _cauldron: Node3D
+var _cauldron_rest: Transform3D
+var _hourglass: Node3D
+var _hourglass_rest: Transform3D
+var _bellows: Node3D
+var _bellows_rest: Transform3D
 
 
 func _ready() -> void:
 	_pestle_rest = pestle.transform
 	_jug_rest = water_jug.transform
 	_ladle_rest = ladle.transform
+	_cauldron = get_parent().get_node_or_null("Cauldron") as Node3D
+	_hourglass = get_parent().get_node_or_null("Hourglass") as Node3D
+	_bellows = get_parent().get_node_or_null("Bellows") as Node3D
+	if _cauldron != null: _cauldron_rest = _cauldron.transform
+	if _hourglass != null: _hourglass_rest = _hourglass.transform
+	if _bellows != null: _bellows_rest = _bellows.transform
 
 
 func setup(orchestrator: CookingOrchestrator) -> void:
@@ -72,7 +84,9 @@ func _on_vessel_state_changed(state: ThermalVesselState) -> void:
 	steam.visible = state.ingredient_loaded and state.temperature >= 58.0
 	fire_mesh.visible = state.heat_level != ThermalVesselState.HeatLevel.OFF
 	fire_glow.visible = fire_mesh.visible
-	fire_glow.light_energy = 1.2 if state.heat_level == ThermalVesselState.HeatLevel.LOW else 2.4
+	fire_glow.light_energy = (1.2 if state.heat_level == ThermalVesselState.HeatLevel.LOW else 2.4) + state.fire_momentum * 1.1
+	fire_mesh.scale = Vector3.ONE * (1.0 + state.fire_momentum * 0.28)
+	steam.scale = Vector3.ONE * lerpf(0.65, 1.5, inverse_lerp(52.0, 102.0, state.temperature))
 	if active_liquid.visible:
 		var material := active_liquid.material_override as StandardMaterial3D
 		if material != null:
@@ -81,7 +95,8 @@ func _on_vessel_state_changed(state: ThermalVesselState) -> void:
 				material.albedo_color = Color(0.22, 0.045, 0.025).lerp(Color(0.72, 0.09, 0.018), heat_t)
 				material.emission = Color(0.5, 0.035, 0.01)
 			else:
-				material.albedo_color = Color(0.12, 0.22, 0.16).lerp(Color(0.44, 0.34, 0.09), heat_t)
+				var base_color: Color = {&"base.kvass": Color(0.34, 0.15, 0.045), &"base.spirit": Color(0.16, 0.24, 0.3)}.get(state.base_id, Color(0.12, 0.22, 0.16))
+				material.albedo_color = base_color.lerp(Color(0.44, 0.34, 0.09), heat_t)
 				material.emission = Color(0.16, 0.29, 0.07)
 
 
@@ -95,7 +110,7 @@ func _animate_tool(action: StringName) -> void:
 		_tool_tween.kill()
 	_tool_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	match action:
-		&"add_water":
+		&"add_water", &"add_kvass", &"add_spirit":
 			_tool_tween.tween_property(water_jug, "rotation:z", -0.9, 0.22)
 			_tool_tween.tween_property(water_jug, "rotation:z", _jug_rest.basis.get_euler().z, 0.3)
 		&"stir":
@@ -104,6 +119,18 @@ func _animate_tool(action: StringName) -> void:
 		&"transfer":
 			_tool_tween.tween_property(pestle, "position:y", _pestle_rest.origin.y + 0.18, 0.18)
 			_tool_tween.tween_property(pestle, "position:y", _pestle_rest.origin.y, 0.24)
+		&"lower_vessel", &"raise_vessel":
+			if _cauldron != null:
+				var offset := -0.18 if action == &"lower_vessel" else 0.18
+				_tool_tween.tween_property(_cauldron, "position:y", _cauldron_rest.origin.y + offset, 0.32)
+		&"bellows":
+			if _bellows != null:
+				_tool_tween.tween_property(_bellows, "scale:z", 0.55, 0.14)
+				_tool_tween.tween_property(_bellows, "scale:z", _bellows_rest.basis.get_scale().z, 0.22)
+		&"hourglass":
+			if _hourglass != null:
+				_tool_tween.tween_property(_hourglass, "rotation:z", _hourglass_rest.basis.get_euler().z + PI, 0.35)
+				_tool_tween.tween_property(_hourglass, "rotation:z", _hourglass_rest.basis.get_euler().z, 0.01)
 		_:
 			_tool_tween.tween_property(pestle, "rotation:z", -1.05, 0.16)
 			_tool_tween.tween_property(pestle, "rotation:z", _pestle_rest.basis.get_euler().z, 0.24)
