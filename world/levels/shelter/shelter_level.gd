@@ -36,6 +36,7 @@ var physical_showcase: PhysicalInteractionShowcase
 
 
 func _ready() -> void:
+	_disable_hidden_legacy_audio()
 	var terrain := $ExpeditionTerrain as ExpeditionTerrain
 	terrain.setup(player)
 	world_phase_orchestrator.setup(terrain, biome_visual_controller)
@@ -266,6 +267,7 @@ func _setup_physical_interaction(terrain: ExpeditionTerrain) -> void:
 
 
 func _disable_legacy_shelter() -> void:
+	_disable_hidden_legacy_audio()
 	for node_path: NodePath in [
 		NodePath("Architecture"), NodePath("ShelterDressing"), NodePath("Lighting/Lamp"), NodePath("ForestDoor")
 	]:
@@ -275,6 +277,12 @@ func _disable_legacy_shelter() -> void:
 	_set_branch_active(forest_trail.get_node("ReturnPortal"), false)
 	_set_branch_active(forest_trail.get_node("SporeRoute/VisionGate"), false)
 	_set_branch_active(root_well_gate, false)
+
+
+func _disable_hidden_legacy_audio() -> void:
+	for branch: Node in [forest_trail, deep_grove, root_well]:
+		for node: Node in branch.find_children("*", "SpatialForestEmitter", true, false):
+			(node as SpatialForestEmitter).set_audio_active(false)
 
 
 func _set_branch_active(branch: Node, value: bool) -> void:

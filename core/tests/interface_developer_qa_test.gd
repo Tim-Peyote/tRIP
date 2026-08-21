@@ -32,6 +32,11 @@ func _run() -> void:
 	main.call("_on_game_requested", 41, true)
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var hidden_legacy_emitters := level.find_children("*", "SpatialForestEmitter", true, false)
+	_expect(hidden_legacy_emitters.size() >= 6, "Legacy route audio audit did not find every authored spatial emitter.")
+	for node: Node in hidden_legacy_emitters:
+		var emitter := node as SpatialForestEmitter
+		_expect(not emitter.start_active and not emitter.playing, "Hidden legacy route audio started during a new expedition: %s" % emitter.get_path())
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	var biome_key_light := level.biome_visual_controller.get_primary_light()
 	_expect(biome_key_light != null and is_equal_approx(biome_key_light.light_energy, level.biome_visual_controller.forest_profile.primary_light_energy), "Biome visual controller did not bind the level key light.")

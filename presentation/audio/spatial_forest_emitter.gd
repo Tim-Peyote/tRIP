@@ -8,6 +8,9 @@ const CREEPY_FOREST := preload("res://assets/third_party/open_game_art_audio/cre
 @export_enum("whisper", "drip", "pulse") var voice: String = "whisper"
 @export_range(0.0, 1.0, 0.01) var intensity: float = 0.2
 @export var seed: int = 1701
+@export var start_active: bool = false
+
+var _configured := false
 
 
 func _ready() -> void:
@@ -24,4 +27,23 @@ func _ready() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	pitch_scale = rng.randf_range(0.92, 1.06)
-	play(rng.randf_range(0.0, minf(4.0, stream.get_length() * 0.2)))
+	_configured = true
+	if start_active:
+		play(rng.randf_range(0.0, minf(4.0, stream.get_length() * 0.2)))
+
+
+func set_audio_active(value: bool) -> void:
+	start_active = value
+	if not _configured:
+		return
+	if value:
+		if not playing:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = seed + Time.get_ticks_msec()
+			play(rng.randf_range(0.0, minf(4.0, stream.get_length() * 0.2)))
+	elif playing:
+		stop()
+
+
+func is_audio_active() -> bool:
+	return start_active and playing
