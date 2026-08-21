@@ -264,6 +264,18 @@ func is_gameplay_enabled() -> bool:
 	return _gameplay_enabled
 
 
+func get_movement_debug_state() -> Dictionary:
+	return {
+		"input": _get_movement_input(),
+		"wish": _wish_direction,
+		"velocity": velocity,
+		"grounded": is_on_floor(),
+		"crouched": _is_crouched,
+		"collisions": get_slide_collision_count(),
+		"accepts_input": _accepts_gameplay_input(),
+	}
+
+
 func _accepts_gameplay_input() -> bool:
 	return _gameplay_input_override or (_gameplay_enabled and not get_tree().paused)
 

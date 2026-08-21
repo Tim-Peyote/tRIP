@@ -16,6 +16,8 @@ const SHELTER_SCENE: PackedScene = preload("res://world/levels/shelter/shelter_l
 var _active_level: ShelterLevel
 var _active_player: FirstPersonController
 var _input_diagnostic: Label
+var _audio_diagnostic_text: String = "PLAYING: scanning..."
+var _audio_diagnostic_elapsed: float = 0.0
 
 
 func _ready() -> void:
@@ -35,7 +37,11 @@ func _ready() -> void:
 	world_metamorphosis_director.transition_finished.connect(_on_world_transition_finished)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_audio_diagnostic_elapsed += delta
+	if _audio_diagnostic_elapsed >= 0.5:
+		_audio_diagnostic_elapsed = 0.0
+		_audio_diagnostic_text = _collect_playing_audio_text()
 	_update_input_diagnostic()
 
 
@@ -57,37 +63,63 @@ func _setup_input_diagnostic() -> void:
 	background.content_margin_bottom = 7.0
 	_input_diagnostic.add_theme_stylebox_override("normal", background)
 	_input_diagnostic.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_input_diagnostic.position = Vector2(-390.0, -66.0)
-	_input_diagnostic.size = Vector2(780.0, 52.0)
+	_input_diagnostic.position = Vector2(-470.0, -126.0)
+	_input_diagnostic.size = Vector2(940.0, 112.0)
 	$UI.add_child(_input_diagnostic)
 
 
 func _update_input_diagnostic() -> void:
 	if _input_diagnostic == null or not is_instance_valid(_input_diagnostic):
 		return
-	var keys := "W:%d  A:%d  S:%d  D:%d  SPACE:%d" % [
+	var keys := "W:%d  A:%d  S:%d  D:%d  SPACE:%d  C:%d" % [
 		int(Input.is_physical_key_pressed(KEY_W)),
 		int(Input.is_physical_key_pressed(KEY_A)),
 		int(Input.is_physical_key_pressed(KEY_S)),
 		int(Input.is_physical_key_pressed(KEY_D)),
 		int(Input.is_physical_key_pressed(KEY_SPACE)),
+		int(Input.is_physical_key_pressed(KEY_C)),
 	]
 	if _active_player == null:
-		_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  |  LEVEL:MENU  |  %s  |  MASTER:MUTED" % [
-			int(DisplayServer.window_is_focused()), keys,
+		_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  |  LEVEL:MENU  |  %s  |  MASTER:MUTED\n%s" % [
+			int(DisplayServer.window_is_focused()), keys, _audio_diagnostic_text,
 		]
 		return
-	_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  PAUSE:%d  GAMEPLAY:%d  CAPTURE:%d  |  %s\nPOS:(%.1f, %.1f, %.1f)  SPEED:%.2f  |  MASTER:MUTED" % [
+	var movement := _active_player.get_movement_debug_state()
+	var input_vector: Vector2 = movement["input"]
+	var velocity: Vector3 = movement["velocity"]
+	_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  PAUSE:%d  GAMEPLAY:%d  ACCEPT:%d  GROUND:%d  CROUCH:%d  COLL:%d  |  %s\nIN:(%.1f, %.1f)  VEL:(%.2f, %.2f, %.2f)  POS:(%.1f, %.1f, %.1f)  SPEED:%.2f  |  MASTER:MUTED\n%s" % [
 		int(DisplayServer.window_is_focused()),
 		int(get_tree().paused),
 		int(_active_player.is_gameplay_enabled()),
-		int(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED),
+		int(bool(movement["accepts_input"])),
+		int(bool(movement["grounded"])),
+		int(bool(movement["crouched"])),
+		int(movement["collisions"]),
 		keys,
+		input_vector.x,
+		input_vector.y,
+		velocity.x,
+		velocity.y,
+		velocity.z,
 		_active_player.global_position.x,
 		_active_player.global_position.y,
 		_active_player.global_position.z,
 		_active_player.get_planar_speed(),
+		_audio_diagnostic_text,
 	]
+
+
+func _collect_playing_audio_text() -> String:
+	var playing := PackedStringArray()
+	for node: Node in get_tree().root.find_children("*", "AudioStreamPlayer", true, false):
+		var player := node as AudioStreamPlayer
+		if player.playing:
+			playing.append("%s[%s]" % [player.name, player.bus])
+	for node: Node in get_tree().root.find_children("*", "AudioStreamPlayer3D", true, false):
+		var player := node as AudioStreamPlayer3D
+		if player.playing:
+			playing.append("%s[%s]" % [player.name, player.bus])
+	return "PLAYING: none" if playing.is_empty() else "PLAYING: " + ", ".join(playing)
 
 
 func _unhandled_input(event: InputEvent) -> void:
