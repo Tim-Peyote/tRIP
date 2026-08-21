@@ -40,6 +40,10 @@ func has_effect(effect_id: StringName) -> bool:
 	return _active.has(effect_id)
 
 
+func get_gameplay_channels() -> Dictionary[StringName, float]:
+	return _last_gameplay_channels.duplicate()
+
+
 func _process(delta: float) -> void:
 	if _active.is_empty():
 		return

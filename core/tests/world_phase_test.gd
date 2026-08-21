@@ -39,6 +39,14 @@ func _run() -> void:
 	orchestrator.apply_gameplay_channels({&"spore_vision": 1.0})
 	_expect(orchestrator.get_current().id == &"phase.mycelial_choir", "Real consumable channel did not select the mycelial world.")
 	_expect(not orchestrator.is_developer_override_active(), "Gameplay phase remained in developer override mode.")
+	var metamorphosis := WorldMetamorphosisDirector.new()
+	add_child(metamorphosis)
+	metamorphosis.setup(orchestrator)
+	orchestrator.set_developer_phase(&"phase.glass_frost")
+	_expect(metamorphosis.is_transitioning(), "Changing world phase did not start a consciousness transition.")
+	_expect(metamorphosis.get_target_phase_id() == &"phase.glass_frost", "Transition did not retain its target world.")
+	metamorphosis.finish_immediately()
+	_expect(not metamorphosis.is_transitioning(), "Transition could not settle cleanly.")
 	_finish()
 
 

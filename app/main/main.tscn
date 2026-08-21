@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://app/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://features/frontend/frontend_orchestrator.gd" id="2_frontend"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://presentation/ui/gameplay_hud.tscn" id="6_hud"]
 [ext_resource type="Script" path="res://features/effects/effect_orchestrator.gd" id="7_effects"]
 [ext_resource type="Shader" path="res://presentation/shaders/perception_screen.gdshader" id="8_screen_shader"]
+[ext_resource type="Script" path="res://presentation/world_metamorphosis_director.gd" id="9_metamorphosis"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_perception"]
 shader = ExtResource("8_screen_shader")
@@ -101,6 +102,10 @@ script = ExtResource("4_presentation")
 [node name="AudioDirector" type="Node" parent="Presentation"]
 unique_name_in_owner = true
 script = ExtResource("5_audio")
+
+[node name="WorldMetamorphosisDirector" type="Node" parent="Presentation"]
+unique_name_in_owner = true
+script = ExtResource("9_metamorphosis")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Presentation"]
 unique_name_in_owner = true

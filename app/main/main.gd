@@ -6,6 +6,7 @@ extends Node
 @onready var gameplay_hud: GameplayHUD = %GameplayHUD
 @onready var presentation_director: PresentationDirector = %PresentationDirector
 @onready var audio_director: AudioDirector = %AudioDirector
+@onready var world_metamorphosis_director: WorldMetamorphosisDirector = %WorldMetamorphosisDirector
 @onready var world_root: Node3D = %WorldRoot
 @onready var effect_orchestrator: EffectOrchestrator = %EffectOrchestrator
 @onready var world_environment: WorldEnvironment = %WorldEnvironment
@@ -27,6 +28,8 @@ func _ready() -> void:
 	SettingsService.setting_changed.connect(_on_setting_changed)
 	ContentDB.rebuild()
 	effect_orchestrator.setup(presentation_director)
+	world_metamorphosis_director.transition_started.connect(_on_world_transition_started)
+	world_metamorphosis_director.transition_finished.connect(_on_world_transition_finished)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -46,6 +49,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	world_root.add_child(_active_level)
 	_active_level.setup_visual_environment(world_environment)
 	_active_player = _active_level.get_player()
+	world_metamorphosis_director.setup(_active_level.world_phase_orchestrator)
 	gameplay_hud.setup(_active_player)
 	gameplay_hud.setup_cooking(_active_level.get_cooking_orchestrator())
 	gameplay_hud.setup_knowledge(_active_level.get_knowledge_orchestrator())
@@ -94,6 +98,7 @@ func _return_to_main_menu() -> void:
 		_active_level.get_session_persistence().save_now(&"return_to_menu")
 		_active_level.queue_free()
 	effect_orchestrator.clear()
+	world_metamorphosis_director.clear()
 	_active_level = null
 	_active_player = null
 	gameplay_hud.clear()
@@ -112,9 +117,20 @@ func _on_setting_changed(section: StringName, key: StringName, value: Variant) -
 func _on_effect_gameplay_channels_changed(channels: Dictionary[StringName, float]) -> void:
 	if _active_level != null:
 		_active_level.apply_gameplay_channels(channels)
+	if world_metamorphosis_director.is_transitioning():
+		return
 	if float(channels.get(&"spore_resistance", 0.0)) > 0.1:
 		audio_director.set_snapshot(&"spore_quiet")
 	elif float(channels.get(&"spore_vision", 0.0)) > 0.1:
 		audio_director.set_snapshot(&"danger")
 	else:
 		audio_director.set_snapshot(&"default")
+
+
+func _on_world_transition_started(definition: WorldPhaseDefinition, _duration: float) -> void:
+	audio_director.set_snapshot(&"metamorphosis")
+	gameplay_hud.show_notice("МЕТАМОРФОЗА · %s" % definition.display_name.to_upper())
+
+
+func _on_world_transition_finished(_definition: WorldPhaseDefinition) -> void:
+	_on_effect_gameplay_channels_changed(effect_orchestrator.get_gameplay_channels())

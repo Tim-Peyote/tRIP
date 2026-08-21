@@ -165,3 +165,15 @@ trip_night={
 "type": "float",
 "value": 0.0
 }
+trip_world_transition={
+"type": "float",
+"value": 0.0
+}
+trip_world_family={
+"type": "float",
+"value": 0.0
+}
+trip_world_color={
+"type": "color",
+"value": Color(0.55, 0.15, 0.72, 1)
+}

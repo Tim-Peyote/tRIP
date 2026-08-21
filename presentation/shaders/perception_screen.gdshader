@@ -5,6 +5,9 @@ uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_n
 global uniform float trip_visual_intensity;
 global uniform float trip_perception;
 global uniform float trip_toxicity;
+global uniform float trip_world_transition;
+global uniform float trip_world_family;
+global uniform vec4 trip_world_color;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -13,9 +16,15 @@ float hash(vec2 p) {
 void fragment() {
 	float strength = clamp(trip_perception * trip_visual_intensity, 0.0, 1.0);
 	float quiet = clamp(trip_toxicity * trip_visual_intensity, 0.0, 1.0);
+	float metamorph = clamp(trip_world_transition * trip_visual_intensity, 0.0, 1.0);
 	vec2 uv = SCREEN_UV;
 	vec2 centered = uv - vec2(0.5);
 	float radius = length(centered);
+	float angle = atan(centered.y, centered.x);
+	float family = 2.0 + mod(trip_world_family, 4.0);
+	float spiral = sin(angle * family + radius * 34.0 - TIME * 5.5);
+	uv += normalize(centered + vec2(0.0001)) * spiral * metamorph * 0.034;
+	uv.x += sin(uv.y * 46.0 + TIME * 7.0) * metamorph * 0.012;
 	float breath = sin(TIME * 1.35 - radius * 24.0) * 0.0035 * strength;
 	uv += normalize(centered + vec2(0.0001)) * breath;
 	float wave = sin(uv.y * 31.0 + TIME * 2.1) * 0.0018 * strength;
@@ -40,5 +49,11 @@ void fragment() {
 	color = mix(color, quiet_grade, quiet * 0.42);
 	color *= 1.0 - smoothstep(0.18, 0.72, radius) * 0.52 * quiet;
 	color += vec3(0.16, 0.015, 0.005) * sin(TIME * 2.4) * 0.035 * quiet;
-	COLOR = vec4(color, max(strength * 0.92, quiet * 0.72));
+	float transition_ring = smoothstep(0.08, 0.0, abs(radius - (0.68 - metamorph * 0.56)));
+	float cellular = step(0.68, sin((uv.x + uv.y) * 72.0 + spiral * 3.0)) * metamorph;
+	color = mix(color, color * 0.3 + trip_world_color.rgb * (0.48 + transition_ring), metamorph * 0.72);
+	color += trip_world_color.rgb * cellular * 0.11;
+	color += vec3(1.0) * pow(metamorph, 8.0) * 0.38;
+	color *= 1.0 - smoothstep(0.18, 0.76, radius) * metamorph * 0.58;
+	COLOR = vec4(color, max(max(strength * 0.92, quiet * 0.72), metamorph));
 }
