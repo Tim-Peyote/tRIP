@@ -88,6 +88,8 @@ func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void
 		if _sky_material != null:
 			_tween.tween_property(_sky_material, "sky_top_color", profile.sky_top_color, 1.2)
 			_tween.tween_property(_sky_material, "sky_horizon_color", profile.sky_horizon_color, 1.2)
+			_tween.tween_property(_sky_material, "ground_bottom_color", profile.ground_bottom_color, 1.2)
+			_tween.tween_property(_sky_material, "ground_horizon_color", profile.ground_horizon_color, 1.2)
 			_tween.tween_property(_sky_material, "sky_energy_multiplier", profile.sky_energy, 1.2)
 	profile_changed.emit(profile.id)
 	atmosphere_baseline_changed.emit(profile.fog_density, profile.volumetric_density)
@@ -111,4 +113,6 @@ func _set_values(profile: BiomeVisualProfile) -> void:
 	if _sky_material != null:
 		_sky_material.sky_top_color = profile.sky_top_color
 		_sky_material.sky_horizon_color = profile.sky_horizon_color
+		_sky_material.ground_bottom_color = profile.ground_bottom_color
+		_sky_material.ground_horizon_color = profile.ground_horizon_color
 		_sky_material.sky_energy_multiplier = profile.sky_energy

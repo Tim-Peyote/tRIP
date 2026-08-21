@@ -12,6 +12,8 @@ const PHASE_ORDINARY: StringName = &"ordinary"
 const PHASE_MYCELIAL: StringName = &"mycelial"
 const MIN_EXPEDITION_Z: float = 5.8
 const BIOME_MESH_LIBRARY = preload("res://world/terrain/biome_mesh_library.gd")
+const TERRAIN_CHUNK_MESH_BUILDER = preload("res://world/terrain/terrain_chunk_mesh_builder.gd")
+const AUTHORED_NATURE_ASSET_LIBRARY = preload("res://world/terrain/authored_nature_asset_library.gd")
 const BIOME_AMBIENCE = preload("res://presentation/audio/biome_procedural_ambience.gd")
 const ECOLOGY_MOTION_SHADER = preload("res://presentation/shaders/ecology_motion.gdshader")
 
@@ -36,6 +38,7 @@ var _horizon_root: Node3D
 var _atmosphere: GPUParticles3D
 var _generated_mesh_cache: Dictionary[StringName, Mesh] = {}
 var _mesh_library: RefCounted = BIOME_MESH_LIBRARY.new()
+var _authored_nature_library: RefCounted = AUTHORED_NATURE_ASSET_LIBRARY.new()
 var _biome_ambience: AudioStreamPlayer
 var _decor_exclusion_centers: Array[Vector2] = []
 var _collected_biome_ingredient_spawns: Dictionary[StringName, bool] = {}
@@ -248,7 +251,7 @@ func _refresh_chunks(world_position: Vector3, immediate_center: bool) -> void:
 			_pending.append(coordinate)
 	for coordinate: Vector2i in _chunks.keys():
 		if not desired.has(coordinate):
-			_chunks[coordinate].queue_free()
+			_retire_chunk(_chunks[coordinate])
 			_chunks.erase(coordinate)
 	if immediate_center and not _chunks.has(center):
 		_pending.erase(center)
@@ -283,43 +286,14 @@ func _build_chunk(coordinate: Vector2i) -> void:
 
 
 func _build_chunk_mesh(coordinate: Vector2i) -> ArrayMesh:
-	var vertices := PackedVector3Array()
-	var normals := PackedVector3Array()
-	var colors := PackedColorArray()
-	var indices := PackedInt32Array()
-	var step := chunk_size / float(chunk_resolution - 1)
-	var start_x := float(coordinate.x) * chunk_size
-	var start_z := float(coordinate.y) * chunk_size
-	for z_index in chunk_resolution:
-		for x_index in chunk_resolution:
-			var x := start_x + float(x_index) * step
-			var z := start_z + float(z_index) * step
-			var height := _height_at(x, z)
-			vertices.append(Vector3(x, height, z))
-			var left := _height_at(x - step, z)
-			var right := _height_at(x + step, z)
-			var back := _height_at(x, z - step)
-			var front := _height_at(x, z + step)
-			var normal := Vector3(left - right, step * 2.0, back - front).normalized()
-			normals.append(normal)
-			colors.append(_terrain_color(Vector2(x, z), height, 1.0 - normal.y))
-	for z_index in chunk_resolution - 1:
-		for x_index in chunk_resolution - 1:
-			var world_z := start_z + float(z_index) * step
-			if world_z < MIN_EXPEDITION_Z:
-				continue
-			var current := z_index * chunk_resolution + x_index
-			indices.append_array(PackedInt32Array([current, current + chunk_resolution, current + 1, current + 1, current + chunk_resolution, current + chunk_resolution + 1]))
-	var arrays := []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_COLOR] = colors
-	arrays[Mesh.ARRAY_INDEX] = indices
-	var mesh := ArrayMesh.new()
-	if not indices.is_empty():
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return mesh
+	return TERRAIN_CHUNK_MESH_BUILDER.build(
+		coordinate,
+		chunk_size,
+		chunk_resolution,
+		MIN_EXPEDITION_Z,
+		_height_at,
+		_terrain_color,
+	)
 
 
 func _height_at(x: float, z: float) -> float:
@@ -401,6 +375,8 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(16.0 * vegetation_density)))
 	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density)))
 	_add_groundcover_multimesh(body, coordinate, rng, maxi(6, roundi(34.0 * vegetation_density)))
+	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+		_add_authored_taiga_details(body, coordinate, rng)
 	if pack != null and _should_place_ecology_composition(coordinate, pack):
 		_add_ecology_composition(body, coordinate, rng, pack)
 	_decor_exclusion_centers.clear()
@@ -412,6 +388,38 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 		_add_cave_feature(body, coordinate, rng, pack)
 	if _is_altered_phase() and abs(int(_chunk_seed(coordinate))) % 4 == 0:
 		_add_mycelial_beacon(body, coordinate, rng)
+
+
+func _add_authored_taiga_details(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
+	var families: Array[StringName] = [&"tall_pine", &"round_pine", &"rock", &"forest_floor", &"fungi"]
+	for family: StringName in families:
+		var point := Vector2.ZERO
+		var accepted := false
+		for _attempt in 8:
+			point = _random_chunk_point(coordinate, rng)
+			var ecology_layer := 1 if family == &"rock" else (2 if family == &"fungi" or family == &"forest_floor" else 0)
+			if not _is_reserved(point) and _accept_ecology_point(point, ecology_layer, _get_content_pack()):
+				accepted = true
+				break
+		if not accepted:
+			continue
+		var variant: int = absi(int(_chunk_seed(coordinate)) + families.find(family) * 7919)
+		var instance := _authored_nature_library.call("instantiate_variant", family, variant) as Node3D
+		if instance == null:
+			continue
+		var scale_value := rng.randf_range(0.82, 1.28)
+		if family == &"tall_pine":
+			scale_value = rng.randf_range(1.05, 1.55)
+		elif family == &"round_pine":
+			scale_value = rng.randf_range(0.9, 1.35)
+		elif family == &"rock":
+			scale_value = rng.randf_range(0.65, 1.35)
+		elif family == &"fungi":
+			scale_value = rng.randf_range(0.55, 0.95)
+		instance.position = Vector3(point.x, _height_at(point.x, point.y), point.y)
+		instance.rotation.y = rng.randf_range(0.0, TAU)
+		instance.scale *= scale_value
+		body.add_child(instance)
 
 
 func _add_ecology_composition(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
@@ -1218,9 +1226,19 @@ func _rebuild_loaded_chunks() -> void:
 	var coordinates: Array[Vector2i] = []
 	coordinates.assign(_chunks.keys())
 	for coordinate: Vector2i in coordinates:
-		_chunks[coordinate].queue_free()
+		_retire_chunk(_chunks[coordinate])
 	_chunks.clear()
 	_pending = coordinates
+
+
+func _retire_chunk(chunk: StaticBody3D) -> void:
+	if not is_instance_valid(chunk):
+		return
+	# Detach immediately so old collision and rendering cannot overlap a freshly
+	# generated replacement until queue_free is processed at the end of the frame.
+	if chunk.get_parent() == self:
+		remove_child(chunk)
+	chunk.queue_free()
 
 
 func _rebuild_world_geometry() -> void:
@@ -1234,6 +1252,7 @@ func _rebuild_loaded_decor() -> void:
 		var body := _chunks[coordinate]
 		for child: Node in body.get_children():
 			if child.name != "Terrain" and child.name != "Collision":
+				body.remove_child(child)
 				child.queue_free()
 		_build_chunk_decor(body, coordinate)
 
@@ -1260,8 +1279,12 @@ func _add_multimesh_instance(parent: Node3D, node_name: String, multimesh: Multi
 
 func _rebuild_presentation_layers() -> void:
 	if is_instance_valid(_horizon_root):
+		if _horizon_root.get_parent() == self:
+			remove_child(_horizon_root)
 		_horizon_root.queue_free()
 	if is_instance_valid(_atmosphere):
+		if _atmosphere.get_parent() == self:
+			remove_child(_atmosphere)
 		_atmosphere.queue_free()
 	_horizon_root = Node3D.new()
 	_horizon_root.name = "BiomeHorizon"
@@ -1334,6 +1357,8 @@ func _build_signature_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack
 	var scale_low := 3.5
 	var scale_high := 6.5
 	var base_y := 3.0
+	var radius_low := 82.0
+	var radius_high := 112.0
 	match pack.ecology_family:
 		BiomeContentPack.EcologyFamily.CRIMSON_STEPPE:
 			mesh = BIOME_MESH_LIBRARY.create_antler_crown()
@@ -1354,27 +1379,41 @@ func _build_signature_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack
 		BiomeContentPack.EcologyFamily.MIRROR_WETLAND:
 			mesh = BIOME_MESH_LIBRARY.create_wetland_shelf()
 			count = 12
-			scale_low = 5.5
-			scale_high = 10.0
-			base_y = 8.0
+			scale_low = 3.5
+			scale_high = 6.2
+			base_y = 7.0
+			radius_low = 108.0
+			radius_high = 145.0
 		BiomeContentPack.EcologyFamily.ROOT_CAVERN:
 			mesh = BIOME_MESH_LIBRARY.create_root_loop()
-			scale_low = 5.0
-			scale_high = 8.5
+			scale_low = 4.0
+			scale_high = 6.8
 			base_y = 10.0
+			radius_low = 98.0
+			radius_high = 132.0
+		BiomeContentPack.EcologyFamily.HEART_PLATEAU:
+			mesh = BIOME_MESH_LIBRARY.create_heart_loop()
+			count = 11
+			scale_low = 3.0
+			scale_high = 5.2
+			base_y = 9.0
+			radius_low = 112.0
+			radius_high = 152.0
 		_:
 			mesh = BIOME_MESH_LIBRARY.create_floating_strata()
-			count = 16
-			scale_low = 4.5
-			scale_high = 9.0
-			base_y = 12.0
+			count = 14
+			scale_low = 3.5
+			scale_high = 6.2
+			base_y = 10.0
+			radius_low = 96.0
+			radius_high = 132.0
 	_set_mesh_material(mesh, _standard_material(pack.accent_color.darkened(0.48), pack.ecology_family != BiomeContentPack.EcologyFamily.ASHEN_TUNDRA))
 	for index in count:
 		var silhouette := MeshInstance3D.new()
 		silhouette.name = "SignatureHorizon_%02d" % index
 		silhouette.mesh = mesh
 		var angle := TAU * float(index) / float(count) + rng.randf_range(-0.1, 0.1)
-		var radius := rng.randf_range(72.0, 102.0)
+		var radius := rng.randf_range(radius_low, radius_high)
 		var scale := rng.randf_range(scale_low, scale_high)
 		silhouette.scale = Vector3(scale * rng.randf_range(0.8, 1.25), scale, scale * rng.randf_range(0.75, 1.2))
 		silhouette.position = Vector3(cos(angle) * radius, base_y + rng.randf_range(-2.0, 3.0), sin(angle) * radius)

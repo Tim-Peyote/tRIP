@@ -30,6 +30,12 @@ func _ready() -> void:
 	level.player.rotation.y = 3.14159
 	for _frame in 28:
 		await get_tree().process_frame
+	# World comparison captures validate composition and biome readability. The
+	# narrative notice has its own UI coverage and must not hide the focal plane.
+	main.gameplay_hud.notice_timer.stop()
+	main.gameplay_hud.notice_label.visible = false
+	await get_tree().process_frame
+	main.gameplay_hud.notice_label.visible = false
 	var ordinary := get_viewport().get_texture().get_image()
 	var first_error := ordinary.save_png(ORDINARY_PATH)
 	level.world_phase_orchestrator.set_developer_phase(&"phase.mycelial_choir")

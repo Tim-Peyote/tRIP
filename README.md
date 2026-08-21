@@ -116,6 +116,8 @@ Gamepad defaults are installed through InputMap at boot: left/right sticks, A in
 
 The player uses the CC0 `Animated Human` rig by Quaternius for world-body shadows and locomotion animation. Source and license are preserved under `assets/third_party/quaternius_animated_human/`.
 
+The ordinary Altai taiga uses a curated CC0 subset of Kenney's Nature Kit 2.1 for authored pine, rock, windfall and forest-floor silhouettes. Source and license are preserved under `assets/third_party/kenney_nature_kit/`; procedural MultiMeshes remain the distance filler rather than replacing the authored kit.
+
 Physical cooking order: grind a clean cap, add water, transfer the mash, light a low fire, stir at least twice while warm, watch for silver steam, then bottle the result. High heat can ruin the mixture.
 
 Current playable loop: inspect and harvest the correct forest cap, return to the shelter, prepare a clean spore-sight brew, review the expedition report, then enter the newly unlocked deep-grove route. Slot `0` autosaves and is available through Continue.

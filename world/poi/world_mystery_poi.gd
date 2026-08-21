@@ -167,6 +167,14 @@ func _fail_event() -> void:
 	event_failed.emit(definition, definition.failure_text)
 
 
+func _exit_tree() -> void:
+	# AudioStreamPlaybackWAV can outlive its owner for one mixer cycle unless the
+	# looping stream is explicitly detached before the POI leaves SceneTree.
+	if is_instance_valid(_event_audio):
+		_event_audio.stop()
+		_event_audio.stream = null
+
+
 func _build_event_presentation() -> void:
 	_pulse_root = Node3D.new()
 	_pulse_root.name = "MysteryEventPulse"
