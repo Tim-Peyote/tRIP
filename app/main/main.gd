@@ -34,6 +34,13 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _active_level != null and event.is_action_pressed(&"pause"):
+		if _active_level.world_phase_developer_panel.is_panel_visible():
+			_active_level.world_phase_developer_panel.set_panel_visible(false)
+			get_viewport().set_input_as_handled()
+			return
+		if not get_tree().paused and gameplay_hud.close_top_overlay():
+			get_viewport().set_input_as_handled()
+			return
 		if get_tree().paused:
 			_resume_game()
 		else:
@@ -114,6 +121,8 @@ func _return_to_main_menu() -> void:
 func _on_setting_changed(section: StringName, key: StringName, value: Variant) -> void:
 	if section == &"accessibility" and key == &"visual_intensity":
 		presentation_director.set_visual_intensity(float(value))
+	elif section == &"video" and key == &"fov" and _active_player != null:
+		_active_player.camera.fov = float(value)
 
 
 func _on_effect_gameplay_channels_changed(channels: Dictionary[StringName, float]) -> void:

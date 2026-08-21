@@ -26,10 +26,32 @@ func _run() -> void:
 	_expect(cairn.visible, "The first ritual cairn was not placed in the ordinary world.")
 	var interactable := cairn.find_children("*", "InteractableComponent", true, false)[0] as InteractableComponent
 	interactable.complete_interaction(level.player)
+	await get_tree().process_frame
+	_expect(laboratory.is_metamorphosing(), "The ritual skipped the laboratory metamorphosis stage.")
+	_expect(portable_root.visible, "The laboratory silhouette was not visible during metamorphosis.")
+	for node: Node in portable_root.find_children("*", "InteractableComponent", true, false):
+		_expect(not (node as InteractableComponent).enabled, "A laboratory interaction was enabled before metamorphosis finished.")
+	for node: Node in portable_root.find_children("*", "CollisionShape3D", true, false):
+		_expect((node as CollisionShape3D).disabled, "Laboratory collision could trap the player while space was still folding.")
 	await get_tree().create_timer(1.5).timeout
 	_expect(laboratory.unlocked and laboratory.manifested, "The ritual did not manifest the road laboratory.")
 	_expect(portable_root.visible, "The manifested laboratory remained invisible.")
 	_expect(portable_root.get_node_or_null("Table") != null, "Cooking equipment was not moved into the portable laboratory.")
+	_expect(not laboratory.is_metamorphosing(), "Laboratory remained busy after manifestation.")
+	var enabled_interactions := 0
+	for node: Node in portable_root.find_children("*", "InteractableComponent", true, false):
+		if (node as InteractableComponent).enabled:
+			enabled_interactions += 1
+	_expect(enabled_interactions > 0, "Laboratory interactions did not activate after metamorphosis.")
+	laboratory.dismiss(true)
+	await get_tree().process_frame
+	_expect(laboratory.is_metamorphosing(), "Animated laboratory dismissal skipped metamorphosis.")
+	for node: Node in portable_root.find_children("*", "InteractableComponent", true, false):
+		_expect(not (node as InteractableComponent).enabled, "Interaction remained active while the laboratory was disappearing.")
+	await get_tree().create_timer(1.5).timeout
+	_expect(not laboratory.manifested and not portable_root.visible, "Laboratory remained in the world after dismissal.")
+	_expect(laboratory.developer_toggle(false), "Developer instant laboratory toggle was rejected while idle.")
+	_expect(laboratory.manifested and portable_root.visible, "Developer instant toggle did not restore the laboratory.")
 	var save_data := laboratory.to_save_data()
 	_expect(bool(save_data.get("unlocked", false)), "Ritual unlock state was not serializable.")
 	_expect((save_data.get("laboratory_position", []) as Array).size() == 3, "Laboratory position was not serializable.")

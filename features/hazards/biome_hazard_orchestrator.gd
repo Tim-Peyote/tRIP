@@ -56,6 +56,17 @@ func force_active() -> bool:
 	return true
 
 
+func developer_clear() -> void:
+	state = State.CALM
+	_elapsed = 0.0
+	exposure = 0.0
+	if is_instance_valid(_player):
+		_last_safe_position = _player.global_position
+	_set_presentation_intensity(0.0)
+	_emit_state()
+	exposure_changed.emit(exposure)
+
+
 func to_save_data() -> Dictionary:
 	return {
 		"state": int(state),

@@ -82,7 +82,16 @@ func _ready() -> void:
 	_setup_road_laboratory(terrain)
 	_setup_biome_hazard(terrain)
 	_setup_world_progression(terrain)
-	world_phase_developer_panel.setup(world_phase_orchestrator, terrain, world_progression, biome_hazard)
+	world_phase_developer_panel.setup(
+		world_phase_orchestrator,
+		terrain,
+		world_progression,
+		biome_hazard,
+		road_laboratory,
+		player,
+		expedition_clock,
+		session_persistence
+	)
 
 
 func get_player() -> FirstPersonController:

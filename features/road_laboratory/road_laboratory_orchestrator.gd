@@ -21,6 +21,7 @@ var _metamorphosis_root: Node3D
 var _busy: bool = false
 var _proximity_area: Area3D
 var _session_active: bool = false
+var _metamorphosis_tween: Tween
 
 
 func setup(player: FirstPersonController, terrain: ExpeditionTerrain, portable_nodes: Array[Node]) -> void:
@@ -73,6 +74,7 @@ func manifest_near_player(animate: bool = true) -> void:
 		_play_manifestation(true)
 	else:
 		manifested = true
+		_laboratory_root.scale = Vector3.ONE
 		_set_lab_active(true)
 		ritual_state_changed.emit(unlocked, manifested)
 		autosave_requested.emit(&"laboratory_manifested")
@@ -86,6 +88,7 @@ func dismiss(animate: bool = true) -> void:
 	else:
 		manifested = false
 		_set_lab_active(false)
+		_laboratory_root.scale = Vector3.ONE
 		ritual_state_changed.emit(unlocked, manifested)
 		autosave_requested.emit(&"laboratory_dismissed")
 
@@ -127,6 +130,29 @@ func get_hazard_protection_at(world_position: Vector3) -> float:
 	return 1.0 - smoothstep(3.4, 5.4, distance)
 
 
+func is_metamorphosing() -> bool:
+	return _busy
+
+
+func developer_unlock() -> void:
+	if unlocked:
+		return
+	unlocked = true
+	_cairn.set_available(false)
+	ritual_state_changed.emit(unlocked, manifested)
+
+
+func developer_toggle(animate: bool = true) -> bool:
+	if _busy:
+		return false
+	developer_unlock()
+	if manifested:
+		dismiss(animate)
+	else:
+		manifest_near_player(animate)
+	return true
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(LAB_INPUT) and unlocked and not _busy:
 		if manifested:
@@ -147,25 +173,34 @@ func _play_manifestation(appearing: bool) -> void:
 	metamorphosis_started.emit()
 	_metamorphosis_root.global_position = laboratory_position + Vector3.UP * 0.12
 	_metamorphosis_root.visible = true
+	_metamorphosis_root.scale = Vector3.ONE * (0.32 if appearing else 1.0)
 	if appearing:
 		manifested = true
-		_set_lab_active(true)
+		_laboratory_root.visible = true
+		_laboratory_root.process_mode = Node.PROCESS_MODE_INHERIT
+		_set_interactions_enabled(false)
+		_set_collisions_enabled(false)
 		_laboratory_root.scale = Vector3(0.08, 1.8, 0.08)
 	else:
 		_set_interactions_enabled(false)
-	var tween := create_tween().set_parallel(true)
+		_set_collisions_enabled(false)
+		_proximity_area.set_deferred("monitoring", false)
+	_metamorphosis_tween = create_tween().set_parallel(true)
 	var target_scale := Vector3.ONE if appearing else Vector3(0.08, 1.8, 0.08)
-	tween.tween_property(_laboratory_root, "scale", target_scale, 1.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT if appearing else Tween.EASE_IN)
-	tween.tween_property(_metamorphosis_root, "rotation:y", _metamorphosis_root.rotation.y + TAU * 1.5, 1.35)
-	tween.finished.connect(func() -> void:
+	_metamorphosis_tween.tween_property(_laboratory_root, "scale", target_scale, 1.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT if appearing else Tween.EASE_IN)
+	_metamorphosis_tween.tween_property(_metamorphosis_root, "scale", Vector3.ONE * (1.18 if appearing else 0.22), 1.35).set_trans(Tween.TRANS_SINE)
+	_metamorphosis_tween.tween_property(_metamorphosis_root, "rotation:y", _metamorphosis_root.rotation.y + TAU * 1.5, 1.35)
+	_metamorphosis_tween.finished.connect(func() -> void:
 		_busy = false
 		_metamorphosis_root.visible = false
+		_metamorphosis_root.scale = Vector3.ONE
 		if not appearing:
 			manifested = false
 			_set_lab_active(false)
+			_laboratory_root.scale = Vector3.ONE
 		else:
 			_laboratory_root.scale = Vector3.ONE
-			_set_interactions_enabled(true)
+			_set_lab_active(true)
 		ritual_state_changed.emit(unlocked, manifested)
 		metamorphosis_finished.emit()
 		autosave_requested.emit(&"laboratory_manifested" if appearing else &"laboratory_dismissed")
@@ -176,10 +211,14 @@ func _set_lab_active(value: bool) -> void:
 	_laboratory_root.visible = value
 	_laboratory_root.process_mode = Node.PROCESS_MODE_INHERIT if value else Node.PROCESS_MODE_DISABLED
 	_set_interactions_enabled(value)
-	for node: Node in _laboratory_root.find_children("*", "CollisionShape3D", true, false):
-		(node as CollisionShape3D).set_deferred("disabled", not value)
+	_set_collisions_enabled(value)
 	if _proximity_area != null:
 		_proximity_area.set_deferred("monitoring", value and _session_active)
+
+
+func _set_collisions_enabled(value: bool) -> void:
+	for node: Node in _laboratory_root.find_children("*", "CollisionShape3D", true, false):
+		(node as CollisionShape3D).set_deferred("disabled", not value)
 
 
 func _set_interactions_enabled(value: bool) -> void:
@@ -252,7 +291,7 @@ func _build_metamorphosis_vfx() -> void:
 	material.albedo_color = Color(0.28, 0.92, 0.62, 0.58)
 	material.emission_enabled = true
 	material.emission = Color(0.17, 0.82, 0.66)
-	material.emission_energy_multiplier = 3.6
+	material.emission_energy_multiplier = 1.4
 	for index: int in 3:
 		var ring := MeshInstance3D.new()
 		var ring_mesh := TorusMesh.new()
@@ -265,6 +304,37 @@ func _build_metamorphosis_vfx() -> void:
 		ring.position.y = float(index) * 0.42
 		ring.rotation.x = 0.08 * float(index - 1)
 		_metamorphosis_root.add_child(ring)
+	var particles := GPUParticles3D.new()
+	particles.name = "MetamorphosisSpores"
+	particles.amount = 96
+	particles.lifetime = 1.8
+	particles.preprocess = 1.8
+	particles.randomness = 0.72
+	particles.visibility_aabb = AABB(Vector3(-5, -1, -5), Vector3(10, 6, 10))
+	var process_material := ParticleProcessMaterial.new()
+	process_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	process_material.emission_sphere_radius = 3.8
+	process_material.direction = Vector3(0, 1, 0)
+	process_material.spread = 38.0
+	process_material.initial_velocity_min = 0.35
+	process_material.initial_velocity_max = 1.4
+	process_material.gravity = Vector3(0, 0.16, 0)
+	process_material.scale_min = 0.35
+	process_material.scale_max = 1.1
+	particles.process_material = process_material
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.045, 0.045)
+	var particle_surface := StandardMaterial3D.new()
+	particle_surface.albedo_color = Color(0.28, 0.92, 0.62, 0.7)
+	particle_surface.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	particle_surface.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	particle_surface.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	particle_surface.emission_enabled = true
+	particle_surface.emission = Color(0.17, 0.82, 0.66)
+	particle_surface.emission_energy_multiplier = 0.75
+	quad.material = particle_surface
+	particles.draw_pass_1 = quad
+	_metamorphosis_root.add_child(particles)
 
 
 func _grounded(value: Vector3) -> Vector3:

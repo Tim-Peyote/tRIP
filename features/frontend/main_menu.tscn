@@ -163,9 +163,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -250.0
-offset_top = -180.0
+offset_top = -260.0
 offset_right = 250.0
-offset_bottom = 180.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_settings")
@@ -208,10 +208,38 @@ max_value = 1.0
 step = 0.05
 value = 1.0
 
+[node name="HeadBobLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
+layout_mode = 2
+text = "Покачивание камеры"
+
+[node name="HeadBobSlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.65
+
+[node name="FovLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
+layout_mode = 2
+text = "Поле зрения"
+
+[node name="FovSlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 60.0
+max_value = 100.0
+step = 1.0
+value = 75.0
+
 [node name="Info" type="Label" parent="SettingsPanel/Margin/Controls"]
 layout_mode = 2
 autowrap_mode = 2
-text = "Полные параметры изображения, управления, звука и доступности появятся вместе с first-person прототипом."
+text = "Интенсивность эффектов и покачивание можно снижать независимо. FOV применяется сразу в активной экспедиции."
+
+[node name="ResetButton" type="Button" parent="SettingsPanel/Margin/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Сбросить настройки"
 
 [node name="CloseButton" type="Button" parent="SettingsPanel/Margin/Controls"]
 unique_name_in_owner = true

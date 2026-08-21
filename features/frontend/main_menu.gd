@@ -41,14 +41,22 @@ func show_notice(message: String) -> void:
 
 
 func _show_settings() -> void:
+	_set_menu_buttons_enabled(false)
 	settings_panel.visible = true
 	settings_panel.focus_first_control()
 
 
 func _hide_settings() -> void:
 	settings_panel.visible = false
+	_set_menu_buttons_enabled(true)
 	%SettingsButton.grab_focus()
 
 
 func _show_credits() -> void:
 	show_notice("TRip — создаётся вместе с лесом. Версия pre-production.")
+
+
+func _set_menu_buttons_enabled(value: bool) -> void:
+	for button_name: String in ["ContinueButton", "NewGameButton", "SettingsButton", "CreditsButton", "QuitButton"]:
+		var button := get_node("SafeArea/Layout/%s" % button_name) as Button
+		button.disabled = not value

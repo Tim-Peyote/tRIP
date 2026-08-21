@@ -1,6 +1,7 @@
 extends Node
 
 const OUTPUT_PATH: String = "/tmp/trip_menu_camp_capture.png"
+const SETTINGS_PATH: String = "/tmp/trip_settings_capture.png"
 
 
 func _ready() -> void:
@@ -22,6 +23,9 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var image := get_viewport().get_texture().get_image()
 	var error := image.save_png(OUTPUT_PATH)
+	menu.call("_show_settings")
+	await get_tree().process_frame
+	var settings_error := get_viewport().get_texture().get_image().save_png(SETTINGS_PATH)
 	if error == OK:
-		print("Menu camp capture saved: %s" % OUTPUT_PATH)
-	get_tree().quit(error)
+		print("Menu captures saved: %s · %s" % [OUTPUT_PATH, SETTINGS_PATH])
+	get_tree().quit(error if error != OK else settings_error)

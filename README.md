@@ -107,7 +107,7 @@ Full cycle and persistence test:
 - `G` — throw a stone to distract creatures
 - `L` — dismiss or manifest the unlocked road laboratory near the player
 - `Esc` — pause
-- `F10` — developer world-phase panel (`PageUp/PageDown`, `P` resolve POI, `H` force biome hazard, `Enter` simulate formula, `R`, `Backspace`)
+- `F10` — developer QA panel: `1–8`/`PageUp/PageDown` worlds, `P` resolve POI, `H` start and `Delete` clear hazard, `Enter` formula, `M` animated or `Shift+M` instant laboratory, `T/O/C` teleports, `I` sample, `Y` time, `R` seed, `Backspace` real state
 
 During inspection: hold left mouse and drag to rotate, use the wheel to zoom, or use `A/D` for stepped rotation. Finding every morphological clue confirms the species hypothesis.
 

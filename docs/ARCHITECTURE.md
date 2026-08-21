@@ -457,3 +457,9 @@ Effect snapshot → perception layers ──┘
 `BiomeVisualProfile` хранит не только небо и туман, но и цвет, энергию и направление ключевого света. Кислотное свечение остаётся акцентом; форму читают направленный свет и тени.
 
 Движение массовой экологии исполняется одним GPU shader, но амплитуда и скорость принадлежат `BiomeContentPack`. Генератор выбирает данные, presentation shader деформирует вершины, а gameplay никогда не использует визуальное качание как физическое состояние растения.
+
+## 20. UI ownership and developer QA
+
+Gameplay HUD владеет взаимоисключающими полевыми overlay: inventory, journal и inspection. Открытый overlay освобождает мышь и выключает `InteractionOrchestrator`; Escape сначала закрывает верхний overlay и только затем передаётся pause flow. Главное меню аналогично блокирует фоновые кнопки под settings modal.
+
+`WorldPhaseDeveloperPanel` является только QA-адаптером над публичными контрактами phase, progression, hazard, laboratory, terrain, clock и persistence. Он не меняет их внутренние поля напрямую. Телепорты используют terrain height provider, laboratory test hooks проходят тот же lifecycle, а hazard reset публикует обычные state/exposure signals.

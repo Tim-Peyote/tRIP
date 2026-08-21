@@ -3,6 +3,7 @@ extends Control
 
 signal resume_requested
 signal main_menu_requested
+signal overlay_state_changed(is_open: bool)
 
 @onready var prompt_label: Label = %PromptLabel
 @onready var hold_progress: ProgressBar = %HoldProgress
@@ -173,6 +174,8 @@ func clear() -> void:
 
 
 func set_paused(is_paused: bool) -> void:
+	if is_paused:
+		close_top_overlay()
 	pause_panel.visible = is_paused
 	if is_paused:
 		%ResumeButton.grab_focus()
@@ -246,13 +249,19 @@ func _on_tool_state_changed(display_name: String, _is_equipped: bool) -> void:
 
 
 func _toggle_inventory() -> void:
-	inventory_panel.visible = not inventory_panel.visible
+	var should_open := not inventory_panel.visible
+	_close_field_panels()
+	inventory_panel.visible = should_open
 	_update_inventory_panel()
+	_apply_field_overlay_state()
 
 
 func _toggle_journal() -> void:
-	%JournalPanel.visible = not %JournalPanel.visible
+	var should_open: bool = not bool(%JournalPanel.visible)
+	_close_field_panels()
+	%JournalPanel.visible = should_open
 	_update_journal()
+	_apply_field_overlay_state()
 
 
 func _on_knowledge_changed(_definition_id: StringName, _level: int) -> void:
@@ -385,12 +394,14 @@ func _on_inspection_requested(title: String, description: String) -> void:
 
 
 func _on_inspection_definition_requested(definition_id: StringName, title: String, description: String) -> void:
+	_close_field_panels()
 	if not inspection_view.open_definition(definition_id):
 		_on_inspection_requested(title, description)
 		return
 	inspection_panel.visible = false
 	_player.interactor.set_process(false)
 	prompt_label.visible = false
+	overlay_state_changed.emit(true)
 
 
 func _on_inspection_closed() -> void:
@@ -399,6 +410,39 @@ func _on_inspection_closed() -> void:
 	_player.interactor.set_process(true)
 	_player.capture_mouse()
 	prompt_label.visible = true
+	overlay_state_changed.emit(false)
+
+
+func has_modal_overlay() -> bool:
+	return inventory_panel.visible or %JournalPanel.visible or inspection_view.visible
+
+
+func close_top_overlay() -> bool:
+	if inspection_view.visible:
+		inspection_view.close()
+		return true
+	if inventory_panel.visible or %JournalPanel.visible:
+		_close_field_panels()
+		_apply_field_overlay_state()
+		return true
+	return false
+
+
+func _close_field_panels() -> void:
+	inventory_panel.visible = false
+	%JournalPanel.visible = false
+
+
+func _apply_field_overlay_state() -> void:
+	var is_open: bool = inventory_panel.visible or bool(%JournalPanel.visible)
+	if _player != null:
+		_player.interactor.set_process(not is_open)
+		if is_open:
+			_player.release_mouse()
+		else:
+			_player.capture_mouse()
+	prompt_label.visible = not is_open
+	overlay_state_changed.emit(is_open)
 
 
 func show_notice(text: String) -> void:

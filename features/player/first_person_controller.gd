@@ -42,6 +42,7 @@ signal distraction_count_changed(remaining: int)
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 var _look_pitch: float = 0.0
 var _bob_time: float = 0.0
+var _bob_weight: float = 0.0
 var _step_distance: float = 0.0
 var _last_position: Vector3
 var _is_crouched: bool = false
@@ -104,7 +105,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_update_gamepad_look(delta)
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		_update_gamepad_look(delta)
 	_update_stance(delta)
 	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		velocity.x = move_toward(velocity.x, 0.0, ground_acceleration * delta)
@@ -123,8 +125,9 @@ func _physics_process(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, world_direction.z * target_speed, acceleration * delta)
 	_apply_gravity(delta)
 	move_and_slide()
-	_update_camera_feel(delta, input_vector.length())
-	_update_viewmodel(delta, input_vector.length())
+	var movement_strength := clampf(get_planar_speed() / maxf(target_speed, 0.01), 0.0, 1.0)
+	_update_camera_feel(delta, movement_strength)
+	_update_viewmodel(delta, movement_strength)
 	_update_steps()
 
 
@@ -239,31 +242,33 @@ func _update_camera_feel(delta: float, input_strength: float) -> void:
 	var bob_scale := float(SettingsService.get_value(&"accessibility", &"head_bob", 0.65))
 	if is_on_floor() and input_strength > 0.05:
 		_bob_time += delta * head_bob_frequency * (_get_target_speed() / walk_speed)
-	else:
-		_bob_time = move_toward(_bob_time, 0.0, delta * head_bob_frequency)
+	_bob_weight = move_toward(_bob_weight, input_strength if is_on_floor() else 0.0, delta * 5.5)
 	var bob := Vector3(
 		cos(_bob_time * 0.5) * head_bob_amount * 0.45,
 		sin(_bob_time) * head_bob_amount,
 		0.0
-	) * bob_scale
+	) * bob_scale * _bob_weight
 	camera.position = camera.position.lerp(bob, clampf(delta * 12.0, 0.0, 1.0))
 
 
 func _update_viewmodel(delta: float, input_strength: float) -> void:
 	_viewmodel_look_offset = _viewmodel_look_offset.lerp(Vector2.ZERO, clampf(delta * 9.0, 0.0, 1.0))
 	var movement_weight := clampf(input_strength, 0.0, 1.0) if is_on_floor() else 0.0
+	var sprint_weight := 1.0 if movement_weight > 0.05 and Input.is_action_pressed(&"sprint") and not _is_crouched else 0.0
 	var gait := Vector3(
 		cos(_bob_time * 0.5) * viewmodel_bob_amount,
-		absf(sin(_bob_time)) * viewmodel_bob_amount * 0.7,
+		-sin(_bob_time) * viewmodel_bob_amount * 0.45,
 		0.0
 	) * movement_weight
 	var inertia := Vector3(-_viewmodel_look_offset.x, _viewmodel_look_offset.y, 0.0)
-	var target_position := _viewmodel_rest_position + gait + inertia
+	var sprint_lower := Vector3(0.015, -0.035, 0.035) * sprint_weight
+	var crouch_lower := Vector3(0.0, -0.012, 0.012) if _is_crouched else Vector3.ZERO
+	var target_position := _viewmodel_rest_position + gait + inertia + sprint_lower + crouch_lower
 	viewmodel.position = viewmodel.position.lerp(target_position, clampf(delta * 11.0, 0.0, 1.0))
 	var target_rotation := Vector3(
 		_viewmodel_look_offset.y * 0.8,
 		_viewmodel_look_offset.x * 0.65,
-		-cos(_bob_time * 0.5) * movement_weight * 0.018 - _viewmodel_look_offset.x * 0.45
+		-cos(_bob_time * 0.5) * movement_weight * 0.018 - _viewmodel_look_offset.x * 0.45 + sprint_weight * 0.035
 	)
 	viewmodel.rotation = viewmodel.rotation.lerp(target_rotation, clampf(delta * 9.0, 0.0, 1.0))
 
@@ -274,10 +279,11 @@ func _update_steps() -> void:
 	if not is_on_floor() or planar_distance <= 0.0:
 		return
 	_step_distance += planar_distance
-	var stride := 1.25 if Input.is_action_pressed(&"sprint") else 0.9
+	var sprinting := Input.is_action_pressed(&"sprint") and not _is_crouched and get_planar_speed() > walk_speed * 1.05
+	var stride := 0.72 if _is_crouched else (1.25 if sprinting else 0.9)
 	if _step_distance >= stride:
 		_step_distance = 0.0
-		var intensity := 1.0 if Input.is_action_pressed(&"sprint") else 0.55
+		var intensity := 0.28 if _is_crouched else (1.0 if sprinting else 0.55)
 		noise_emitter.emit_noise(7.0 if intensity > 0.8 else 3.5, &"footstep", intensity)
 		step_taken.emit(global_position, intensity)
 
