@@ -49,6 +49,26 @@ static func make_key_chip() -> StyleBoxFlat:
 	return _box(Color(0.72, 0.83, 0.44, 0.95), Color(0.9, 0.96, 0.72, 0.9), 1, 6, 8)
 
 
+static func make_inventory_panel() -> StyleBoxFlat:
+	var style := _box(Color(0.012, 0.02, 0.016, 0.985), Color(0.46, 0.58, 0.39, 0.72), 1, 18, 22)
+	style.shadow_color = Color(0, 0, 0, 0.78)
+	style.shadow_size = 28
+	style.shadow_offset = Vector2(0, 10)
+	return style
+
+
+static func make_inventory_slot(state: StringName, accent: Color = MOSS) -> StyleBoxFlat:
+	match state:
+		&"hover":
+			return _box(Color(0.085, 0.12, 0.092, 0.98), Color(accent.r, accent.g, accent.b, 0.9), 1, 12, 8)
+		&"selected":
+			return _box(Color(0.11, 0.16, 0.105, 1.0), accent.lightened(0.1), 2, 12, 8)
+		&"pressed":
+			return _box(Color(accent.r * 0.34, accent.g * 0.34, accent.b * 0.34, 1.0), accent, 2, 12, 8)
+		_:
+			return _box(Color(0.026, 0.04, 0.031, 0.96), Color(0.31, 0.37, 0.31, 0.62), 1, 12, 8)
+
+
 static func _box(fill: Color, border: Color, width: int, radius: int, padding: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill

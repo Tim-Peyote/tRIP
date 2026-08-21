@@ -591,6 +591,9 @@ ingredient.mooncap
 - UI читает существующие `InventoryComponent`, `KnowledgeOrchestrator`, `HypothesisOrchestrator` и `RecipeKnowledgeOrchestrator`; save schema не изменён и gameplay truth не перенесён в виджеты.
 - Быстрые повторные уведомления больше не накапливают вертикальное смещение и не сползают в HUD опасности.
 - `interface_developer_qa_test` проверяет specimen catalog, карточки видов, эксклюзивное владение интерфейсом и возврат управления. Добавлены отдельные Forward+/Metal captures сумки и гербария.
+- Полевая сумка получила второй presentation pass: полноэкранное затемнение мира, отдельную рамку экспедиционного снаряжения, пятиколоночную сетку слотов, крупную карточку выбранного объекта и короткую игровую иерархию вместо технической таблицы.
+- Лунная шляпка, тлеющая ягода и настой спорозрения получили собственные прозрачные low-poly inventory illustrations. Иконки подключены к data-driven `inventory_icon`, поэтому UI не содержит проверок конкретных item id.
+- Наведение мыши и фокус геймпада сразу обновляют preview; фильтры имеют устойчивое выбранное состояние, открытие получает короткий scale/fade transition, а экран целиком помещается в 1280×720.
 
 ## Biome time, route identity and taiga value pass
 

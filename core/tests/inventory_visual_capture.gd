@@ -10,7 +10,7 @@ func _ready() -> void:
 	main.call("_on_game_requested", 618, true)
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
-	for definition_id: StringName in [&"ingredient.mooncap", &"ingredient.emberberry", &"consumable.mooncap_decoction"]:
+	for definition_id: StringName in [&"ingredient.mooncap", &"ingredient.emberberry", &"item.spore_sight_brew"]:
 		if ContentDB.get_definition(definition_id) != null:
 			level.player.inventory.add_item(ItemInstance.new(definition_id))
 	main.gameplay_hud.call("_toggle_inventory")

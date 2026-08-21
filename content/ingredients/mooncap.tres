@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
 [ext_resource type="Script" path="res://core/resources/inspection_clue_definition.gd" id="2"]
 [ext_resource type="PackedScene" path="res://features/inspection/mooncap_inspect_model.tscn" id="3"]
+[ext_resource type="Texture2D" path="res://assets/ui/items/mooncap.png" id="4_icon"]
 
 [sub_resource type="Resource" id="Clue_veins"]
 script = ExtResource("2")
@@ -44,5 +45,6 @@ freshness_hours = 18.0
 biome_tags = Array[StringName]([&"wet_forest", &"twilight"])
 allowed_operations = Array[StringName]([&"slice", &"grind", &"heat", &"filter"])
 trait_channels = {&"spore_sight": 0.8, &"toxicity": 0.25}
+inventory_icon = ExtResource("4_icon")
 inspect_scene = ExtResource("3")
 inspection_clues = Array[ExtResource("2")]([SubResource("Clue_veins"), SubResource("Clue_ring"), SubResource("Clue_gills")])

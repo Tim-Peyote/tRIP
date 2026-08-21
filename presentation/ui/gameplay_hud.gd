@@ -14,7 +14,11 @@ signal audio_cue_requested(cue_id: StringName)
 @onready var notice_timer: Timer = %NoticeTimer
 @onready var inspection_panel: PanelContainer = %InspectionPanel
 @onready var inventory_panel: PanelContainer = %InventoryPanel
+@onready var inventory_scrim: ColorRect = %InventoryScrim
 @onready var inventory_list: GridContainer = %InventoryList
+@onready var inventory_detail_panel: PanelContainer = %Detail
+@onready var inventory_detail_category: Label = %InventoryDetailCategory
+@onready var inventory_detail_icon: TextureRect = %InventoryDetailIcon
 @onready var inventory_detail_title: Label = %InventoryDetailTitle
 @onready var inventory_detail_body: Label = %InventoryDetailBody
 @onready var inventory_mass_bar: ProgressBar = %InventoryMassBar
@@ -90,6 +94,11 @@ func _ready() -> void:
 	_notice_rest_y = notice_label.position.y
 	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
 	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
+	inventory_panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_panel())
+	inventory_detail_panel.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel(Color(0.42, 0.55, 0.36), 0.52))
+	for filter_button: Button in [%InventoryFilterAll, %InventoryFilterIngredients, %InventoryFilterConsumables, %InventoryFilterTools]:
+		filter_button.toggle_mode = true
+	_refresh_inventory_filter_buttons()
 
 
 func setup(player: FirstPersonController) -> void:
@@ -337,11 +346,13 @@ func _toggle_inventory() -> void:
 	var should_open := not inventory_panel.visible
 	_close_field_panels()
 	inventory_panel.visible = should_open
+	inventory_scrim.visible = should_open
 	audio_cue_requested.emit(&"open" if should_open else &"close")
 	_update_inventory_panel()
 	_apply_field_overlay_state()
 	if should_open:
-		var first_button := inventory_list.get_child(0) as Button if inventory_list.get_child_count() > 0 else null
+		_animate_inventory_open()
+		var first_button := _first_inventory_button()
 		if first_button != null:
 			first_button.grab_focus()
 
@@ -527,6 +538,7 @@ func close_top_overlay() -> bool:
 
 func _close_field_panels() -> void:
 	inventory_panel.visible = false
+	inventory_scrim.visible = false
 	%JournalPanel.visible = false
 
 
@@ -593,27 +605,53 @@ func _update_inventory_panel() -> void:
 			continue
 		visible_entries.append(stack)
 		total_units += float(stack["quantity"])
+		var accent := _inventory_category_color(definition)
+		var card := VBoxContainer.new()
+		card.custom_minimum_size = Vector2(126.0, 154.0)
+		card.add_theme_constant_override("separation", 5)
+		card.set_meta(&"definition_id", definition_id)
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(132.0, 112.0)
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.custom_minimum_size = Vector2(126.0, 112.0)
 		button.toggle_mode = true
 		button.button_pressed = definition_id == _selected_inventory_id
-		button.text = "%s\n%s\n× %.0f   ·   Q %d\n%s" % [
-			_inventory_category_title(definition),
-			definition.display_name if definition != null else String(definition_id),
-			float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0),
-			_inventory_parts_summary(stack.get("parts", [])),
-		]
-		if definition is IngredientDefinition and (definition as IngredientDefinition).inventory_icon != null:
-			button.icon = (definition as IngredientDefinition).inventory_icon
+		button.set_meta(&"definition_id", definition_id)
+		button.text = ""
+		button.icon = _inventory_icon(definition)
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+		if button.icon != null:
 			button.expand_icon = true
-		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		button.add_theme_font_size_override("font_size", 13)
-		button.add_theme_color_override("font_color", _inventory_category_color(definition))
+		else:
+			button.text = _inventory_fallback_glyph(definition)
+			button.add_theme_font_size_override("font_size", 34)
+		button.add_theme_stylebox_override("normal", TripUITheme.make_inventory_slot(&"normal", accent))
+		button.add_theme_stylebox_override("hover", TripUITheme.make_inventory_slot(&"hover", accent))
+		button.add_theme_stylebox_override("focus", TripUITheme.make_inventory_slot(&"selected", accent))
+		button.add_theme_stylebox_override("pressed", TripUITheme.make_inventory_slot(&"pressed", accent))
+		button.add_theme_stylebox_override("hover_pressed", TripUITheme.make_inventory_slot(&"selected", accent))
 		button.tooltip_text = definition.description if definition != null else String(definition_id)
 		button.pressed.connect(_select_inventory_stack.bind(definition_id))
-		inventory_list.add_child(button)
-	inventory_item_count.text = "%d ЯЧЕЕК · %.0f ЕДИНИЦ" % [visible_entries.size(), total_units]
+		button.focus_entered.connect(_select_inventory_stack.bind(definition_id, false))
+		button.mouse_entered.connect(_select_inventory_stack.bind(definition_id, false))
+		card.add_child(button)
+		var name_label := Label.new()
+		name_label.text = definition.display_name if definition != null else String(definition_id)
+		name_label.add_theme_font_size_override("font_size", 13)
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		card.add_child(name_label)
+		var meta_label := Label.new()
+		meta_label.text = "×%.0f   ◆%d" % [float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0)]
+		meta_label.add_theme_font_size_override("font_size", 11)
+		meta_label.add_theme_color_override("font_color", accent)
+		meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		card.add_child(meta_label)
+		inventory_list.add_child(card)
+	inventory_item_count.text = "%d ЯЧЕЕК · %.0f ЕДИНИЦ     МАССА %.1f/%.1f КГ     ОБЪЁМ %.1f/%.1f Л" % [
+		visible_entries.size(), total_units,
+		_player.inventory.current_mass(), _player.inventory.maximum_mass,
+		_player.inventory.current_volume(), _player.inventory.maximum_volume,
+	]
 	if inventory_list.get_child_count() == 0:
 		var empty := Label.new()
 		empty.custom_minimum_size = Vector2(420.0, 100.0)
@@ -653,16 +691,15 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 		inventory_use_button.disabled = true
 		return
 	for child: Node in inventory_list.get_children():
-		if child is Button:
-			(child as Button).button_pressed = (child as Button).text.contains(definition.display_name)
+		var button := child.get_child(0) as Button if child.get_child_count() > 0 else null
+		if button != null:
+			button.button_pressed = StringName(button.get_meta(&"definition_id", &"")) == definition_id
 	var category := _inventory_category_title(definition)
+	inventory_detail_category.text = category
+	inventory_detail_category.modulate = _inventory_category_color(definition)
+	inventory_detail_icon.texture = _inventory_icon(definition)
 	var unit_mass: float = float(definition.unit_mass) if definition is IngredientDefinition else (float(definition.mass) if definition is ItemDefinition else 0.0)
 	var unit_volume: float = float(definition.unit_volume) if definition is IngredientDefinition else (float(definition.volume) if definition is ItemDefinition else 0.0)
-	var field_notes := ""
-	if definition is IngredientDefinition:
-		var ingredient := definition as IngredientDefinition
-		if not ingredient.allowed_operations.is_empty():
-			field_notes = "\n\nОБРАБОТКА  %s" % ", ".join(PackedStringArray(ingredient.allowed_operations))
 	inventory_detail_title.text = definition.display_name
 	var specimens := _player.inventory.get_specimens(definition_id)
 	var best_quality := specimens[0].quality if not specimens.is_empty() else 0.0
@@ -670,8 +707,8 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 	for specimen: ItemInstance in specimens:
 		freshness_total += specimen.freshness
 	var average_freshness := freshness_total / maxf(1.0, float(specimens.size()))
-	inventory_detail_body.text = "%s\n\n%s\n\nВ СУМКЕ  × %.0f\nЕДИНИЦА  %.2f кг  ·  %.2f л%s" % [
-		category, definition.description, _player.inventory.count(definition_id), unit_mass, unit_volume, field_notes,
+	inventory_detail_body.text = "%s\n\nВ СУМКЕ ×%.0f   ·   %.2f КГ   ·   %.2f Л" % [
+		definition.description, _player.inventory.count(definition_id), unit_mass, unit_volume,
 	]
 	inventory_quality_bar.value = best_quality
 	inventory_freshness_bar.value = average_freshness
@@ -701,6 +738,7 @@ func _set_inventory_filter(filter_id: StringName) -> void:
 	_inventory_filter = filter_id
 	_selected_inventory_id = &""
 	audio_cue_requested.emit(&"select")
+	_refresh_inventory_filter_buttons()
 	_update_inventory_panel()
 
 
@@ -719,6 +757,52 @@ func _on_inventory_specimen_selected(index: int) -> void:
 		ContentDB.get_definition(_selected_inventory_id).display_name,
 		selected_text.get_slice("  ·  ", 0),
 	]
+
+
+func _inventory_icon(definition: ContentDefinition) -> Texture2D:
+	if definition is IngredientDefinition:
+		return (definition as IngredientDefinition).inventory_icon
+	if definition is ItemDefinition:
+		return (definition as ItemDefinition).inventory_icon
+	return null
+
+
+func _inventory_fallback_glyph(definition: ContentDefinition) -> String:
+	if definition is ConsumableDefinition:
+		return "◇"
+	if definition is IngredientDefinition:
+		return "✦"
+	return "◈"
+
+
+func _first_inventory_button() -> Button:
+	for card: Node in inventory_list.get_children():
+		if card.get_child_count() > 0 and card.get_child(0) is Button:
+			return card.get_child(0) as Button
+	return null
+
+
+func _refresh_inventory_filter_buttons() -> void:
+	var mapping: Dictionary[StringName, Button] = {
+		&"all": %InventoryFilterAll,
+		&"ingredients": %InventoryFilterIngredients,
+		&"consumables": %InventoryFilterConsumables,
+		&"tools": %InventoryFilterTools,
+	}
+	for filter_id: StringName in mapping:
+		mapping[filter_id].button_pressed = filter_id == _inventory_filter
+
+
+func _animate_inventory_open() -> void:
+	inventory_panel.pivot_offset = inventory_panel.size * 0.5
+	inventory_panel.modulate.a = 0.0
+	inventory_panel.scale = Vector2(0.985, 0.985)
+	inventory_scrim.modulate.a = 0.0
+	var tween := create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	tween.tween_property(inventory_panel, "modulate:a", 1.0, 0.22)
+	tween.tween_property(inventory_panel, "scale", Vector2.ONE, 0.26)
+	tween.tween_property(inventory_scrim, "modulate:a", 1.0, 0.18)
 
 
 func _inventory_parts_summary(parts: Array) -> String:
