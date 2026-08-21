@@ -268,6 +268,11 @@ func _setup_physical_interaction(terrain: ExpeditionTerrain) -> void:
 
 func _disable_legacy_shelter() -> void:
 	_disable_hidden_legacy_audio()
+	# The streamed expedition terrain replaces these prototype chunks in a real
+	# session. Leaving their floors, walls, areas and creatures active produces
+	# overlapping collision at the expedition spawn and can pin the player.
+	for legacy_chunk: Node in [forest_clearing, forest_trail, deep_grove, root_well]:
+		_set_branch_active(legacy_chunk, false)
 	for node_path: NodePath in [
 		NodePath("Architecture"), NodePath("ShelterDressing"), NodePath("Lighting/Lamp"), NodePath("ForestDoor")
 	]:

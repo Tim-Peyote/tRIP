@@ -383,7 +383,13 @@ func _add_chunk_collision(body: StaticBody3D, coordinate: Vector2i, render_mesh:
 		return
 	var collision := CollisionShape3D.new()
 	collision.name = "Collision"
-	collision.shape = collision_mesh.create_trimesh_shape()
+	var terrain_shape := collision_mesh.create_trimesh_shape()
+	# Runtime terrain must remain walkable even when a generated triangle strip
+	# changes winding at a chunk seam. The prototype floor previously concealed
+	# this by catching the player underneath the streamed surface.
+	if terrain_shape is ConcavePolygonShape3D:
+		(terrain_shape as ConcavePolygonShape3D).backface_collision = true
+	collision.shape = terrain_shape
 	body.add_child(collision)
 
 

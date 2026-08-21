@@ -39,6 +39,8 @@ func _run() -> void:
 	main.call("_on_game_requested", 41, true)
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	for legacy_chunk: Node3D in [level.forest_clearing, level.forest_trail, level.deep_grove, level.root_well]:
+		_expect(not legacy_chunk.visible and legacy_chunk.process_mode == Node.PROCESS_MODE_DISABLED, "Legacy world chunk remained active in the streamed expedition: %s" % legacy_chunk.name)
 	var hidden_legacy_emitters := level.find_children("*", "SpatialForestEmitter", true, false)
 	_expect(hidden_legacy_emitters.size() >= 6, "Legacy route audio audit did not find every authored spatial emitter.")
 	for node: Node in hidden_legacy_emitters:
@@ -64,6 +66,19 @@ func _run() -> void:
 	Input.action_release(&"move_forward")
 	_expect(player.global_position.distance_to(start_position) > 0.35, "First-person walking input did not move the character.")
 	_expect(player.get_planar_speed() <= player.walk_speed + 0.35, "Walking accelerated beyond its authored gait.")
+	for _frame: int in 12:
+		await get_tree().physics_frame
+	var takeoff_y := player.global_position.y
+	Input.action_press(&"jump")
+	await get_tree().physics_frame
+	Input.action_release(&"jump")
+	for _frame: int in 8:
+		await get_tree().physics_frame
+	_expect(player.global_position.y > takeoff_y + 0.2, "First-person jump did not lift the character in the real streamed level (ground=%s, y=%.3f, takeoff=%.3f, vy=%.3f, coyote=%.3f)." % [player.is_grounded(), player.global_position.y, takeoff_y, player.velocity.y, float(player.get("_coyote_remaining"))])
+	for _frame: int in 80:
+		await get_tree().physics_frame
+		if player.is_grounded():
+			break
 	Input.action_press(&"crouch")
 	for _frame: int in 6:
 		await get_tree().physics_frame

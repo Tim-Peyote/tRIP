@@ -15,13 +15,9 @@ const SHELTER_SCENE: PackedScene = preload("res://world/levels/shelter/shelter_l
 
 var _active_level: ShelterLevel
 var _active_player: FirstPersonController
-var _input_diagnostic: Label
-var _audio_diagnostic_text: String = "PLAYING: scanning..."
-var _audio_diagnostic_elapsed: float = 0.0
 
 
 func _ready() -> void:
-	_setup_input_diagnostic()
 	InputBootstrap.ensure_defaults()
 	frontend_orchestrator.setup(main_menu)
 	frontend_orchestrator.game_requested.connect(_on_game_requested)
@@ -35,93 +31,6 @@ func _ready() -> void:
 	effect_orchestrator.setup(presentation_director)
 	world_metamorphosis_director.transition_started.connect(_on_world_transition_started)
 	world_metamorphosis_director.transition_finished.connect(_on_world_transition_finished)
-
-
-func _process(delta: float) -> void:
-	_audio_diagnostic_elapsed += delta
-	if _audio_diagnostic_elapsed >= 0.5:
-		_audio_diagnostic_elapsed = 0.0
-		_audio_diagnostic_text = _collect_playing_audio_text()
-	_update_input_diagnostic()
-
-
-func _setup_input_diagnostic() -> void:
-	_input_diagnostic = Label.new()
-	_input_diagnostic.name = "InputDiagnostic"
-	_input_diagnostic.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_input_diagnostic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_input_diagnostic.add_theme_font_size_override("font_size", 15)
-	_input_diagnostic.add_theme_color_override("font_color", Color("d7ff8a"))
-	var background := StyleBoxFlat.new()
-	background.bg_color = Color(0.015, 0.02, 0.015, 0.92)
-	background.border_color = Color(0.5, 0.75, 0.28, 0.8)
-	background.set_border_width_all(1)
-	background.set_corner_radius_all(5)
-	background.content_margin_left = 12.0
-	background.content_margin_right = 12.0
-	background.content_margin_top = 7.0
-	background.content_margin_bottom = 7.0
-	_input_diagnostic.add_theme_stylebox_override("normal", background)
-	_input_diagnostic.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_input_diagnostic.position = Vector2(-470.0, -126.0)
-	_input_diagnostic.size = Vector2(940.0, 112.0)
-	$UI.add_child(_input_diagnostic)
-
-
-func _update_input_diagnostic() -> void:
-	if _input_diagnostic == null or not is_instance_valid(_input_diagnostic):
-		return
-	var keys := "W:%d  A:%d  S:%d  D:%d  SPACE:%d  C:%d" % [
-		int(Input.is_physical_key_pressed(KEY_W)),
-		int(Input.is_physical_key_pressed(KEY_A)),
-		int(Input.is_physical_key_pressed(KEY_S)),
-		int(Input.is_physical_key_pressed(KEY_D)),
-		int(Input.is_physical_key_pressed(KEY_SPACE)),
-		int(Input.is_physical_key_pressed(KEY_C)),
-	]
-	if _active_player == null:
-		_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  |  LEVEL:MENU  |  %s  |  MASTER:MUTED\n%s" % [
-			int(DisplayServer.window_is_focused()), keys, _audio_diagnostic_text,
-		]
-		return
-	var movement := _active_player.get_movement_debug_state()
-	var input_vector: Vector2 = movement["input"]
-	var velocity: Vector3 = movement["velocity"]
-	_input_diagnostic.text = "INPUT QA  |  FOCUS:%d  PAUSE:%d  GAMEPLAY:%d  ACCEPT:%d  GROUND:%d  CROUCH:%d  COLL:%d  |  %s\nIN:(%.1f, %.1f)  VEL:(%.2f, %.2f, %.2f)  POS:(%.1f, %.1f, %.1f)  SPEED:%.2f  |  MASTER:MUTED\n%s" % [
-		int(DisplayServer.window_is_focused()),
-		int(get_tree().paused),
-		int(_active_player.is_gameplay_enabled()),
-		int(bool(movement["accepts_input"])),
-		int(bool(movement["grounded"])),
-		int(bool(movement["crouched"])),
-		int(movement["collisions"]),
-		keys,
-		input_vector.x,
-		input_vector.y,
-		velocity.x,
-		velocity.y,
-		velocity.z,
-		_active_player.global_position.x,
-		_active_player.global_position.y,
-		_active_player.global_position.z,
-		_active_player.get_planar_speed(),
-		_audio_diagnostic_text,
-	]
-
-
-func _collect_playing_audio_text() -> String:
-	var playing := PackedStringArray()
-	for node: Node in get_tree().root.find_children("*", "AudioStreamPlayer", true, false):
-		var player := node as AudioStreamPlayer
-		if player.playing:
-			playing.append("%s[%s]" % [player.name, player.bus])
-	for node: Node in get_tree().root.find_children("*", "AudioStreamPlayer3D", true, false):
-		var player := node as AudioStreamPlayer3D
-		if player.playing:
-			playing.append("%s[%s]" % [player.name, player.bus])
-	return "PLAYING: none" if playing.is_empty() else "PLAYING: " + ", ".join(playing)
-
-
 func _unhandled_input(event: InputEvent) -> void:
 	if _active_level != null and not get_tree().paused and not event is InputEventKey:
 		if event.is_action_pressed(&"inventory"):

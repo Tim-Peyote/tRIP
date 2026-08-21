@@ -56,7 +56,9 @@ func initialize_new_run(start_position: Vector3, cairn_position: Vector3) -> voi
 	_cairn.global_position = ritual_position
 	_cairn.set_available(true)
 	_set_lab_active(false)
-	_player.global_position = _grounded(start_position) + Vector3.UP * 0.18
+	_player.global_position = _grounded(start_position) + Vector3.UP * 0.06
+	_player.velocity = Vector3.ZERO
+	_player.apply_floor_snap()
 	_player.rotation.y = PI
 	ritual_state_changed.emit(unlocked, manifested)
 
