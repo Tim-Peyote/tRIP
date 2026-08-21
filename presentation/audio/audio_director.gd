@@ -21,14 +21,14 @@ const STABLE_AUDIO_BUS_STATE: Dictionary[StringName, bool] = {
 var _snapshot_id: StringName = &"default"
 var _cue_players: Array[AudioStreamPlayer] = []
 var _cue_streams: Dictionary[StringName, AudioStream] = {
-	&"open": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
-	&"close": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
-	&"select": preload("res://assets/third_party/kenney_audio/ui/back_002.ogg"),
-	&"confirm": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
-	&"pickup": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
-	&"grab": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
-	&"release": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
-	&"pause": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
+	&"open": preload("res://assets/third_party/kenney_ui_audio_official/panel_open.ogg"),
+	&"close": preload("res://assets/third_party/kenney_ui_audio_official/panel_close.ogg"),
+	&"select": preload("res://assets/third_party/kenney_ui_audio_official/rollover_soft.ogg"),
+	&"confirm": preload("res://assets/third_party/kenney_ui_audio_official/click_confirm.ogg"),
+	&"pickup": preload("res://assets/third_party/kenney_ui_audio_official/click_confirm.ogg"),
+	&"grab": preload("res://assets/third_party/kenney_ui_audio_official/panel_open.ogg"),
+	&"release": preload("res://assets/third_party/kenney_ui_audio_official/panel_close.ogg"),
+	&"pause": preload("res://assets/third_party/kenney_ui_audio_official/pause_soft.ogg"),
 }
 var _cue_cursor: int = 0
 var _last_cue_usec: int = -UI_SELECT_COOLDOWN_USEC
@@ -81,9 +81,23 @@ func play_ui_cue(cue_id: StringName) -> void:
 	_last_cue_usec = now_usec
 	var player := _cue_players[_cue_cursor % _cue_players.size()]
 	_cue_cursor += 1
-	player.stream = _cue_streams[cue_id]
+	var cue_stream := _cue_streams[cue_id]
+	# OGG loop is mutable resource state in Godot. Enforce the UI contract at
+	# every playback so a bad import or another resource user cannot turn a
+	# one-shot confirmation into a persistent loop across the scene transition.
+	if cue_stream is AudioStreamOggVorbis:
+		(cue_stream as AudioStreamOggVorbis).loop = false
+	player.stop()
+	player.stream = cue_stream
 	player.volume_db = -18.0 if cue_id == &"select" else -10.0 if cue_id in [&"open", &"close"] else -7.0
 	player.play()
+	var maximum_lifetime := clampf(cue_stream.get_length() + 0.08, 0.12, 0.75)
+	get_tree().create_timer(maximum_lifetime, true, false, true).timeout.connect(_stop_ui_voice_if_same.bind(player, cue_stream), CONNECT_ONE_SHOT)
+
+
+func _stop_ui_voice_if_same(player: AudioStreamPlayer, expected_stream: AudioStream) -> void:
+	if is_instance_valid(player) and player.stream == expected_stream:
+		player.stop()
 
 
 func _wire_existing_buttons() -> void:
