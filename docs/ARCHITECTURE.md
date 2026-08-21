@@ -221,6 +221,8 @@ measured CookingProcessEvent → RecipeResolver
 
 Зональные угрозы оформляются локальными orchestrator-компонентами chunk-сцены. `SporeTideOrchestrator` знает только player contract, границы зоны, фазу и semantic effect channels; HUD, GPU particles, свет и audio independently интерпретируют его сигналы. Переполнение exposure меняет позицию игрока как gameplay consequence, но визуальная плотность спор не определяет расчёт.
 
+Безопасные точки предоставляют минимальный spatial contract `get_protection_at(world_position)`. `SporeTideOrchestrator` агрегирует найденные shelter-компоненты и не проверяет имена сцен или тип геометрии. Narrative requirements также выражаются semantic state ID (`surge`) и effect channel, поэтому один `NarrativeClue` можно использовать для времени суток, погоды или других состояний мира.
+
 Старый параметрический `perform_action()` остаётся полезным для инструментов и headless-тестов. Физический путь формирует тот же `CookingProcessEvent`, дополненный измеренными `stir_count`, `homogeneity` и `overheat_duration`; поэтому resolver не имеет отдельной ветки «игровой котёл».
 
 ## 7. Контракт эффектов

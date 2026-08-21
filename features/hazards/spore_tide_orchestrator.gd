@@ -4,6 +4,7 @@ extends Node
 signal state_changed(state: int, label: String)
 signal exposure_changed(value: float)
 signal overwhelmed
+signal shelter_changed(is_sheltered: bool, shelter_name: String)
 
 enum State { CALM, RISING, SURGE }
 
@@ -19,10 +20,15 @@ var _phase_time: float = 0.0
 var _spore_resistance: float = 0.0
 var _spore_attraction: float = 0.0
 var _player: FirstPersonController
+var _shelters: Array[Node] = []
+var _was_sheltered: bool = false
 
 
 func setup(player: FirstPersonController) -> void:
 	_player = player
+	for node: Node in get_parent().find_children("*", "Node3D", true, false):
+		if node.has_method("get_protection_at"):
+			_shelters.append(node)
 	_emit_state()
 
 
@@ -39,14 +45,25 @@ func _process(delta: float) -> void:
 		state = wrapi(state + 1, State.CALM, State.SURGE + 1) as State
 		_emit_state()
 	if _player == null or not _is_player_inside():
+		if _was_sheltered:
+			_was_sheltered = false
+			shelter_changed.emit(false, "")
 		exposure = move_toward(exposure, 0.0, delta * 0.08)
 		exposure_changed.emit(exposure)
 		return
+	var shelter_data := _get_shelter_data()
+	var shelter_protection := float(shelter_data.get("protection", 0.0))
+	var is_sheltered := shelter_protection > 0.01
+	if is_sheltered != _was_sheltered:
+		_was_sheltered = is_sheltered
+		shelter_changed.emit(is_sheltered, String(shelter_data.get("name", "")))
 	var rate := -0.07
 	if state == State.RISING:
 		rate = 0.022
 	elif state == State.SURGE:
 		rate = 0.085
+	if is_sheltered:
+		rate = lerpf(rate, -0.13, shelter_protection)
 	var resistance_multiplier := lerpf(1.0, 0.12, _spore_resistance)
 	var attraction_multiplier := lerpf(1.0, 1.45, _spore_attraction)
 	exposure = clampf(exposure + rate * resistance_multiplier * attraction_multiplier * delta, 0.0, 1.0)
@@ -79,7 +96,17 @@ func _get_duration() -> float:
 			return surge_duration
 
 
+func _get_shelter_data() -> Dictionary:
+	var strongest := 0.0
+	var shelter_name := ""
+	for shelter: Node in _shelters:
+		var value := float(shelter.call("get_protection_at", _player.global_position))
+		if value > strongest:
+			strongest = value
+			shelter_name = String(shelter.get("shelter_name"))
+	return {"protection": strongest, "name": shelter_name}
+
+
 func _emit_state() -> void:
 	var labels := ["СПОРЫ СПЯТ", "СПОРОВЫЙ ПРИЛИВ ПОДНИМАЕТСЯ", "СПОРОВЫЙ ПРИЛИВ"]
 	state_changed.emit(state, labels[state])
-

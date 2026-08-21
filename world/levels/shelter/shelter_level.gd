@@ -118,5 +118,6 @@ func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
 	player.set_spore_vision_active(spore_vision_active)
 	player.set_spore_resistance(float(channels.get(&"spore_resistance", 0.0)))
 	forest_trail.set_spore_vision_active(spore_vision_active)
+	deep_grove.set_spore_vision_active(spore_vision_active)
 	game_loop_orchestrator.set_effect_channels(channels)
 	spore_tide.apply_gameplay_channels(channels)

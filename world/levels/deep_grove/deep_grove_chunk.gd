@@ -27,7 +27,17 @@ func get_emberberries() -> Array[HarvestableIngredient]:
 	return result
 
 
+func set_spore_vision_active(value: bool) -> void:
+	for clue: Node in get_narrative_clues():
+		if clue.has_method("set_spore_vision_active"):
+			clue.call("set_spore_vision_active", value)
+
+
 func _on_tide_state_changed(state: int, _label: String) -> void:
+	var state_ids: Array[StringName] = [&"calm", &"rising", &"surge"]
+	for clue: Node in get_narrative_clues():
+		if clue.has_method("set_world_state"):
+			clue.call("set_world_state", state_ids[state])
 	match state:
 		SporeTideOrchestrator.State.CALM:
 			spores.amount = 90

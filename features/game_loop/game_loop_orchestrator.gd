@@ -53,6 +53,8 @@ func get_objective_text() -> String:
 		Stage.REWARD:
 			return "ЦИКЛ ЗАВЕРШЁН · разобрать результаты"
 		_:
+			if mycologist_clues.has(&"mycologist.ring.surge_trace"):
+				return "КООРДИНАТЫ НАЙДЕНЫ · подготовиться к корневому колодцу"
 			if counteragent_brewed and spore_quiet_active:
 				return "ТИХАЯ КРОВЬ · пережить споровый прилив и исследовать кольцо"
 			if counteragent_brewed and spore_vision_active:

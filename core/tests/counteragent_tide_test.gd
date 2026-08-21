@@ -43,6 +43,17 @@ func _run() -> void:
 	level.spore_tide.force_state(SporeTideOrchestrator.State.SURGE)
 	level.spore_tide._process(5.0)
 	_expect(level.spore_tide.exposure > 0.35, "Unprotected spore tide did not create meaningful exposure.")
+	player.global_position = Vector3(18.2, 0.12, 9.8)
+	level.spore_tide.exposure = 0.5
+	level.spore_tide.force_state(SporeTideOrchestrator.State.SURGE)
+	level.spore_tide._process(3.0)
+	_expect(level.spore_tide.exposure < 0.5, "Physical spore shelter did not drain exposure during surge.")
+	var surge_clue := level.deep_grove.get_node("SurgeClue")
+	_expect(not surge_clue.visible, "Surge clue was visible without spore sight.")
+	main.effect_orchestrator.apply_effects([&"effect.spore_sight"])
+	_expect(surge_clue.visible, "Surge clue did not appear when tide and spore sight aligned.")
+	(surge_clue.get_node("InteractableComponent") as InteractableComponent).complete_interaction(player)
+	_expect(level.game_loop_orchestrator.mycologist_clues.has(&"mycologist.ring.surge_trace"), "Risk-route mycologist clue was not recorded.")
 	main.queue_free()
 	await get_tree().process_frame
 	SaveService.delete_slot(TEST_SLOT)
@@ -63,4 +74,3 @@ func _finish() -> void:
 		push_error(failure)
 	print("TRip counteragent/tide test: FAIL (%d)" % _failures.size())
 	get_tree().quit(1)
-

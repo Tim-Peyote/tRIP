@@ -116,6 +116,7 @@ func setup_spore_tide(spore_tide: SporeTideOrchestrator) -> void:
 	_spore_tide = spore_tide
 	spore_tide.state_changed.connect(_on_spore_tide_state_changed)
 	spore_tide.exposure_changed.connect(_on_spore_exposure_changed)
+	spore_tide.shelter_changed.connect(_on_spore_shelter_changed)
 	spore_tide.overwhelmed.connect(func() -> void: show_notice("Споры забили дыхание. Роща вытолкнула тебя ко входу."))
 
 
@@ -299,6 +300,11 @@ func _on_spore_tide_state_changed(state: int, label: String) -> void:
 func _on_spore_exposure_changed(value: float) -> void:
 	%SporeTideBar.value = value * 100.0
 	%SporeTideBar.visible = value > 0.01
+
+
+func _on_spore_shelter_changed(is_sheltered: bool, shelter_name: String) -> void:
+	%SporeShelterLabel.visible = is_sheltered
+	%SporeShelterLabel.text = "УКРЫТИЕ · %s" % shelter_name.to_upper()
 
 
 func _on_inspection_requested(title: String, description: String) -> void:

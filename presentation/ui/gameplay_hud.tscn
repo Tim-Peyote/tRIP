@@ -168,6 +168,20 @@ offset_bottom = 145.0
 grow_horizontal = 2
 show_percentage = false
 
+[node name="SporeShelterLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 151.0
+offset_bottom = 173.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.48, 0.95)
+theme_override_font_sizes/font_size = 12
+text = "УКРЫТИЕ"
+horizontal_alignment = 1
+
 [node name="CookingStatusLabel" type="Label" parent="."]
 unique_name_in_owner = true
 visible = false

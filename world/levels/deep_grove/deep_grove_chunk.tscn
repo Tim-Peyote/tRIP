@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://world/levels/deep_grove/deep_grove_chunk.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/portals/simple_portal.tscn" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://presentation/audio/spatial_forest_emitter.gd" id="7"]
 [ext_resource type="Texture2D" path="res://presentation/textures/forest/forest_floor_albedo.png" id="8"]
 [ext_resource type="Script" path="res://features/hazards/spore_tide_orchestrator.gd" id="9"]
+[ext_resource type="PackedScene" path="res://features/hazards/spore_shelter_zone.tscn" id="10"]
 
 [sub_resource type="StandardMaterial3D" id="GroundMat"]
 albedo_color = Color(0.29, 0.38, 0.28, 1)
@@ -271,6 +272,33 @@ position = Vector3(-2.5, 0.19, -3.2)
 rotation = Vector3(1.5708, 0, 0)
 mesh = SubResource("RingMesh")
 material_override = SubResource("MyceliumMat")
+
+[node name="SurgeClue" parent="." instance=ExtResource("5")]
+position = Vector3(-2.5, 0.15, -3.2)
+clue_id = &"mycologist.ring.surge_trace"
+title = "След внутри прилива"
+text = "В пульсе кольца проступает отпечаток ладони и координаты корневого колодца. Миколог прошёл дальше во время самого сильного прилива."
+requires_spore_vision = true
+required_world_state = &"surge"
+
+[node name="ShelterLower" parent="." instance=ExtResource("10")]
+position = Vector3(-6.8, 0.15, -5.2)
+shelter_name = "нижний грибной навес"
+protection_radius = 2.8
+
+[node name="ShelterRamp" parent="." instance=ExtResource("10")]
+position = Vector3(-0.8, 0.15, 7.8)
+rotation = Vector3(0, 0.5, 0)
+scale = Vector3(0.88, 0.88, 0.88)
+shelter_name = "навес у подъёма"
+protection_radius = 2.5
+
+[node name="ShelterCamp" parent="." instance=ExtResource("10")]
+position = Vector3(10.2, 1.78, 2.2)
+rotation = Vector3(0, -0.6, 0)
+scale = Vector3(0.82, 0.82, 0.82)
+shelter_name = "лагерный навес"
+protection_radius = 2.4
 
 [node name="EmberberryA" parent="." instance=ExtResource("6")]
 position = Vector3(-7.2, 0.15, 7.0)
