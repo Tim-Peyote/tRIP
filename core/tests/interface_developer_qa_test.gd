@@ -69,6 +69,10 @@ func _run() -> void:
 	limiter_voice.queue_free()
 	await get_tree().process_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var shelter_ambience := level.get_node("ProceduralAmbience") as ProceduralAmbience
+	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
+	var player := level.player
+	_expect(not shelter_ambience.is_shelter_active() and terrain.is_biome_ambience_active(), "Legacy shelter forest ambience leaked into the real expedition.")
 	for legacy_chunk: Node3D in [level.forest_clearing, level.forest_trail, level.deep_grove, level.root_well]:
 		_expect(not legacy_chunk.visible and legacy_chunk.process_mode == Node.PROCESS_MODE_DISABLED, "Legacy world chunk remained active in the streamed expedition: %s" % legacy_chunk.name)
 	var hidden_legacy_emitters := level.find_children("*", "SpatialForestEmitter", true, false)
@@ -83,7 +87,6 @@ func _run() -> void:
 	_expect(not level.forest_clearing.listener.visible and level.forest_clearing.listener.process_mode == Node.PROCESS_MODE_DISABLED, "Deprecated prototype Listener is still active in the opening clearing.")
 	_expect(level.get_biome_population().get_active_population_count() == 0, "Fauna spawned inside the protected expedition opening.")
 	level.expedition_clock.running = false
-	var player := level.player
 	player.inventory.add_item(ItemInstance.new(&"ingredient.mooncap"))
 	player.inventory.add_item(ItemInstance.new(&"ingredient.mooncap"))
 	var inventory_stacks := player.inventory.get_stacks()

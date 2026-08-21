@@ -160,6 +160,20 @@ func get_ambience_ecology_family() -> int:
 	return int(_biome_ambience.get("ecology_family")) if is_instance_valid(_biome_ambience) else -1
 
 
+func is_biome_ambience_active() -> bool:
+	return bool(_biome_ambience.call("is_expedition_active")) if is_instance_valid(_biome_ambience) else false
+
+
+func get_biome_ambience_layer_count() -> int:
+	if not is_instance_valid(_biome_ambience):
+		return 0
+	var count := 1
+	for child: Node in _biome_ambience.get_children():
+		if child is AudioStreamPlayer:
+			count += 1
+	return count
+
+
 func get_loaded_ecology_signature() -> String:
 	var parts := PackedStringArray()
 	var pack := _get_content_pack()
@@ -230,7 +244,7 @@ func _process(_delta: float) -> void:
 			_atmosphere.visible = expedition_visible
 			_atmosphere.global_position = _target.global_position + Vector3(0.0, 4.0, 0.0)
 		if is_instance_valid(_biome_ambience):
-			_biome_ambience.volume_db = -13.0 if expedition_visible else -80.0
+			_biome_ambience.call("set_expedition_active", expedition_visible)
 		var center := _chunk_coordinate(_target.global_position)
 		if center != _last_center:
 			_refresh_chunks(_target.global_position, true)
@@ -1415,6 +1429,7 @@ func _rebuild_presentation_layers() -> void:
 		_biome_ambience.name = "BiomeRecordedAmbience"
 		add_child(_biome_ambience)
 	_biome_ambience.call("configure", ecology, base_seed + _run_seed)
+	_biome_ambience.call("set_expedition_active", is_instance_valid(_target) and _target.global_position.z >= MIN_EXPEDITION_Z)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = base_seed * 97 + _run_seed * 53 + ecology * 101
 	match ecology:

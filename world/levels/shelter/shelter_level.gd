@@ -37,6 +37,7 @@ var physical_showcase: PhysicalInteractionShowcase
 
 func _ready() -> void:
 	_disable_hidden_legacy_audio()
+	($ProceduralAmbience as ProceduralAmbience).setup(player)
 	var terrain := $ExpeditionTerrain as ExpeditionTerrain
 	terrain.setup(player)
 	world_phase_orchestrator.setup(terrain, biome_visual_controller)
@@ -268,6 +269,9 @@ func _setup_physical_interaction(terrain: ExpeditionTerrain) -> void:
 
 func _disable_legacy_shelter() -> void:
 	_disable_hidden_legacy_audio()
+	# The authored room is not part of a real run. Its global forest recording
+	# must not survive as an invisible first-biome layer over later worlds.
+	($ProceduralAmbience as ProceduralAmbience).set_ambience_enabled(false)
 	# The streamed expedition terrain replaces these prototype chunks in a real
 	# session. Leaving their floors, walls, areas and creatures active produces
 	# overlapping collision at the expedition spawn and can pin the player.
