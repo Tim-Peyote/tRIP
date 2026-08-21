@@ -19,10 +19,10 @@ const FULL_AUDIO_BUS_STATE: Dictionary[StringName, bool] = {
 var _snapshot_id: StringName = &"default"
 var _cue_players: Array[AudioStreamPlayer] = []
 var _cue_streams: Dictionary[StringName, AudioStream] = {
-	&"open": preload("res://assets/third_party/kenney_audio/ui/maximize_003.ogg"),
-	&"close": preload("res://assets/third_party/kenney_audio/ui/close_002.ogg"),
-	&"select": preload("res://assets/third_party/kenney_audio/ui/click_003.ogg"),
-	&"confirm": preload("res://assets/third_party/kenney_audio/ui/confirmation_002.ogg"),
+	&"open": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
+	&"close": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
+	&"select": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
+	&"confirm": preload("res://assets/third_party/kenney_audio/ui/bookClose.ogg"),
 	&"pickup": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
 	&"grab": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
 	&"release": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
@@ -74,7 +74,7 @@ func play_ui_cue(cue_id: StringName) -> void:
 	var player := _cue_players[_cue_cursor % _cue_players.size()]
 	_cue_cursor += 1
 	player.stream = _cue_streams[cue_id]
-	player.volume_db = -7.0 if cue_id in [&"select", &"open", &"close"] else -4.0
+	player.volume_db = -18.0 if cue_id == &"select" else -10.0 if cue_id in [&"open", &"close"] else -7.0
 	player.play()
 
 

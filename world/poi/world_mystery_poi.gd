@@ -214,6 +214,7 @@ func _build_event_presentation() -> void:
 	add_child(_event_light)
 	_event_audio = AudioStreamPlayer3D.new()
 	_event_audio.name = "MysteryEventAudio"
+	_event_audio.bus = &"Perception"
 	_event_audio.stream = _get_recorded_event_layer(definition.event_rule)
 	if _event_audio.stream is AudioStreamOggVorbis:
 		(_event_audio.stream as AudioStreamOggVorbis).loop = true
