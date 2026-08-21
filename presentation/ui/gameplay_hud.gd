@@ -21,6 +21,18 @@ signal audio_cue_requested(cue_id: StringName)
 @onready var inventory_volume_bar: ProgressBar = %InventoryVolumeBar
 @onready var inventory_capacity_label: Label = %InventoryCapacityLabel
 @onready var inventory_use_button: Button = %InventoryUseButton
+@onready var inventory_sort: OptionButton = %InventorySort
+@onready var inventory_item_count: Label = %InventoryItemCount
+@onready var inventory_quality_bar: ProgressBar = %InventoryQualityBar
+@onready var inventory_freshness_bar: ProgressBar = %InventoryFreshnessBar
+@onready var inventory_specimen_list: ItemList = %InventorySpecimenList
+@onready var journal_entry_list: ItemList = %JournalEntryList
+@onready var journal_detail_kicker: Label = %JournalDetailKicker
+@onready var journal_detail_title: Label = %JournalDetailTitle
+@onready var journal_detail_meta: Label = %JournalDetailMeta
+@onready var journal_progress: ProgressBar = %JournalProgress
+@onready var journal_detail_body: RichTextLabel = %JournalDetailBody
+@onready var journal_counter: Label = %JournalCounter
 @onready var inspection_view: SampleInspectionView = %SampleInspectionView
 @onready var focus_card: PanelContainer = %FocusCard
 @onready var focus_key: Label = %FocusKey
@@ -43,9 +55,14 @@ var _biome_hazard: BiomeHazardOrchestrator
 var _inside_root_well: bool = false
 var _weather: WeatherOrchestrator
 var _notice_tween: Tween
+var _notice_rest_y: float
 var _last_interaction_context: Dictionary = {}
 var _selected_inventory_id: StringName
 var _inventory_filter: StringName = &"all"
+var _inventory_sort_mode: StringName = &"name"
+var _journal_mode: StringName = &"species"
+var _journal_entries: Array[Dictionary] = []
+var _selected_journal_id: StringName
 
 
 func _ready() -> void:
@@ -59,7 +76,18 @@ func _ready() -> void:
 	%InventoryFilterIngredients.pressed.connect(_set_inventory_filter.bind(&"ingredients"))
 	%InventoryFilterConsumables.pressed.connect(_set_inventory_filter.bind(&"consumables"))
 	%InventoryFilterTools.pressed.connect(_set_inventory_filter.bind(&"tools"))
+	inventory_sort.add_item("По названию")
+	inventory_sort.add_item("По качеству")
+	inventory_sort.add_item("По количеству")
+	inventory_sort.add_item("По свежести")
+	inventory_sort.item_selected.connect(_set_inventory_sort)
+	inventory_specimen_list.item_selected.connect(_on_inventory_specimen_selected)
+	journal_entry_list.item_selected.connect(_select_journal_entry)
+	%JournalTabSpecies.pressed.connect(_set_journal_mode.bind(&"species"))
+	%JournalTabHypotheses.pressed.connect(_set_journal_mode.bind(&"hypotheses"))
+	%JournalTabRecipes.pressed.connect(_set_journal_mode.bind(&"recipes"))
 	notice_timer.timeout.connect(func() -> void: notice_label.visible = false)
+	_notice_rest_y = notice_label.position.y
 	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
 	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
 
@@ -520,13 +548,13 @@ func show_notice(text: String) -> void:
 	notice_label.text = text
 	notice_label.visible = true
 	notice_label.modulate.a = 0.0
-	notice_label.position.y += 8.0
 	if _notice_tween != null and _notice_tween.is_valid():
 		_notice_tween.kill()
+	notice_label.position.y = _notice_rest_y + 8.0
 	_notice_tween = create_tween().set_parallel(true)
 	_notice_tween.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
 	_notice_tween.tween_property(notice_label, "modulate:a", 1.0, 0.2)
-	_notice_tween.tween_property(notice_label, "position:y", notice_label.position.y - 8.0, 0.24)
+	_notice_tween.tween_property(notice_label, "position:y", _notice_rest_y, 0.24)
 	notice_timer.start()
 
 
@@ -555,38 +583,49 @@ func _update_inventory_panel() -> void:
 		_clear_inventory_list()
 		return
 	_clear_inventory_list()
-	var stacks := _player.inventory.get_stacks()
-	for stack: Dictionary in stacks:
+	var catalog := _player.inventory.get_catalog(_inventory_sort_mode)
+	var visible_entries: Array[Dictionary] = []
+	var total_units := 0.0
+	for stack: Dictionary in catalog:
 		var definition_id: StringName = stack["definition_id"]
 		var definition := ContentDB.get_definition(definition_id)
 		if not _inventory_definition_matches_filter(definition):
 			continue
+		visible_entries.append(stack)
+		total_units += float(stack["quantity"])
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(132.0, 108.0)
+		button.custom_minimum_size = Vector2(132.0, 112.0)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.text = "%s\n%s\n× %.0f   ·   %d%%" % [
+		button.toggle_mode = true
+		button.button_pressed = definition_id == _selected_inventory_id
+		button.text = "%s\n%s\n× %.0f   ·   Q %d\n%s" % [
 			_inventory_category_title(definition),
 			definition.display_name if definition != null else String(definition_id),
 			float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0),
+			_inventory_parts_summary(stack.get("parts", [])),
 		]
+		if definition is IngredientDefinition and (definition as IngredientDefinition).inventory_icon != null:
+			button.icon = (definition as IngredientDefinition).inventory_icon
+			button.expand_icon = true
 		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		button.add_theme_font_size_override("font_size", 13)
 		button.add_theme_color_override("font_color", _inventory_category_color(definition))
 		button.tooltip_text = definition.description if definition != null else String(definition_id)
 		button.pressed.connect(_select_inventory_stack.bind(definition_id))
 		inventory_list.add_child(button)
+	inventory_item_count.text = "%d ЯЧЕЕК · %.0f ЕДИНИЦ" % [visible_entries.size(), total_units]
 	if inventory_list.get_child_count() == 0:
 		var empty := Label.new()
 		empty.custom_minimum_size = Vector2(420.0, 100.0)
 		empty.text = "В этой категории пока пусто.\nИщи образцы, тайники и инструменты в мире."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		inventory_list.add_child(empty)
-		if stacks.is_empty():
+		if catalog.is_empty():
 			_selected_inventory_id = &""
-	elif _selected_inventory_id == &"" or _player.inventory.count(_selected_inventory_id) <= 0.0:
-		_select_inventory_stack(stacks[0]["definition_id"])
+	elif _selected_inventory_id == &"" or _player.inventory.count(_selected_inventory_id) <= 0.0 or not _inventory_definition_matches_filter(ContentDB.get_definition(_selected_inventory_id)):
+		_select_inventory_stack(visible_entries[0]["definition_id"], false)
 	else:
-		_select_inventory_stack(_selected_inventory_id)
+		_select_inventory_stack(_selected_inventory_id, false)
 	inventory_mass_bar.max_value = _player.inventory.maximum_mass
 	inventory_mass_bar.value = _player.inventory.current_mass()
 	inventory_volume_bar.max_value = _player.inventory.maximum_volume
@@ -603,8 +642,9 @@ func _clear_inventory_list() -> void:
 		child.queue_free()
 
 
-func _select_inventory_stack(definition_id: StringName) -> void:
-	audio_cue_requested.emit(&"select")
+func _select_inventory_stack(definition_id: StringName, play_audio: bool = true) -> void:
+	if play_audio:
+		audio_cue_requested.emit(&"select")
 	_selected_inventory_id = definition_id
 	var definition := ContentDB.get_definition(definition_id)
 	if definition == null:
@@ -612,6 +652,9 @@ func _select_inventory_stack(definition_id: StringName) -> void:
 		inventory_detail_body.text = "Нет данных об образце."
 		inventory_use_button.disabled = true
 		return
+	for child: Node in inventory_list.get_children():
+		if child is Button:
+			(child as Button).button_pressed = (child as Button).text.contains(definition.display_name)
 	var category := _inventory_category_title(definition)
 	var unit_mass: float = float(definition.unit_mass) if definition is IngredientDefinition else (float(definition.mass) if definition is ItemDefinition else 0.0)
 	var unit_volume: float = float(definition.unit_volume) if definition is IngredientDefinition else (float(definition.volume) if definition is ItemDefinition else 0.0)
@@ -621,9 +664,27 @@ func _select_inventory_stack(definition_id: StringName) -> void:
 		if not ingredient.allowed_operations.is_empty():
 			field_notes = "\n\nОБРАБОТКА  %s" % ", ".join(PackedStringArray(ingredient.allowed_operations))
 	inventory_detail_title.text = definition.display_name
+	var specimens := _player.inventory.get_specimens(definition_id)
+	var best_quality := specimens[0].quality if not specimens.is_empty() else 0.0
+	var freshness_total := 0.0
+	for specimen: ItemInstance in specimens:
+		freshness_total += specimen.freshness
+	var average_freshness := freshness_total / maxf(1.0, float(specimens.size()))
 	inventory_detail_body.text = "%s\n\n%s\n\nВ СУМКЕ  × %.0f\nЕДИНИЦА  %.2f кг  ·  %.2f л%s" % [
 		category, definition.description, _player.inventory.count(definition_id), unit_mass, unit_volume, field_notes,
 	]
+	inventory_quality_bar.value = best_quality
+	inventory_freshness_bar.value = average_freshness
+	inventory_specimen_list.clear()
+	for index in specimens.size():
+		var specimen := specimens[index]
+		var part := String(specimen.processing_state.get(&"part", "целый образец"))
+		inventory_specimen_list.add_item("#%02d  %s  ·  качество %d%%  ·  свежесть %d%%" % [
+			index + 1, part, roundi(specimen.quality * 100.0), roundi(specimen.freshness * 100.0),
+		])
+		inventory_specimen_list.set_item_metadata(index, specimen.instance_id)
+	if not specimens.is_empty():
+		inventory_specimen_list.select(0)
 	inventory_use_button.disabled = not definition is ConsumableDefinition
 	inventory_use_button.text = "Принять состав" if definition is ConsumableDefinition else "Нельзя применить напрямую"
 
@@ -641,6 +702,32 @@ func _set_inventory_filter(filter_id: StringName) -> void:
 	_selected_inventory_id = &""
 	audio_cue_requested.emit(&"select")
 	_update_inventory_panel()
+
+
+func _set_inventory_sort(index: int) -> void:
+	var modes: Array[StringName] = [&"name", &"quality", &"quantity", &"freshness"]
+	_inventory_sort_mode = modes[clampi(index, 0, modes.size() - 1)]
+	audio_cue_requested.emit(&"select")
+	_update_inventory_panel()
+
+
+func _on_inventory_specimen_selected(index: int) -> void:
+	if index < 0 or index >= inventory_specimen_list.item_count:
+		return
+	var selected_text := inventory_specimen_list.get_item_text(index)
+	inventory_detail_title.text = "%s · %s" % [
+		ContentDB.get_definition(_selected_inventory_id).display_name,
+		selected_text.get_slice("  ·  ", 0),
+	]
+
+
+func _inventory_parts_summary(parts: Array) -> String:
+	if parts.is_empty():
+		return "ЦЕЛЫЙ ОБРАЗЕЦ"
+	var labels := PackedStringArray()
+	for part: Variant in parts:
+		labels.append(String(part).to_upper())
+	return " / ".join(labels)
 
 
 func _inventory_definition_matches_filter(definition: ContentDefinition) -> bool:
@@ -668,18 +755,117 @@ func _inventory_category_color(definition: ContentDefinition) -> Color:
 
 
 func _update_journal() -> void:
-	if _knowledge == null:
-		%JournalContents.text = "Пока нет наблюдений."
+	journal_entry_list.clear()
+	_journal_entries.clear()
+	match _journal_mode:
+		&"hypotheses":
+			if _hypotheses != null:
+				_journal_entries = _hypotheses.get_entries()
+			for entry: Dictionary in _journal_entries:
+				var state := "ПОДТВЕРЖДЕНО" if bool(entry["verified"]) else "%d/%d ПРИЗНАКОВ" % [(entry["found_ids"] as Array).size(), (entry["required_ids"] as Array).size()]
+				journal_entry_list.add_item("%s  ·  %s" % [String(entry["question"]), state])
+		&"recipes":
+			if _recipe_knowledge != null:
+				_journal_entries = _recipe_knowledge.get_entries()
+			for entry: Dictionary in _journal_entries:
+				journal_entry_list.add_item("%s  ·  %s" % [String(entry["title"]), "ОСВОЕНО" if bool(entry["learned"]) else "ГИПОТЕЗА"])
+		_:
+			if _knowledge != null:
+				for definition_id: StringName in _knowledge.get_known_definition_ids():
+					var definition := ContentDB.get_definition(definition_id)
+					_journal_entries.append({"id": definition_id, "definition": definition})
+					var level_names := ["НЕИЗВЕСТНО", "НАБЛЮДЕНИЕ", "ОБРАЗЕЦ", "ИЗУЧЕНО"]
+					var icon := (definition as IngredientDefinition).inventory_icon if definition is IngredientDefinition else null
+					journal_entry_list.add_item("%s  ·  %s" % [definition.display_name if definition != null else String(definition_id), level_names[_knowledge.get_level(definition_id)]], icon)
+	journal_counter.text = "%d ЗАПИСЕЙ" % _journal_entries.size()
+	if _journal_entries.is_empty():
+		_show_empty_journal()
 		return
-	var lines := _knowledge.get_display_lines()
-	var sections := PackedStringArray()
-	sections.append("Осматривайте растения [F], чтобы делать записи." if lines.is_empty() else "\n".join(lines))
-	if _hypotheses != null:
-		var hypothesis_lines := _hypotheses.get_display_lines()
-		if not hypothesis_lines.is_empty():
-			sections.append("ГИПОТЕЗЫ\n" + "\n".join(hypothesis_lines))
-	if _recipe_knowledge != null:
-		var recipe_lines := _recipe_knowledge.get_display_lines()
-		if not recipe_lines.is_empty():
-			sections.append("ФОРМУЛЫ\n" + "\n\n".join(recipe_lines))
-	%JournalContents.text = "\n\n".join(sections)
+	var selected_index := 0
+	for index in _journal_entries.size():
+		if StringName(_journal_entries[index].get("id", &"")) == _selected_journal_id:
+			selected_index = index
+			break
+	journal_entry_list.select(selected_index)
+	_select_journal_entry(selected_index)
+
+
+func _set_journal_mode(mode: StringName) -> void:
+	_journal_mode = mode
+	_selected_journal_id = &""
+	audio_cue_requested.emit(&"select")
+	_update_journal()
+
+
+func _select_journal_entry(index: int) -> void:
+	if index < 0 or index >= _journal_entries.size():
+		_show_empty_journal()
+		return
+	var entry := _journal_entries[index]
+	_selected_journal_id = StringName(entry.get("id", &""))
+	match _journal_mode:
+		&"hypotheses": _show_hypothesis_entry(entry)
+		&"recipes": _show_recipe_entry(entry)
+		_: _show_species_entry(entry)
+
+
+func _show_species_entry(entry: Dictionary) -> void:
+	var definition_id := StringName(entry["id"])
+	var definition := entry.get("definition") as ContentDefinition
+	var level := _knowledge.get_level(definition_id)
+	var level_names := ["НЕИЗВЕСТНО", "НАБЛЮДЕНИЕ", "ОБРАЗЕЦ ПОЛУЧЕН", "ИЗУЧЕНО"]
+	journal_detail_kicker.text = "КАРТОЧКА ВИДА · %s" % level_names[level]
+	journal_detail_title.text = definition.display_name if definition != null else String(definition_id)
+	var clue_ids := _knowledge.get_discovered_clue_ids(definition_id)
+	var clue_total := _knowledge.get_clue_total(definition_id)
+	journal_detail_meta.text = "ПРИЗНАКИ  %d/%d   ·   ОБРАЗЦЫ В СУМКЕ  × %.0f" % [clue_ids.size(), clue_total, _player.inventory.count(definition_id) if _player != null else 0.0]
+	journal_progress.value = float(clue_ids.size()) / float(clue_total) if clue_total > 0 else float(level) / float(KnowledgeOrchestrator.Level.UNDERSTOOD)
+	var body := "[color=#99a395]ПОЛЕВОЕ ОПИСАНИЕ[/color]\n%s\n\n" % (definition.description if definition != null else "Описание отсутствует.")
+	if definition is IngredientDefinition:
+		var ingredient := definition as IngredientDefinition
+		if not ingredient.biome_tags.is_empty():
+			body += "[color=#99a395]СРЕДА[/color]\n%s\n\n" % ", ".join(PackedStringArray(ingredient.biome_tags))
+		body += "[color=#99a395]МОРФОЛОГИЧЕСКИЕ ПРИЗНАКИ[/color]\n"
+		if ingredient.inspection_clues.is_empty():
+			body += "Наблюдения ещё не систематизированы."
+		for clue: InspectionClueDefinition in ingredient.inspection_clues:
+			var found := clue.id in clue_ids
+			body += "%s  [b]%s[/b]\n%s\n\n" % ["✓" if found else "○", clue.label if found else "Неразобранный признак", clue.description if found else "Осмотрите образец под другим углом."]
+	journal_detail_body.text = body
+
+
+func _show_hypothesis_entry(entry: Dictionary) -> void:
+	var found_ids := entry["found_ids"] as Array
+	var required_ids := entry["required_ids"] as Array
+	journal_detail_kicker.text = "ГИПОТЕЗА · %s" % ("ПОДТВЕРЖДЕНА" if bool(entry["verified"]) else "В РАБОТЕ")
+	journal_detail_title.text = String(entry["question"])
+	journal_detail_meta.text = "%d ИЗ %d НАБЛЮДЕНИЙ СОШЛИСЬ" % [found_ids.size(), required_ids.size()]
+	journal_progress.value = float(found_ids.size()) / maxf(1.0, float(required_ids.size()))
+	var body := "%s\n\n[color=#99a395]ЦЕПОЧКА ДОКАЗАТЕЛЬСТВ[/color]\n" % String(entry.get("description", ""))
+	for clue_id: StringName in required_ids:
+		body += "%s  %s\n" % ["✓" if clue_id in found_ids else "○", String(clue_id).get_slice(".", String(clue_id).count("."))]
+	var suggested := entry.get("suggested_item_ids", []) as Array
+	if not suggested.is_empty():
+		body += "\n[color=#99a395]СВЯЗАННЫЕ ОБРАЗЦЫ[/color]\n"
+		for item_id: StringName in suggested:
+			var definition := ContentDB.get_definition(item_id)
+			body += "• %s\n" % (definition.display_name if definition != null else String(item_id))
+	journal_detail_body.text = body
+
+
+func _show_recipe_entry(entry: Dictionary) -> void:
+	journal_detail_kicker.text = "ФОРМУЛА · %s" % ("ОСВОЕНА" if bool(entry["learned"]) else "НЕПРОВЕРЕННАЯ ЗАПИСЬ")
+	journal_detail_title.text = String(entry["title"])
+	var primary := ContentDB.get_definition(entry["primary_ingredient_id"])
+	var result := ContentDB.get_definition(entry["result_item_id"])
+	journal_detail_meta.text = "ОСНОВА  %s   ·   ЭТАПОВ  %d" % [primary.display_name if primary != null else String(entry["primary_ingredient_id"]), int(entry["step_count"])]
+	journal_progress.value = 1.0 if bool(entry["learned"]) else 0.35
+	journal_detail_body.text = "[color=#99a395]ПОЛЕВАЯ ЗАПИСЬ[/color]\n%s\n\n%s\n\n[color=#99a395]ОЖИДАЕМЫЙ РЕЗУЛЬТАТ[/color]\n%s" % [String(entry.get("description", "")), String(entry["field_notes"]), result.display_name if result != null else String(entry["result_item_id"])]
+
+
+func _show_empty_journal() -> void:
+	journal_detail_kicker.text = "АРХИВ ПУСТ"
+	journal_detail_title.text = "Нет записей в этом разделе"
+	journal_detail_meta.text = "Осматривайте растения, проверяйте гипотезы и готовьте составы."
+	journal_progress.value = 0.0
+	journal_detail_body.text = "[color=#99a395]ПОДСКАЗКА[/color]\n[F] открывает осмотр объекта. Найденные признаки автоматически связываются с карточкой вида."

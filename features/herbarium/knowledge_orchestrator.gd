@@ -87,6 +87,30 @@ func get_level(definition_id: StringName) -> int:
 	return int(_levels.get(definition_id, Level.UNKNOWN))
 
 
+func get_known_definition_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	result.assign(_levels.keys())
+	result.sort_custom(func(a: StringName, b: StringName) -> bool:
+		var a_definition := ContentDB.get_definition(a)
+		var b_definition := ContentDB.get_definition(b)
+		var a_name := a_definition.display_name if a_definition != null else String(a)
+		var b_name := b_definition.display_name if b_definition != null else String(b)
+		return a_name.naturalnocasecmp_to(b_name) < 0
+	)
+	return result
+
+
+func get_discovered_clue_ids(definition_id: StringName) -> Array[StringName]:
+	var result: Array[StringName] = []
+	result.assign((_clues.get(definition_id, {}) as Dictionary).keys())
+	result.sort()
+	return result
+
+
+func get_clue_total(definition_id: StringName) -> int:
+	return int(_clue_totals.get(definition_id, 0))
+
+
 func get_display_lines() -> PackedStringArray:
 	var lines := PackedStringArray()
 	var ids: Array = _levels.keys()

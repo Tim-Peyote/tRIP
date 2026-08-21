@@ -34,6 +34,26 @@ func get_display_lines() -> PackedStringArray:
 	return lines
 
 
+func get_entries() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for hypothesis: HypothesisDefinition in _hypotheses:
+		var found_ids: Array[StringName] = []
+		for clue_id: StringName in hypothesis.required_observation_ids:
+			if _knowledge.has_clue(clue_id):
+				found_ids.append(clue_id)
+		result.append({
+			"id": hypothesis.id,
+			"question": hypothesis.question,
+			"description": hypothesis.description,
+			"verified": is_verified(hypothesis.id),
+			"found_ids": found_ids,
+			"required_ids": hypothesis.required_observation_ids,
+			"suggested_item_ids": hypothesis.suggested_item_ids,
+			"region_id": hypothesis.approximate_region_id,
+		})
+	return result
+
+
 func _on_clue_recorded(_definition_id: StringName, _clue_id: StringName, _found: int, _total: int) -> void:
 	_evaluate_all()
 

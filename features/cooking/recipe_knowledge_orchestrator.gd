@@ -55,6 +55,33 @@ func get_display_lines() -> PackedStringArray:
 	return lines
 
 
+func get_entries() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if _cooking == null:
+		return result
+	var visible_ids: Array[StringName] = []
+	visible_ids.assign(_discovered.keys())
+	for learned_id: StringName in _learned:
+		if learned_id not in visible_ids:
+			visible_ids.append(learned_id)
+	visible_ids.sort()
+	for recipe_id: StringName in visible_ids:
+		var recipe := _cooking.find_recipe_by_id(recipe_id)
+		if recipe == null:
+			continue
+		result.append({
+			"id": recipe.id,
+			"title": recipe.display_name,
+			"description": recipe.description,
+			"field_notes": recipe.field_notes,
+			"learned": _learned.has(recipe_id),
+			"primary_ingredient_id": recipe.primary_ingredient_id,
+			"result_item_id": recipe.result_item_id,
+			"step_count": recipe.steps.size(),
+		})
+	return result
+
+
 func to_save_data() -> Dictionary:
 	return {
 		"learned": _learned.keys().map(func(value: Variant) -> String: return String(value)),

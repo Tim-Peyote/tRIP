@@ -101,6 +101,56 @@ func get_stacks() -> Array[Dictionary]:
 	return result
 
 
+func get_specimens(definition_id: StringName) -> Array[ItemInstance]:
+	var result: Array[ItemInstance] = []
+	for item: ItemInstance in items:
+		if item.definition_id == definition_id:
+			result.append(item)
+	result.sort_custom(func(a: ItemInstance, b: ItemInstance) -> bool:
+		if not is_equal_approx(a.quality, b.quality):
+			return a.quality > b.quality
+		if not is_equal_approx(a.freshness, b.freshness):
+			return a.freshness > b.freshness
+		return String(a.instance_id) < String(b.instance_id)
+	)
+	return result
+
+
+func get_catalog(sort_mode: StringName = &"name") -> Array[Dictionary]:
+	var result := get_stacks()
+	for entry: Dictionary in result:
+		var specimens := get_specimens(entry["definition_id"])
+		var freshness_total := 0.0
+		var quality_total := 0.0
+		var parts: Dictionary[StringName, bool] = {}
+		for specimen: ItemInstance in specimens:
+			freshness_total += specimen.freshness
+			quality_total += specimen.quality
+			var part := StringName(specimen.processing_state.get(&"part", &""))
+			if part != &"":
+				parts[part] = true
+		entry["specimen_count"] = specimens.size()
+		entry["average_quality"] = quality_total / maxf(1.0, float(specimens.size()))
+		entry["average_freshness"] = freshness_total / maxf(1.0, float(specimens.size()))
+		entry["parts"] = parts.keys()
+	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		match sort_mode:
+			&"quality":
+				return float(a["best_quality"]) > float(b["best_quality"])
+			&"quantity":
+				return float(a["quantity"]) > float(b["quantity"])
+			&"freshness":
+				return float(a["average_freshness"]) > float(b["average_freshness"])
+			_:
+				var a_definition := ContentDB.get_definition(a["definition_id"])
+				var b_definition := ContentDB.get_definition(b["definition_id"])
+				var a_name := a_definition.display_name if a_definition != null else String(a["definition_id"])
+				var b_name := b_definition.display_name if b_definition != null else String(b["definition_id"])
+				return a_name.naturalnocasecmp_to(b_name) < 0
+	)
+	return result
+
+
 func get_display_lines() -> PackedStringArray:
 	var lines := PackedStringArray()
 	for item: ItemInstance in items:

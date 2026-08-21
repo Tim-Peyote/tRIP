@@ -514,9 +514,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -540.0
-offset_top = -310.0
+offset_top = -325.0
 offset_right = 540.0
-offset_bottom = 310.0
+offset_bottom = 325.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
@@ -524,13 +524,13 @@ mouse_filter = 0
 [node name="Margin" type="MarginContainer" parent="InventoryPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
+theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_bottom = 18
 
 [node name="Layout" type="VBoxContainer" parent="InventoryPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 7
 
 [node name="Title" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
@@ -565,6 +565,27 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 36)
 layout_mode = 2
 text = "СНАРЯЖЕНИЕ"
+
+[node name="FilterSpacer" type="Control" parent="InventoryPanel/Margin/Layout/FilterBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventorySortLabel" type="Label" parent="InventoryPanel/Margin/Layout/FilterBar"]
+layout_mode = 2
+text = "СОРТИРОВКА"
+vertical_alignment = 1
+
+[node name="InventorySort" type="OptionButton" parent="InventoryPanel/Margin/Layout/FilterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 36)
+layout_mode = 2
+
+[node name="InventoryItemCount" type="Label" parent="InventoryPanel/Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 13
+text = "0 ЯЧЕЕК · 0 ОБРАЗЦОВ"
 
 [node name="InventoryCapacityLabel" type="Label" parent="InventoryPanel/Margin/Layout"]
 unique_name_in_owner = true
@@ -613,7 +634,7 @@ columns = 4
 [node name="Detail" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 7
 
 [node name="InventoryDetailTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail"]
 unique_name_in_owner = true
@@ -625,9 +646,47 @@ text = "Образец"
 [node name="InventoryDetailBody" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
 text = "Выберите предмет слева."
 autowrap_mode = 2
+
+[node name="QualityTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "ЛУЧШЕЕ КАЧЕСТВО"
+
+[node name="InventoryQualityBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 1.0
+show_percentage = false
+
+[node name="FreshnessTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "СРЕДНЯЯ СВЕЖЕСТЬ"
+
+[node name="InventoryFreshnessBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 1.0
+show_percentage = false
+
+[node name="SpecimenTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 13
+text = "ОБРАЗЦЫ В СУМКЕ"
+
+[node name="InventorySpecimenList" type="ItemList" parent="InventoryPanel/Margin/Layout/Body/Detail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
 
 [node name="InventoryUseButton" type="Button" parent="InventoryPanel/Margin/Layout/Body/Detail"]
 unique_name_in_owner = true
@@ -650,10 +709,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -270.0
-offset_top = -190.0
-offset_right = 270.0
-offset_bottom = 190.0
+offset_left = -540.0
+offset_top = -310.0
+offset_right = 540.0
+offset_bottom = 310.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -672,21 +731,113 @@ theme_override_constants/separation = 12
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
 theme_override_font_sizes/font_size = 24
-text = "Полевой гербарий"
+text = "ПОЛЕВОЙ ГЕРБАРИЙ · АРХИВ ЭКСПЕДИЦИИ"
 
-[node name="JournalScroll" type="ScrollContainer" parent="JournalPanel/Margin/Layout"]
+[node name="JournalTabs" type="HBoxContainer" parent="JournalPanel/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="JournalTabSpecies" type="Button" parent="JournalPanel/Margin/Layout/JournalTabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+text = "ВИДЫ"
+
+[node name="JournalTabHypotheses" type="Button" parent="JournalPanel/Margin/Layout/JournalTabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 36)
+layout_mode = 2
+text = "ГИПОТЕЗЫ"
+
+[node name="JournalTabRecipes" type="Button" parent="JournalPanel/Margin/Layout/JournalTabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 36)
+layout_mode = 2
+text = "ФОРМУЛЫ"
+
+[node name="JournalTabSpacer" type="Control" parent="JournalPanel/Margin/Layout/JournalTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="JournalCounter" type="Label" parent="JournalPanel/Margin/Layout/JournalTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+text = "0 ЗАПИСЕЙ"
+vertical_alignment = 1
+
+[node name="JournalBody" type="HBoxContainer" parent="JournalPanel/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="JournalSidebar" type="VBoxContainer" parent="JournalPanel/Margin/Layout/JournalBody"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SidebarTitle" type="Label" parent="JournalPanel/Margin/Layout/JournalBody/JournalSidebar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "ПОЛЕВЫЕ КАРТОЧКИ"
+
+[node name="JournalEntryList" type="ItemList" parent="JournalPanel/Margin/Layout/JournalBody/JournalSidebar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+allow_reselect = true
+fixed_icon_size = Vector2i(40, 40)
+
+[node name="JournalDetail" type="VBoxContainer" parent="JournalPanel/Margin/Layout/JournalBody"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="JournalDetailKicker" type="Label" parent="JournalPanel/Margin/Layout/JournalBody/JournalDetail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 12
+text = "КАРТОЧКА НАБЛЮДЕНИЯ"
+
+[node name="JournalDetailTitle" type="Label" parent="JournalPanel/Margin/Layout/JournalBody/JournalDetail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "Нет записей"
+autowrap_mode = 2
+
+[node name="JournalDetailMeta" type="Label" parent="JournalPanel/Margin/Layout/JournalBody/JournalDetail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 13
+text = "Исследуйте мир, чтобы заполнить архив."
+autowrap_mode = 2
+
+[node name="JournalProgress" type="ProgressBar" parent="JournalPanel/Margin/Layout/JournalBody/JournalDetail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 1.0
+show_percentage = false
+
+[node name="JournalDetailScroll" type="ScrollContainer" parent="JournalPanel/Margin/Layout/JournalBody/JournalDetail"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="JournalContents" type="Label" parent="JournalPanel/Margin/Layout/JournalScroll"]
+[node name="JournalDetailBody" type="RichTextLabel" parent="JournalPanel/Margin/Layout/JournalBody/JournalDetail/JournalDetailScroll"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(478, 0)
+custom_minimum_size = Vector2(650, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-text = "Пока нет наблюдений."
-autowrap_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = "Исследуйте мир, чтобы заполнить архив."
 
 [node name="Hint" type="Label" parent="JournalPanel/Margin/Layout"]
 layout_mode = 2
