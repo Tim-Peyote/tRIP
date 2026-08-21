@@ -40,6 +40,7 @@ func initialize_new() -> void:
 	rng.randomize()
 	_loop.initialize_world_seed(rng.randi_range(1, 2147483646))
 	_level.apply_world_seed(_loop.world_seed)
+	_level.initialize_new_session()
 	save_now(&"new_game")
 
 
@@ -76,6 +77,7 @@ func capture_save_data() -> Dictionary:
 		"recipe_knowledge": _level.recipe_knowledge_orchestrator.to_save_data(),
 		"toolbelt": player.toolbelt.to_save_data(),
 		"game_loop": _loop.to_save_data(),
+		"road_laboratory": _level.get_road_laboratory().to_save_data(),
 		"collected_spawn_ids": _collected_spawn_ids.keys().map(func(value: Variant) -> String: return String(value)),
 		"player": {
 			"position": [player.global_position.x, player.global_position.y, player.global_position.z],
@@ -85,6 +87,7 @@ func capture_save_data() -> Dictionary:
 
 
 func apply_save_data(data: Dictionary) -> void:
+	_level.apply_session_layout_after_load()
 	_level.player.inventory.apply_save_data(data.get("inventory", []) as Array)
 	_level.knowledge_orchestrator.apply_save_data(data.get("knowledge", {}) as Dictionary)
 	_level.objective_orchestrator.apply_save_data(data.get("objective", {}) as Dictionary)
@@ -106,6 +109,10 @@ func apply_save_data(data: Dictionary) -> void:
 	if position_data.size() == 3:
 		_level.player.global_position = Vector3(float(position_data[0]), float(position_data[1]), float(position_data[2]))
 	_level.player.rotation.y = float(player_data.get("yaw", 0.0))
+	if data.has("road_laboratory"):
+		_level.get_road_laboratory().apply_save_data(data.get("road_laboratory", {}) as Dictionary)
+	else:
+		_level.get_road_laboratory().migrate_legacy_save()
 
 
 func _on_harvested(_item: ItemInstance, spawn_id: StringName) -> void:

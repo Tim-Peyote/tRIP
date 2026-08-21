@@ -105,6 +105,7 @@ Full cycle and persistence test:
 - `Q` — switch between the field knife and spore vial
 - `J` — open/close the field herbarium
 - `G` — throw a stone to distract creatures
+- `L` — dismiss or manifest the unlocked road laboratory near the player
 - `Esc` — pause
 - `F10` — developer world-phase panel (`PageUp/PageDown`, `R`, `Backspace`)
 

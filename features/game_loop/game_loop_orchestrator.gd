@@ -53,7 +53,7 @@ func get_objective_text() -> String:
 		Stage.EXPEDITION:
 			return _objective.get_objective_text() if _objective != null else "ВЫЛАЗКА"
 		Stage.BREW:
-			return "УБЕЖИЩЕ · приготовить чистый настой спорозрения"
+			return "ДОРОЖНАЯ ЛАБОРАТОРИЯ · приготовить чистый настой спорозрения"
 		Stage.REWARD:
 			return "ЦИКЛ ЗАВЕРШЁН · разобрать результаты"
 		_:
@@ -76,7 +76,7 @@ func get_objective_text() -> String:
 			if counteragent_brewed:
 				return "ВЫБОР ПРЕПАРАТА · спорозрение открывает путь, контрагент защищает"
 			if second_expedition_complete:
-				return "УБЕЖИЩЕ · исследовать тлеющую ягоду и карту миколога"
+				return "ДОРОЖНАЯ ЛАБОРАТОРИЯ · исследовать тлеющую ягоду и карту миколога"
 			if emberberry_collected:
 				return "ОБРАЗЕЦ И СЛЕД ПОЛУЧЕНЫ · вернуться в убежище"
 			if mycologist_clues.has(&"mycologist.camp.abandoned"):

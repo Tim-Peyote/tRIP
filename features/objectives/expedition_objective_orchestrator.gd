@@ -15,7 +15,7 @@ func get_objective_text() -> String:
 		Stage.SEEK_MOONCAP:
 			return "ВЫЛАЗКА 01 · найти и срезать шляпку лунного гриба"
 		Stage.RETURN_TO_SHELTER:
-			return "ОБРАЗЕЦ ПОЛУЧЕН · вернуться в убежище"
+			return "ОБРАЗЕЦ ПОЛУЧЕН · вернуться к дорожной лаборатории"
 		_:
 			return "ВЫЛАЗКА ЗАВЕРШЕНА · образец готов к исследованию"
 

@@ -27,11 +27,14 @@ extends Node3D
 @onready var spore_tide: SporeTideOrchestrator = deep_grove.get_node("SporeTideOrchestrator") as SporeTideOrchestrator
 @onready var root_well_gate: SimplePortal = deep_grove.get_node("RootWellGate") as SimplePortal
 
+var road_laboratory: RoadLaboratoryOrchestrator
+
 
 func _ready() -> void:
-	($ExpeditionTerrain as ExpeditionTerrain).setup(player)
-	world_phase_orchestrator.setup($ExpeditionTerrain as ExpeditionTerrain, biome_visual_controller)
-	world_phase_developer_panel.setup(world_phase_orchestrator, $ExpeditionTerrain as ExpeditionTerrain)
+	var terrain := $ExpeditionTerrain as ExpeditionTerrain
+	terrain.setup(player)
+	world_phase_orchestrator.setup(terrain, biome_visual_controller)
+	world_phase_developer_panel.setup(world_phase_orchestrator, terrain)
 	for node: Node in find_children("*", "CookingToolComponent", true, false):
 		(node as CookingToolComponent).setup(cooking_orchestrator)
 	for node: Node in find_children("*", "PhysicalCookingStationComponent", true, false):
@@ -75,6 +78,7 @@ func _ready() -> void:
 	expedition_clock.phase_changed.connect(forest_clearing.apply_phase)
 	stealth_orchestrator.setup(player, [forest_clearing.listener])
 	player.distraction_created.connect(_on_distraction_created)
+	_setup_road_laboratory(terrain)
 
 
 func get_player() -> FirstPersonController:
@@ -129,6 +133,25 @@ func get_root_pressure() -> RootPressureOrchestrator:
 	return root_well.pressure
 
 
+func get_road_laboratory() -> RoadLaboratoryOrchestrator:
+	return road_laboratory
+
+
+func initialize_new_session() -> void:
+	_disable_legacy_shelter()
+	biome_visual_controller.show_forest()
+	road_laboratory.initialize_new_run(Vector3(0, 0, 11.5), Vector3(6.5, 0, 18.5))
+	game_loop_orchestrator.narrative_notice_requested.emit(
+		"ЯВЬ · ПЕРВЫЙ СЛЕД",
+		"Комнаты здесь нет. Миколог оставил в камнях схему обряда: найди зелёное кольцо и восстанови дорожную лабораторию прямо в лесу."
+	)
+
+
+func apply_session_layout_after_load() -> void:
+	_disable_legacy_shelter()
+	biome_visual_controller.show_forest()
+
+
 func apply_world_seed(value: int) -> void:
 	for node: Node in find_children("*", "Node3D", true, false):
 		if is_instance_valid(node) and node.has_method("set_run_seed"):
@@ -137,6 +160,48 @@ func apply_world_seed(value: int) -> void:
 
 func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	biome_visual_controller.setup(world_environment)
+
+
+func _setup_road_laboratory(terrain: ExpeditionTerrain) -> void:
+	road_laboratory = RoadLaboratoryOrchestrator.new()
+	road_laboratory.name = "RoadLaboratoryOrchestrator"
+	add_child(road_laboratory)
+	var portable_nodes: Array[Node] = []
+	for path: NodePath in [
+		NodePath("Table"), NodePath("Mooncap"), NodePath("Mortar"), NodePath("Cauldron"),
+		NodePath("WaterJug"), NodePath("FireControl"), NodePath("Ladle"), NodePath("BottleRack"),
+		NodePath("Rug"), NodePath("CookingStationVisuals"), NodePath("CookingStationAudio"),
+		NodePath("ShelterProgressionVisuals"), NodePath("InvestigationBoard")
+	]:
+		portable_nodes.append(get_node(path))
+	road_laboratory.setup(player, terrain, portable_nodes)
+	road_laboratory.laboratory_entered.connect(objective_orchestrator.record_return)
+	road_laboratory.autosave_requested.connect(session_persistence.request_autosave)
+	road_laboratory.metamorphosis_started.connect(func() -> void:
+		game_loop_orchestrator.narrative_notice_requested.emit("ОБРЯД", "Пространство вспоминает форму полевой лаборатории. Воздух складывается вокруг огня.")
+	)
+
+
+func _disable_legacy_shelter() -> void:
+	for node_path: NodePath in [
+		NodePath("Architecture"), NodePath("ShelterDressing"), NodePath("Lighting/Lamp"), NodePath("ForestDoor")
+	]:
+		_set_branch_active(get_node(node_path), false)
+	_set_branch_active(forest_clearing.get_node("ReturnPortal"), false)
+	_set_branch_active(forest_clearing.get_node("DeepGroveGate"), false)
+	_set_branch_active(forest_trail.get_node("ReturnPortal"), false)
+	_set_branch_active(forest_trail.get_node("SporeRoute/VisionGate"), false)
+	_set_branch_active(root_well_gate, false)
+
+
+func _set_branch_active(branch: Node, value: bool) -> void:
+	if branch is Node3D:
+		(branch as Node3D).visible = value
+	branch.process_mode = Node.PROCESS_MODE_INHERIT if value else Node.PROCESS_MODE_DISABLED
+	for node: Node in branch.find_children("*", "CollisionShape3D", true, false):
+		(node as CollisionShape3D).set_deferred("disabled", not value)
+	for node: Node in branch.find_children("*", "InteractableComponent", true, false):
+		(node as InteractableComponent).enabled = value
 
 
 func _on_distraction_created(projectile: DistractionProjectile) -> void:

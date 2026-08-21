@@ -25,6 +25,7 @@ const JOY_BUTTON_BINDINGS: Dictionary = {
 	&"alternate": JOY_BUTTON_B,
 	&"quick_tool": JOY_BUTTON_DPAD_RIGHT,
 	&"throw_distraction": JOY_BUTTON_DPAD_LEFT,
+	&"road_laboratory": JOY_BUTTON_DPAD_UP,
 }
 
 

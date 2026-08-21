@@ -125,6 +125,10 @@ alternate={
 "deadzone": 0.5,
 "events": [Object(InputEventMouseButton,"button_index":2)]
 }
+road_laboratory={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":76)]
+}
 
 [internationalization]
 

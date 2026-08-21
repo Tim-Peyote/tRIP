@@ -556,6 +556,11 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 	body.add_child(root)
 	var pack := _get_content_pack()
 	var poi_family := pack.poi_family if pack != null else &"field_station"
+	if poi_family == &"field_station":
+		_build_altai_waymark(root, center, rng)
+		root.set_meta(&"poi_kind", &"altai_waymark")
+		root.set_meta(&"mystery_id", &"mystery.altai.bound_thread")
+		return
 	var count := 5 + rng.randi_range(0, 4)
 	for index in count:
 		var shard := MeshInstance3D.new()
@@ -607,6 +612,72 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 	root.set_meta(&"poi_kind", poi_family)
 	if pack != null and not pack.mystery_ids.is_empty():
 		root.set_meta(&"mystery_id", pack.mystery_ids[abs(int(_chunk_seed(coordinate))) % pack.mystery_ids.size()])
+
+
+func _build_altai_waymark(root: Node3D, center: Vector2, rng: RandomNumberGenerator) -> void:
+	var ground := _height_at(center.x, center.y)
+	var stone_material := _standard_material(Color("343b37"))
+	var wood_material := _standard_material(Color("4d2c19"))
+	var cloth_material := _standard_material(Color("9f3726"), true)
+	cloth_material.emission_energy_multiplier = 0.38
+	for index: int in 9:
+		var angle := TAU * float(index) / 9.0 + rng.randf_range(-0.12, 0.12)
+		var radius := rng.randf_range(1.25, 1.9)
+		var stone := MeshInstance3D.new()
+		stone.name = "CairnStone_%02d" % index
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(rng.randf_range(0.45, 0.82), rng.randf_range(0.28, 0.58), rng.randf_range(0.38, 0.72))
+		stone.mesh = mesh
+		stone.material_override = stone_material
+		var point := center + Vector2(cos(angle), sin(angle)) * radius
+		stone.position = Vector3(point.x, _height_at(point.x, point.y) + mesh.size.y * 0.42, point.y)
+		stone.rotation = Vector3(rng.randf_range(-0.16, 0.16), -angle, rng.randf_range(-0.12, 0.12))
+		root.add_child(stone)
+	var marker := MeshInstance3D.new()
+	marker.name = "WeatheredCedarMarker"
+	var marker_mesh := CylinderMesh.new()
+	marker_mesh.top_radius = 0.11
+	marker_mesh.bottom_radius = 0.19
+	marker_mesh.height = 4.8
+	marker_mesh.radial_segments = 6
+	marker.mesh = marker_mesh
+	marker.material_override = wood_material
+	marker.position = Vector3(center.x, ground + marker_mesh.height * 0.5, center.y)
+	marker.rotation.z = rng.randf_range(-0.055, 0.055)
+	root.add_child(marker)
+	for side: int in [-1, 1]:
+		var branch := MeshInstance3D.new()
+		branch.name = "MarkerBranch_%d" % side
+		var branch_mesh := CylinderMesh.new()
+		branch_mesh.top_radius = 0.045
+		branch_mesh.bottom_radius = 0.075
+		branch_mesh.height = 1.45
+		branch_mesh.radial_segments = 5
+		branch.mesh = branch_mesh
+		branch.material_override = wood_material
+		branch.position = Vector3(center.x + float(side) * 0.52, ground + 3.35, center.y)
+		branch.rotation.z = PI * 0.5 + float(side) * 0.22
+		root.add_child(branch)
+	for index: int in 5:
+		var ribbon := MeshInstance3D.new()
+		ribbon.name = "PrayerRibbon_%02d" % index
+		var ribbon_mesh := QuadMesh.new()
+		ribbon_mesh.size = Vector2(rng.randf_range(0.12, 0.2), rng.randf_range(0.55, 0.95))
+		ribbon.mesh = ribbon_mesh
+		ribbon.material_override = cloth_material
+		ribbon.position = Vector3(center.x + rng.randf_range(-0.68, 0.68), ground + rng.randf_range(2.65, 3.55), center.y + 0.08)
+		ribbon.rotation.y = rng.randf_range(-0.35, 0.35)
+		ribbon.rotation.z = rng.randf_range(-0.18, 0.18)
+		root.add_child(ribbon)
+	var offering := MeshInstance3D.new()
+	offering.name = "AbandonedFieldOffering"
+	var offering_mesh := PrismMesh.new()
+	offering_mesh.size = Vector3(0.8, 0.16, 0.52)
+	offering.mesh = offering_mesh
+	offering.material_override = _standard_material(Color("6e5840"))
+	offering.position = Vector3(center.x + 0.75, ground + 0.13, center.y + 0.52)
+	offering.rotation.y = rng.randf_range(-0.6, 0.6)
+	root.add_child(offering)
 
 
 func _add_water_feature(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
