@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ConsumableDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/consumable_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"item.deep_root_kisel"
+display_name = "Кисель второго корня"
+description = "Тягучий состав фиксирует одну версию пространства и открывает корневые полости."
+tags = Array[StringName]([&"brew", &"consumable", &"world_key", &"root"])
+mass = 0.45
+volume = 0.36
+max_stack = 1
+effect_ids = Array[StringName]([&"effect.root_dream"])
+doses = 1

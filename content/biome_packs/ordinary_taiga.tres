@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+[ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/bound_thread.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,10 @@ vegetation_family = 0
 geology_family = 0
 poi_family = &"field_station"
 mystery_ids = Array[StringName]([&"mystery.brothers_notch", &"mystery.wrong_footprints", &"mystery.silent_wintering"])
+mysteries = Array[ExtResource("2")]([ExtResource("2")])
+local_ingredient_ids = Array[StringName]([&"ingredient.mooncap"])
+transition_recipe_id = &"recipe.spore_sight_brew"
+next_phase_id = &"phase.mycelial_choir"
 landscape_statement = "Черневая пихтово-кедровая тайга в речной долине: крупный лес, мокрый бурелом, гранитные выходы и следы геологической партии."
 elevation_scale = 1.0
 ridge_bias = 0.3

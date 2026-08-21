@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ConsumableDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/consumable_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"item.ashen_bell_tea"
+display_name = "Чай пепельного колокольчика"
+description = "Почти бесцветный чай, переводящий зрение в пространственный слух."
+tags = Array[StringName]([&"brew", &"consumable", &"world_key", &"ashen"])
+mass = 0.31
+volume = 0.29
+max_stack = 1
+effect_ids = Array[StringName]([&"effect.ashen_hearing"])
+doses = 1

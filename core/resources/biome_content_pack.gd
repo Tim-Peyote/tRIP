@@ -40,6 +40,10 @@ enum GeologyFamily {
 @export var geology_family: GeologyFamily = GeologyFamily.ROUNDED_GRANITE
 @export var poi_family: StringName
 @export var mystery_ids: Array[StringName] = []
+@export var mysteries: Array[WorldMysteryDefinition] = []
+@export var local_ingredient_ids: Array[StringName] = []
+@export var transition_recipe_id: StringName
+@export var next_phase_id: StringName
 @export_multiline var landscape_statement: String
 @export_range(0.1, 3.0, 0.05) var elevation_scale: float = 1.0
 @export_range(0.0, 1.0, 0.05) var ridge_bias: float = 0.25

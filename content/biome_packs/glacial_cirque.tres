@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+[ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/frozen_hour.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,10 @@ vegetation_family = 3
 geology_family = 3
 poi_family = &"frozen_archive"
 mystery_ids = Array[StringName]([&"mystery.voice_in_ice", &"mystery.reversed_avalanche", &"mystery.frozen_hour"])
+mysteries = Array[ExtResource("2")]([ExtResource("2")])
+local_ingredient_ids = Array[StringName]([&"ingredient.ashen_bell"])
+transition_recipe_id = &"recipe.ashen_bell_tea"
+next_phase_id = &"phase.ashen_silence"
 landscape_statement = "Высокогорный кар с моренами и ледяными террасами: редкие лишайники, кристаллические гребни и замёрзшие архивы памяти."
 elevation_scale = 1.42
 ridge_bias = 0.88

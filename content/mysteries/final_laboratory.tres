@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="WorldMysteryDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/world_mystery_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"mystery.final_laboratory"
+display_name = "Лаборатория, которая помнит"
+description = "На плато стоит версия дорожного лагеря, собранная из предметов обоих братьев."
+discovery_text = "Поиск завершён не ответом, а выбором: вывести брата из общего сна, оставить Сердце нетронутым или повторить цикл с другим составом."

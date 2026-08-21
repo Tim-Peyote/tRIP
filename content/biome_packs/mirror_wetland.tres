@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+[ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/reflection_first.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,10 @@ vegetation_family = 5
 geology_family = 5
 poi_family = &"reflection_pool"
 mystery_ids = Array[StringName]([&"mystery.second_camp", &"mystery.reflection_arrives_first", &"mystery.false_ingredient"])
+mysteries = Array[ExtResource("2")]([ExtResource("2")])
+local_ingredient_ids = Array[StringName]([&"ingredient.deep_root"])
+transition_recipe_id = &"recipe.deep_root_kisel"
+next_phase_id = &"phase.root_dream"
 landscape_statement = "Затопленная озёрная долина: тростниковые острова, слоистые берега, зеркальные протоки и двойники полевых стоянок."
 elevation_scale = 0.52
 ridge_bias = 0.08

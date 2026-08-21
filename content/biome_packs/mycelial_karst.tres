@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+[ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/spore_sentence.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,10 @@ vegetation_family = 1
 geology_family = 1
 poi_family = &"memory_ring"
 mystery_ids = Array[StringName]([&"mystery.spore_sentence", &"mystery.breathing_sinkhole", &"mystery.borrowed_memory"])
+mysteries = Array[ExtResource("2")]([ExtResource("2")])
+local_ingredient_ids = Array[StringName]([&"ingredient.blood_antler"])
+transition_recipe_id = &"recipe.crimson_marrow_stew"
+next_phase_id = &"phase.crimson_hunt"
 landscape_statement = "Сырая кедровая тайга проваливается в карст: гигантские плодовые тела, известняковые рёбра, споровые ложбины и дышащие входы."
 elevation_scale = 0.92
 ridge_bias = 0.18

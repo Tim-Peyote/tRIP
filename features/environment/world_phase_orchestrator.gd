@@ -21,6 +21,7 @@ var _visuals: BiomeVisualController
 var _current: WorldPhaseDefinition
 var _developer_override: bool = false
 var _last_gameplay_channels: Dictionary[StringName, float] = {}
+var _story_phase_id: StringName = &"phase.ordinary"
 
 
 func _ready() -> void:
@@ -57,6 +58,18 @@ func clear_developer_override() -> void:
 	_apply_gameplay_channels_without_override(_last_gameplay_channels)
 
 
+func set_story_phase(phase_id: StringName) -> void:
+	if not _by_id.has(phase_id):
+		return
+	_story_phase_id = phase_id
+	if not _developer_override:
+		set_phase(phase_id, false)
+
+
+func get_story_phase_id() -> StringName:
+	return _story_phase_id
+
+
 func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
 	_last_gameplay_channels = channels.duplicate()
 	if _developer_override:
@@ -65,7 +78,9 @@ func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
 
 
 func _apply_gameplay_channels_without_override(channels: Dictionary[StringName, float]) -> void:
-	var selected := _by_id.get(&"phase.ordinary") as WorldPhaseDefinition
+	var selected := _by_id.get(_story_phase_id) as WorldPhaseDefinition
+	if selected == null:
+		selected = _by_id.get(&"phase.ordinary") as WorldPhaseDefinition
 	for definition: WorldPhaseDefinition in _definitions:
 		if definition.effect_channel != &"" and float(channels.get(definition.effect_channel, 0.0)) > 0.1:
 			if selected == null or definition.order > selected.order:

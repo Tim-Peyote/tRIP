@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldMysteryDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/world_mystery_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"mystery.reflection_arrives_first"
+display_name = "Отражение приходит первым"
+description = "Вода показывает игрока у корня за несколько секунд до его приближения."
+discovery_text = "Два среза одного корня не совпадают. Их нужно соединить в вязкую массу, чтобы выбрать единственную версию глубины."
+recipe_hint_id = &"recipe.deep_root_kisel"
+ingredient_hint_id = &"ingredient.deep_root"

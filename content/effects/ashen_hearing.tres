@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EffectDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/effect_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"effect.ashen_hearing"
+display_name = "Пепельный слух"
+description = "Зрение теряет дальность, но исчезнувшие стоянки отвечают звоном."
+duration_seconds = 92.0
+cancels_effect_ids = Array[StringName]([&"effect.spore_sight", &"effect.crimson_drive", &"effect.frost_memory", &"effect.spore_quiet"])
+gameplay_channels = {&"ashen_hearing": 1.0, &"hearing_focus": 0.8}
+presentation_channels = {&"danger": 0.35, &"toxicity": 0.2}
+opportunity = "Позволяет находить исчезающие лагеря по пространственному звуку."
+price = "Дальность зрения резко падает, шаги-приманки звучат правдоподобно."
+tell = "Пепел движется против ветра, впереди звенит невидимый металл."
+counterplay = "Зеркальный отвар возвращает дальность через отражения."
+world_reaction = "Тайга выгорает до тундры, стоянки появляются лишь на слух."

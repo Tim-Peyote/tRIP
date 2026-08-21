@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"ingredient.glass_lichen"
+display_name = "Стеклянный лишайник"
+description = "Хрупкие прозрачные пластинки растут на горячей красной осыпи и звенят перед заморозком."
+tags = Array[StringName]([&"lichen", &"frost_memory", &"crystal"])
+harvest_parts = Array[int]([0])
+unit_mass = 0.12
+unit_volume = 0.22
+freshness_hours = 7.0
+biome_tags = Array[StringName]([&"crimson_hunt"])
+allowed_operations = Array[StringName]([&"grind", &"heat"])
+trait_channels = {&"frost_memory": 0.92}

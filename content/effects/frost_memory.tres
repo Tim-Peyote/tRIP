@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EffectDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/effect_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"effect.frost_memory"
+display_name = "Стеклянная память"
+description = "Мир застывает в моменте, сохраняя прошлые маршруты в кристаллах."
+duration_seconds = 95.0
+cancels_effect_ids = Array[StringName]([&"effect.spore_sight", &"effect.crimson_drive", &"effect.spore_quiet"])
+gameplay_channels = {&"frost_memory": 1.0, &"movement_drag": 0.18}
+presentation_channels = {&"perception": 0.55, &"chroma": 0.5}
+opportunity = "Открывает замёрзшие архивы и сохраняет исчезающие следы."
+price = "Движения становятся тяжелее, а громкий звук раскалывает безопасные тропы."
+tell = "Выдох кристаллизуется, тени запаздывают."
+counterplay = "Пепельный чай размораживает слой через слух."
+world_reaction = "Склоны образуют ледяные террасы и архивные пещеры."

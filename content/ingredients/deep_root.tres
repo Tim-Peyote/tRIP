@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"ingredient.deep_root"
+display_name = "Корень второго берега"
+description = "Корень растёт одновременно над водой и в её отражении; срезы не совпадают."
+tags = Array[StringName]([&"root", &"root_dream", &"double"])
+harvest_parts = Array[int]([3])
+unit_mass = 0.34
+unit_volume = 0.29
+freshness_hours = 18.0
+biome_tags = Array[StringName]([&"mirror_flood"])
+allowed_operations = Array[StringName]([&"grind", &"heat"])
+trait_channels = {&"root_dream": 0.9}

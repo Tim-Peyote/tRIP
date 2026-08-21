@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"ingredient.concordance_cap"
+display_name = "Шляпка согласия"
+description = "Малое плодовое тело на корнях размером с колонны. Повторяет пульс двух людей сразу."
+tags = Array[StringName]([&"fungus", &"heart_resonance", &"concordance"])
+harvest_parts = Array[int]([1, 0])
+unit_mass = 0.26
+unit_volume = 0.28
+freshness_hours = 6.0
+biome_tags = Array[StringName]([&"root_dream"])
+allowed_operations = Array[StringName]([&"grind", &"heat"])
+trait_channels = {&"heart_resonance": 1.0}

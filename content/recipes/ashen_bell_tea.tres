@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1"]
+[ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2"]
+[sub_resource type="Resource" id="grind"]
+script = ExtResource("2")
+operation = &"grind"
+ingredient_tag = &"part_whole"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 8.0
+maximum_temperature = 26.0
+minimum_duration = 4.0
+maximum_duration = 10.0
+player_hint = "Смять чашечку, не разрушив сухой язычок."
+[sub_resource type="Resource" id="heat"]
+script = ExtResource("2")
+operation = &"heat"
+ingredient_tag = &"ashen_hearing"
+minimum_amount = 0.9
+maximum_amount = 1.1
+minimum_temperature = 76.0
+maximum_temperature = 84.0
+minimum_duration = 18.0
+maximum_duration = 28.0
+minimum_stirs = 1
+minimum_homogeneity = 0.62
+maximum_overheat_duration = 2.5
+player_hint = "Перемешать один раз и слушать, пока звон не уйдёт в воду."
+[resource]
+script = ExtResource("1")
+id = &"recipe.ashen_bell_tea"
+display_name = "Чай пепельного колокольчика"
+description = "Переход из ледяного кара в Пепельную тишину."
+tags = Array[StringName]([&"brew", &"world_key", &"ashen"])
+primary_ingredient_id = &"ingredient.ashen_bell"
+steps = Array[ExtResource("2")]([SubResource("grind"), SubResource("heat")])
+result_item_id = &"item.ashen_bell_tea"
+effect_ids = Array[StringName]([&"effect.ashen_hearing"])
+acceptable_error = 0.22
+field_notes = "У состава нет визуального признака готовности — ориентироваться только на затихающий звон."

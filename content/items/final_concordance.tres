@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ConsumableDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/consumable_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"item.final_concordance"
+display_name = "Формула согласия"
+description = "Последний состав помнит все освоенные рецепты и различает два человеческих следа."
+tags = Array[StringName]([&"brew", &"consumable", &"world_key", &"heart"])
+mass = 0.4
+volume = 0.32
+max_stack = 1
+effect_ids = Array[StringName]([&"effect.heart_resonance"])
+doses = 1

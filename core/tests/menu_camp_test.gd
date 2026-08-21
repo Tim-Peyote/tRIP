@@ -28,6 +28,11 @@ func _run() -> void:
 	_expect(upgrades.has("SporeFilter"), "Second expedition must unlock the spore filter.")
 	_expect(upgrades.has("DistillerCoil"), "Counteragent knowledge must unlock the distiller.")
 	_expect(upgrades.has("RootResonator"), "Root-well decision must unlock the resonator.")
+	backdrop.apply_progress_data({"story_phase_id": "phase.distant_heart"})
+	_expect(backdrop.get_laboratory_level() == 6, "Final story world must raise the persistent laboratory to level six.")
+	var final_upgrades := backdrop.get_visible_upgrade_names()
+	_expect(final_upgrades.has("MirrorSeparator"), "Mirror world did not persist its separator module.")
+	_expect(final_upgrades.has("ConcordanceCoil"), "Final world did not persist its concordance coil.")
 	_finish()
 
 

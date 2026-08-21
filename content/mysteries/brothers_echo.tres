@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldMysteryDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/world_mystery_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"mystery.brothers_echo"
+display_name = "Эхо двух братьев"
+description = "Корневая полость отвечает двумя одинаковыми голосами, но только один делает паузы для дыхания."
+discovery_text = "На живом голосе растёт малая шляпка. Финальная формула должна удержать два ритма, не превращая один в копию другого."
+recipe_hint_id = &"recipe.final_concordance"
+ingredient_hint_id = &"ingredient.concordance_cap"

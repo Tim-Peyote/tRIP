@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldMysteryDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/world_mystery_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"mystery.frozen_hour"
+display_name = "Замёрзший час"
+description = "В ледяном архиве один и тот же след сохранён в пяти стадиях движения."
+discovery_text = "Последний след указывает на сухой цветок. Его готовность нельзя увидеть — нужно дождаться, когда звон уйдёт в воду."
+recipe_hint_id = &"recipe.ashen_bell_tea"
+ingredient_hint_id = &"ingredient.ashen_bell"

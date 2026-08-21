@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EffectDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/effect_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"effect.mirror_tide"
+display_name = "Зеркальный прилив"
+description = "Вода начинает показывать варианты пути и ложные копии образцов."
+duration_seconds = 100.0
+cancels_effect_ids = Array[StringName]([&"effect.spore_sight", &"effect.crimson_drive", &"effect.frost_memory", &"effect.ashen_hearing", &"effect.spore_quiet"])
+gameplay_channels = {&"mirror_tide": 1.0, &"false_samples": 0.65}
+presentation_channels = {&"perception": 0.62, &"chroma": 0.7}
+opportunity = "Отражения показывают утраченные тропы и второй берег."
+price = "Часть ингредиентов оказывается убедительными двойниками."
+tell = "Отражение двигается раньше игрока."
+counterplay = "Корневой кисель фиксирует единственную версию пространства."
+world_reaction = "Долины затапливаются, тростник образует плавающие острова."

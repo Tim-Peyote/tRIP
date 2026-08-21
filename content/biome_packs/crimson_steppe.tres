@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+[ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/warm_bone.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,10 @@ vegetation_family = 2
 geology_family = 2
 poi_family = &"predator_shrine"
 mystery_ids = Array[StringName]([&"mystery.running_cairn", &"mystery.beast_without_body", &"mystery.warm_bone"])
+mysteries = Array[ExtResource("2")]([ExtResource("2")])
+local_ingredient_ids = Array[StringName]([&"ingredient.glass_lichen"])
+transition_recipe_id = &"recipe.glass_lichen_decoction"
+next_phase_id = &"phase.glass_frost"
 landscape_statement = "Сухая межгорная степь и красная осыпь: редкие лиственницы вытягиваются в рога, ветер несёт движущиеся звериные следы."
 elevation_scale = 1.18
 ridge_bias = 0.72

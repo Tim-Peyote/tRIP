@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"ingredient.ashen_bell"
+display_name = "Пепельный колокольчик"
+description = "Сухой цветок из ледяного кара. Звучит только когда его держат закрытыми глазами."
+tags = Array[StringName]([&"flower", &"ashen_hearing", &"memory"])
+harvest_parts = Array[int]([0])
+unit_mass = 0.08
+unit_volume = 0.18
+freshness_hours = 12.0
+biome_tags = Array[StringName]([&"glass_frost"])
+allowed_operations = Array[StringName]([&"grind", &"heat"])
+trait_channels = {&"ashen_hearing": 0.9}

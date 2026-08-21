@@ -1,6 +1,10 @@
 class_name ExpeditionTerrain
 extends StaticBody3D
 
+signal mystery_discovered(definition: WorldMysteryDefinition)
+signal biome_ingredient_harvested(item: ItemInstance)
+signal biome_ingredient_observed(definition_id: StringName)
+
 const PHASE_ORDINARY: StringName = &"ordinary"
 const PHASE_MYCELIAL: StringName = &"mycelial"
 const MIN_EXPEDITION_Z: float = 5.8
@@ -29,6 +33,8 @@ var _atmosphere: GPUParticles3D
 var _generated_mesh_cache: Dictionary[StringName, Mesh] = {}
 var _mesh_library: RefCounted = BIOME_MESH_LIBRARY.new()
 var _biome_ambience: AudioStreamPlayer
+var _decor_exclusion_centers: Array[Vector2] = []
+var _collected_biome_ingredient_spawns: Dictionary[StringName, bool] = {}
 
 
 func _ready() -> void:
@@ -129,6 +135,22 @@ func get_loaded_ecology_signature() -> String:
 
 func get_height_at_global(world_position: Vector3) -> float:
 	return _height_at(world_position.x, world_position.z)
+
+
+func get_collected_biome_ingredient_spawns() -> Array[StringName]:
+	var result: Array[StringName] = []
+	result.assign(_collected_biome_ingredient_spawns.keys())
+	return result
+
+
+func apply_collected_biome_ingredient_spawns(values: Array) -> void:
+	_collected_biome_ingredient_spawns.clear()
+	for raw_id: Variant in values:
+		_collected_biome_ingredient_spawns[StringName(raw_id)] = true
+	for node: Node in find_children("*", "GeneratedBiomeIngredient", true, false):
+		var sample := node as GeneratedBiomeIngredient
+		if _collected_biome_ingredient_spawns.has(sample.spawn_id):
+			sample.queue_free()
 
 
 func _process(_delta: float) -> void:
@@ -296,6 +318,13 @@ func _height_at(x: float, z: float) -> float:
 				height += sin(radius * 0.09 + atan2(z, x) * 3.0) * 3.2
 	var wandering_center := sin(z * 0.018 + float(_run_seed % 97)) * 18.0
 	height -= (1.0 - smoothstep(4.0, 15.0, absf(x - wandering_center))) * 3.4
+	var terrain_coordinate := Vector2i(floori(x / chunk_size), floori(z / chunk_size))
+	var landmark_period := pack.landmark_period if pack != null else 7
+	if abs(int(_chunk_seed(terrain_coordinate))) % landmark_period == 0:
+		var landmark_center := Vector2((float(terrain_coordinate.x) + 0.5) * chunk_size, (float(terrain_coordinate.y) + 0.5) * chunk_size)
+		if landmark_center.y >= MIN_EXPEDITION_Z + 2.0:
+			var landmark_height := _noise.get_noise_2d(landmark_center.x, landmark_center.y) * 5.2 * elevation_scale
+			height = _blend_disc(height, point, landmark_center, 9.5, landmark_height)
 	height = _blend_disc(height, point, Vector2(0, 15), 11.0, 0.0)
 	height = _blend_corridor(height, point, Vector2(0, 17), Vector2(0, 49), 4.4, 0.0, 0.35)
 	height = _blend_disc(height, point, Vector2(25, 15), 13.0, 0.1)
@@ -326,11 +355,17 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	var pack := _get_content_pack()
 	var vegetation_density := pack.vegetation_density if pack != null else 1.0
 	var geology_density := pack.geology_density if pack != null else 1.0
+	var landmark_period := pack.landmark_period if pack != null else 7
+	var has_landmark: bool = abs(int(_chunk_seed(coordinate))) % landmark_period == 0
+	var landmark_center := Vector2((float(coordinate.x) + 0.5) * chunk_size, (float(coordinate.y) + 0.5) * chunk_size)
+	_decor_exclusion_centers.clear()
+	if has_landmark and not _is_reserved(landmark_center):
+		_decor_exclusion_centers.append(landmark_center)
 	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(16.0 * vegetation_density)))
 	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density)))
 	_add_groundcover_multimesh(body, coordinate, rng, maxi(6, roundi(34.0 * vegetation_density)))
-	var landmark_period := pack.landmark_period if pack != null else 7
-	if abs(int(_chunk_seed(coordinate))) % landmark_period == 0:
+	_decor_exclusion_centers.clear()
+	if has_landmark:
 		_add_point_of_interest(body, coordinate, rng)
 	if pack != null and pack.water_frequency > 0.0 and rng.randf() < pack.water_frequency:
 		_add_water_feature(body, coordinate, rng, pack)
@@ -551,15 +586,19 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 	var center := Vector2((float(coordinate.x) + 0.5) * chunk_size, (float(coordinate.y) + 0.5) * chunk_size)
 	if _is_reserved(center):
 		return
-	var root := Node3D.new()
+	var root := WorldMysteryPOI.new()
 	root.name = "GeneratedPOI"
 	body.add_child(root)
 	var pack := _get_content_pack()
 	var poi_family := pack.poi_family if pack != null else &"field_station"
+	var mystery: WorldMysteryDefinition
+	if pack != null and not pack.mysteries.is_empty():
+		mystery = pack.mysteries[abs(int(_chunk_seed(coordinate))) % pack.mysteries.size()]
 	if poi_family == &"field_station":
 		_build_altai_waymark(root, center, rng)
 		root.set_meta(&"poi_kind", &"altai_waymark")
 		root.set_meta(&"mystery_id", &"mystery.altai.bound_thread")
+		_configure_generated_poi_content(root, center, coordinate, pack, mystery)
 		return
 	var count := 5 + rng.randi_range(0, 4)
 	for index in count:
@@ -587,6 +626,13 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 				pole.height = rng.randf_range(2.4, 4.8)
 				pole.radial_segments = 5
 				mesh = pole
+			&"predator_shrine":
+				var antler := CylinderMesh.new()
+				antler.top_radius = 0.045
+				antler.bottom_radius = 0.16
+				antler.height = rng.randf_range(2.8, 5.2)
+				antler.radial_segments = 5
+				mesh = antler
 			_:
 				var prism := PrismMesh.new()
 				prism.size = Vector3(rng.randf_range(0.45, 1.4), rng.randf_range(2.8, 7.0), rng.randf_range(0.45, 1.5))
@@ -607,11 +653,127 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 		shard.position = Vector3(point.x, _height_at(point.x, point.y) + height_offset, point.y)
 		shard.rotation.y = -angle
 		if mesh is TorusMesh:
-			shard.rotation.x = PI * 0.5 if poi_family == &"reflection_pool" else 0.0
+			shard.rotation.x = PI * 0.5
+		if poi_family == &"predator_shrine":
+			shard.rotation.z = (-0.62 if index % 2 == 0 else 0.62) + rng.randf_range(-0.12, 0.12)
+		if poi_family == &"frozen_archive":
+			shard.rotation.z = rng.randf_range(-0.24, 0.24)
 		root.add_child(shard)
+	if poi_family == &"vanishing_camp":
+		_add_vanishing_camp_remains(root, center, rng, pack)
+	elif poi_family == &"predator_shrine":
+		_add_predator_shrine_heart(root, center, rng, pack)
+	elif poi_family == &"frozen_archive":
+		_add_frozen_archive_core(root, center, rng, pack)
 	root.set_meta(&"poi_kind", poi_family)
 	if pack != null and not pack.mystery_ids.is_empty():
 		root.set_meta(&"mystery_id", pack.mystery_ids[abs(int(_chunk_seed(coordinate))) % pack.mystery_ids.size()])
+	_configure_generated_poi_content(root, center, coordinate, pack, mystery)
+
+
+func _add_vanishing_camp_remains(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var ground := _height_at(center.x, center.y)
+	var cloth := MeshInstance3D.new()
+	cloth.name = "HalfErasedTentSkin"
+	var mesh := PrismMesh.new()
+	mesh.size = Vector3(4.2, 0.08, 2.7)
+	mesh.material = _standard_material(pack.accent_color.darkened(0.48), true)
+	cloth.mesh = mesh
+	cloth.position = Vector3(center.x, ground + 2.25, center.y)
+	cloth.rotation = Vector3(0.0, rng.randf_range(-0.4, 0.4), 0.12)
+	root.add_child(cloth)
+	for index: int in 6:
+		var ember := MeshInstance3D.new()
+		var ember_mesh := BoxMesh.new()
+		ember_mesh.size = Vector3(0.28, 0.12, 0.22)
+		ember_mesh.material = _standard_material(pack.accent_color.darkened(float(index) * 0.06), index < 2)
+		ember.mesh = ember_mesh
+		var angle := TAU * float(index) / 6.0
+		ember.position = Vector3(center.x + cos(angle) * 0.65, ground + 0.08, center.y + sin(angle) * 0.65)
+		root.add_child(ember)
+
+
+func _add_predator_shrine_heart(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var ground := _height_at(center.x, center.y)
+	var antler_arch := MeshInstance3D.new()
+	antler_arch.name = "PredatorAntlerArch"
+	var antler_mesh := BIOME_MESH_LIBRARY.create_antler_crown()
+	_set_mesh_material(antler_mesh, _standard_material(pack.ground_high.lightened(0.08)))
+	antler_arch.mesh = antler_mesh
+	antler_arch.scale = Vector3(2.7, 2.7, 2.7)
+	antler_arch.position = Vector3(center.x, ground + 0.1, center.y + 0.65)
+	antler_arch.rotation.y = PI
+	root.add_child(antler_arch)
+	var heart := MeshInstance3D.new()
+	heart.name = "WarmBoneWithoutBeast"
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.58
+	mesh.height = 1.25
+	mesh.radial_segments = 7
+	mesh.rings = 5
+	mesh.material = _standard_material(pack.accent_color, true)
+	heart.mesh = mesh
+	heart.scale = Vector3(0.65, 1.0, 0.5)
+	heart.position = Vector3(center.x, ground + 0.7, center.y)
+	heart.rotation.y = rng.randf_range(0.0, TAU)
+	root.add_child(heart)
+	for index: int in 8:
+		var altar_stone := MeshInstance3D.new()
+		altar_stone.name = "ShrineStone_%02d" % index
+		var stone_mesh := BoxMesh.new()
+		stone_mesh.size = Vector3(0.52, 0.26, 0.42)
+		stone_mesh.material = _standard_material(pack.ground_low.darkened(0.22))
+		altar_stone.mesh = stone_mesh
+		var angle := TAU * float(index) / 8.0
+		altar_stone.position = Vector3(center.x + cos(angle) * 1.4, ground + 0.13, center.y + sin(angle) * 1.4)
+		altar_stone.rotation.y = -angle
+		root.add_child(altar_stone)
+
+
+func _add_frozen_archive_core(root: Node3D, center: Vector2, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var ground := _height_at(center.x, center.y)
+	for index: int in 3:
+		var memory_slab := MeshInstance3D.new()
+		memory_slab.name = "FrozenMemorySlab_%02d" % index
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(1.65, 2.8, 0.16)
+		mesh.material = _standard_material(pack.accent_color.lightened(0.12 * float(index)), true)
+		memory_slab.mesh = mesh
+		memory_slab.position = Vector3(center.x + float(index - 1) * 1.35, ground + 1.45, center.y)
+		memory_slab.rotation.y = rng.randf_range(-0.18, 0.18)
+		root.add_child(memory_slab)
+
+
+func _configure_generated_poi_content(
+	root: WorldMysteryPOI,
+	center: Vector2,
+	coordinate: Vector2i,
+	pack: BiomeContentPack,
+	mystery: WorldMysteryDefinition
+) -> void:
+	var ground := _height_at(center.x, center.y)
+	if mystery != null:
+		root.configure(mystery, Vector3(center.x, ground, center.y))
+		root.discovered.connect(func(definition: WorldMysteryDefinition) -> void: mystery_discovered.emit(definition))
+	if pack == null or pack.local_ingredient_ids.is_empty():
+		return
+	var ingredient_id := pack.local_ingredient_ids[abs(int(_chunk_seed(coordinate) + 17)) % pack.local_ingredient_ids.size()]
+	var spawn_id := StringName("generated.%d.%d.%s" % [coordinate.x, coordinate.y, ingredient_id])
+	if _collected_biome_ingredient_spawns.has(spawn_id):
+		return
+	var sample := GeneratedBiomeIngredient.new()
+	sample.name = "LocalIngredient_%s" % String(ingredient_id).get_slice(".", 1)
+	sample.configure(ingredient_id, spawn_id, pack.accent_color, pack.ecology_family)
+	sample.set_meta(&"phase_id", _phase_definition.id if _phase_definition != null else &"phase.ordinary")
+	var angle := float(abs(int(_chunk_seed(coordinate))) % 628) * 0.01
+	var point := center + Vector2(cos(angle), sin(angle)) * 3.25
+	sample.position = Vector3(point.x, _height_at(point.x, point.y) + 0.03, point.y)
+	sample.harvested.connect(func(item: ItemInstance) -> void:
+		_collected_biome_ingredient_spawns[spawn_id] = true
+		biome_ingredient_harvested.emit(item)
+	)
+	sample.observed.connect(func(definition_id: StringName) -> void: biome_ingredient_observed.emit(definition_id))
+	root.add_child(sample)
 
 
 func _build_altai_waymark(root: Node3D, center: Vector2, rng: RandomNumberGenerator) -> void:
@@ -746,6 +908,9 @@ func _random_chunk_point(coordinate: Vector2i, rng: RandomNumberGenerator) -> Ve
 
 
 func _is_reserved(point: Vector2) -> bool:
+	for exclusion_center: Vector2 in _decor_exclusion_centers:
+		if point.distance_to(exclusion_center) < 7.2:
+			return true
 	if is_instance_valid(_target):
 		var target_point := Vector2(_target.global_position.x, _target.global_position.z)
 		if point.distance_to(target_point) < 14.0:

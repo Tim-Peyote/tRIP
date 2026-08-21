@@ -28,13 +28,13 @@ extends Node3D
 @onready var root_well_gate: SimplePortal = deep_grove.get_node("RootWellGate") as SimplePortal
 
 var road_laboratory: RoadLaboratoryOrchestrator
+var world_progression: WorldProgressionOrchestrator
 
 
 func _ready() -> void:
 	var terrain := $ExpeditionTerrain as ExpeditionTerrain
 	terrain.setup(player)
 	world_phase_orchestrator.setup(terrain, biome_visual_controller)
-	world_phase_developer_panel.setup(world_phase_orchestrator, terrain)
 	for node: Node in find_children("*", "CookingToolComponent", true, false):
 		(node as CookingToolComponent).setup(cooking_orchestrator)
 	for node: Node in find_children("*", "PhysicalCookingStationComponent", true, false):
@@ -79,6 +79,8 @@ func _ready() -> void:
 	stealth_orchestrator.setup(player, [forest_clearing.listener])
 	player.distraction_created.connect(_on_distraction_created)
 	_setup_road_laboratory(terrain)
+	_setup_world_progression(terrain)
+	world_phase_developer_panel.setup(world_phase_orchestrator, terrain, world_progression)
 
 
 func get_player() -> FirstPersonController:
@@ -137,9 +139,14 @@ func get_road_laboratory() -> RoadLaboratoryOrchestrator:
 	return road_laboratory
 
 
+func get_world_progression() -> WorldProgressionOrchestrator:
+	return world_progression
+
+
 func initialize_new_session() -> void:
 	_disable_legacy_shelter()
 	biome_visual_controller.show_forest()
+	world_progression.activate_session()
 	road_laboratory.initialize_new_run(Vector3(0, 0, 11.5), Vector3(6.5, 0, 18.5))
 	game_loop_orchestrator.narrative_notice_requested.emit(
 		"ЯВЬ · ПЕРВЫЙ СЛЕД",
@@ -150,6 +157,7 @@ func initialize_new_session() -> void:
 func apply_session_layout_after_load() -> void:
 	_disable_legacy_shelter()
 	biome_visual_controller.show_forest()
+	world_progression.activate_session()
 
 
 func apply_world_seed(value: int) -> void:
@@ -180,6 +188,20 @@ func _setup_road_laboratory(terrain: ExpeditionTerrain) -> void:
 	road_laboratory.metamorphosis_started.connect(func() -> void:
 		game_loop_orchestrator.narrative_notice_requested.emit("ОБРЯД", "Пространство вспоминает форму полевой лаборатории. Воздух складывается вокруг огня.")
 	)
+
+
+func _setup_world_progression(terrain: ExpeditionTerrain) -> void:
+	world_progression = WorldProgressionOrchestrator.new()
+	world_progression.name = "WorldProgressionOrchestrator"
+	add_child(world_progression)
+	world_progression.setup(world_phase_orchestrator, terrain, cooking_orchestrator, recipe_knowledge_orchestrator, game_loop_orchestrator)
+	world_progression.autosave_requested.connect(session_persistence.request_autosave)
+	terrain.biome_ingredient_harvested.connect(knowledge_orchestrator.record_harvest)
+	terrain.biome_ingredient_observed.connect(knowledge_orchestrator.observe)
+	var mortar_tool := road_laboratory.get_node("PortableLaboratory/Mortar/CookingToolComponent") as CookingToolComponent
+	for definition: ContentDefinition in ContentDB.get_all():
+		if definition is IngredientDefinition and definition.id not in mortar_tool.candidate_ingredient_ids:
+			mortar_tool.candidate_ingredient_ids.append(definition.id)
 
 
 func _disable_legacy_shelter() -> void:

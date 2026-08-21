@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ConsumableDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/consumable_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"item.glass_lichen_decoction"
+display_name = "Отвар стеклянного лишайника"
+description = "Холодный состав, сохраняющий в кристаллах предыдущие маршруты."
+tags = Array[StringName]([&"brew", &"consumable", &"world_key", &"frost"])
+mass = 0.34
+volume = 0.3
+max_stack = 1
+effect_ids = Array[StringName]([&"effect.frost_memory"])
+doses = 1

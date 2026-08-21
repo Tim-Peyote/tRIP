@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+[ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/camp_erasure.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,10 @@ vegetation_family = 4
 geology_family = 4
 poi_family = &"vanishing_camp"
 mystery_ids = Array[StringName]([&"mystery.bell_without_tower", &"mystery.camp_erasure", &"mystery.footsteps_ahead"])
+mysteries = Array[ExtResource("2")]([ExtResource("2")])
+local_ingredient_ids = Array[StringName]([&"ingredient.mirror_reed"])
+transition_recipe_id = &"recipe.mirror_reed_broth"
+next_phase_id = &"phase.mirror_flood"
 landscape_statement = "Ветровая горная тундра после старого пожара: обугленные лиственницы, пепельные столбы, исчезающие стоянки и почти нулевая дальность."
 elevation_scale = 0.78
 ridge_bias = 0.5

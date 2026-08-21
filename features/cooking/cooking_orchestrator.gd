@@ -220,3 +220,9 @@ func _find_recipe_by_id(recipe_id: StringName) -> RecipeDefinition:
 
 func find_recipe_by_id(recipe_id: StringName) -> RecipeDefinition:
 	return _find_recipe_by_id(recipe_id)
+
+
+func add_recipe(value: RecipeDefinition) -> void:
+	if value == null or _find_recipe_by_id(value.id) != null:
+		return
+	recipes.append(value)

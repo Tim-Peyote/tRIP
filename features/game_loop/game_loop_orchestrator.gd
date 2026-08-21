@@ -27,6 +27,7 @@ var _objective: ExpeditionObjectiveOrchestrator
 var _cooking: CookingOrchestrator
 var _clock: ExpeditionClock
 var _knowledge: KnowledgeOrchestrator
+var _world_progression_objective: String = ""
 
 
 func setup(
@@ -49,6 +50,8 @@ func setup(
 
 
 func get_objective_text() -> String:
+	if not _world_progression_objective.is_empty():
+		return _world_progression_objective
 	match stage:
 		Stage.EXPEDITION:
 			return _objective.get_objective_text() if _objective != null else "ВЫЛАЗКА"
@@ -90,6 +93,13 @@ func get_objective_text() -> String:
 			if mycologist_clues.has(&"mycologist.trail.notch"):
 				return "СЛЕД МИКОЛОГА · принять настой и увидеть скрытое"
 			return "НОВЫЙ МАРШРУТ · пройти по северной тропе"
+
+
+func set_world_progression_objective(text: String) -> void:
+	if _world_progression_objective == text:
+		return
+	_world_progression_objective = text
+	_emit_state()
 
 
 func acknowledge_reward() -> void:

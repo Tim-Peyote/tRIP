@@ -3,6 +3,7 @@ extends Node
 
 var _orchestrator: WorldPhaseOrchestrator
 var _terrain: ExpeditionTerrain
+var _progression: WorldProgressionOrchestrator
 var _canvas: CanvasLayer
 var _panel: PanelContainer
 var _status: Label
@@ -11,9 +12,10 @@ var _seed: int = 117
 var _previous_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 
 
-func setup(orchestrator: WorldPhaseOrchestrator, terrain: ExpeditionTerrain) -> void:
+func setup(orchestrator: WorldPhaseOrchestrator, terrain: ExpeditionTerrain, progression: WorldProgressionOrchestrator = null) -> void:
 	_orchestrator = orchestrator
 	_terrain = terrain
+	_progression = progression
 	_build_ui()
 	_orchestrator.phase_changed.connect(_on_phase_changed)
 	_update_status()
@@ -47,6 +49,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_randomize_seed()
 	elif key.keycode == KEY_BACKSPACE:
 		_orchestrator.clear_developer_override()
+	elif key.keycode == KEY_ENTER and _progression != null:
+		_progression.simulate_transition_formula()
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -88,8 +92,13 @@ func _build_ui() -> void:
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.pressed.connect(_orchestrator.set_developer_phase.bind(definition.id))
 		column.add_child(button)
+	if _progression != null:
+		var transition_button := Button.new()
+		transition_button.text = "▶ ИМИТИРОВАТЬ УПОТРЕБЛЕНИЕ ПЕРЕХОДНОЙ ФОРМУЛЫ"
+		transition_button.pressed.connect(_progression.simulate_transition_formula)
+		column.add_child(transition_button)
 	var help := Label.new()
-	help.text = "PgUp/PgDn — мир   R — новый seed   Backspace — снять симуляцию   F10 — закрыть"
+	help.text = "PgUp/PgDn — мир   Enter — употребить переходную формулу   R — новый seed   Backspace — снять симуляцию   F10 — закрыть"
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.modulate = Color(0.68, 0.76, 0.62)
 	column.add_child(help)
@@ -125,5 +134,6 @@ func _update_status() -> void:
 	var definition := _orchestrator.get_current()
 	if definition == null:
 		return
-	_status.text = "%s\n%s\nРецепт стабилизации: %s" % [definition.display_name, definition.description, definition.stabilizing_recipe_id]
+	var contract := _progression.get_contract_text() if _progression != null else "Рецепт стабилизации: %s" % definition.stabilizing_recipe_id
+	_status.text = "%s\n%s\n\n%s" % [definition.display_name, definition.description, contract]
 	_seed_label.text = "Seed: %d · чанков загружено: %d" % [_seed, _terrain.get_loaded_chunk_count()]

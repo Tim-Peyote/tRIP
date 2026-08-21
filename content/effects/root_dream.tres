@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EffectDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/effect_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"effect.root_dream"
+display_name = "Корневой сон"
+description = "Поверхность раскрывает корневые полости и голоса под землёй."
+duration_seconds = 110.0
+cancels_effect_ids = Array[StringName]([&"effect.spore_sight", &"effect.crimson_drive", &"effect.frost_memory", &"effect.ashen_hearing", &"effect.mirror_tide", &"effect.spore_quiet"])
+gameplay_channels = {&"root_dream": 1.0, &"voice_pressure": 0.7}
+presentation_channels = {&"perception": 0.72, &"danger": 0.55}
+opportunity = "Открывает провалы, подземные русла и настоящий голос брата."
+price = "Ложные голоса способны вести в тупики и опасные полости."
+tell = "Земля дышит, корни отвечают чужими словами."
+counterplay = "Формула согласия отделяет человеческую память от лесной."
+world_reaction = "Стволы становятся колоннами, поверхность проваливается внутрь корней."

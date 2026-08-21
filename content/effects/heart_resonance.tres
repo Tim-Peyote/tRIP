@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EffectDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/effect_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"effect.heart_resonance"
+display_name = "Согласие двух следов"
+description = "Все изученные слои собираются в Сердце Дальнего леса."
+duration_seconds = 180.0
+cancels_effect_ids = Array[StringName]([&"effect.spore_sight", &"effect.crimson_drive", &"effect.frost_memory", &"effect.ashen_hearing", &"effect.mirror_tide", &"effect.root_dream", &"effect.spore_quiet"])
+gameplay_channels = {&"heart_resonance": 1.0}
+presentation_channels = {&"perception": 0.9, &"chroma": 1.0, &"danger": 0.4}
+opportunity = "Открывает финальную лабораторию и место, где сходятся следы братьев."
+price = "Мир помнит все прежние ошибки приготовления и маршрута."
+tell = "Несовместимые горизонты совпадают на один вдох."
+counterplay = "Финальный выбор завершает или повторяет цикл."
+world_reaction = "Парящие пласты и кольцевые рощи собираются в единый ландшафт."

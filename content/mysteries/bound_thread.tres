@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldMysteryDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/world_mystery_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"mystery.altai.bound_thread"
+display_name = "Связанные ленты перевала"
+description = "Ленты геологической партии завязаны поверх более старых узлов. Один узел повторяет почерк брата."
+discovery_text = "Брат отметил: серебристая шляпка показывает не тропу, а память тропы. Первый настой следует варить ниже кипения."
+recipe_hint_id = &"recipe.spore_sight_brew"
+ingredient_hint_id = &"ingredient.mooncap"

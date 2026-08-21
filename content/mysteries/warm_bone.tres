@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldMysteryDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/world_mystery_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"mystery.warm_bone"
+display_name = "Тёплая кость без зверя"
+description = "Красная осыпь окружает кость, которая никогда не принадлежала животному."
+discovery_text = "На внутренней стороне процарапано: прозрачный лишайник охлаждает не тело, а момент. Сохрани его звон после ступки."
+recipe_hint_id = &"recipe.glass_lichen_decoction"
+ingredient_hint_id = &"ingredient.glass_lichen"

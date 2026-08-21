@@ -23,6 +23,9 @@ func _ready() -> void:
 func refresh_from_save() -> void:
 	var data := SaveService.load_slot(0)
 	var loop_data := data.get("game_loop", {}) as Dictionary
+	var progression_data := data.get("world_progression", {}) as Dictionary
+	loop_data = loop_data.duplicate()
+	loop_data["story_phase_id"] = progression_data.get("story_phase_id", "phase.ordinary")
 	apply_progress_data(loop_data)
 
 
@@ -34,6 +37,12 @@ func apply_progress_data(loop_data: Dictionary) -> void:
 		_laboratory_level = maxi(_laboratory_level, 3)
 	if String(loop_data.get("root_well_plan", "")) != "":
 		_laboratory_level = maxi(_laboratory_level, 4)
+	var story_levels := {
+		"phase.mycelial_choir": 1, "phase.crimson_hunt": 2, "phase.glass_frost": 3,
+		"phase.ashen_silence": 4, "phase.mirror_flood": 5, "phase.root_dream": 6,
+		"phase.distant_heart": 6,
+	}
+	_laboratory_level = maxi(_laboratory_level, int(story_levels.get(String(loop_data.get("story_phase_id", "phase.ordinary")), 0)))
 	_rebuild_upgrades(loop_data)
 
 
@@ -261,6 +270,10 @@ func _rebuild_upgrades(loop_data: Dictionary) -> void:
 		_add_distiller()
 	if _laboratory_level >= 4:
 		_add_root_resonator(StringName(loop_data.get("root_well_plan", "")))
+	if _laboratory_level >= 5:
+		_add_mirror_separator()
+	if _laboratory_level >= 6:
+		_add_concordance_coil()
 
 
 func _add_drying_rack() -> void:
@@ -308,6 +321,27 @@ func _add_root_resonator(plan: StringName) -> void:
 	ring.position = Vector3(0.15, 2.2, -0.35)
 	ring.rotation.x = PI * 0.5
 	_upgrade_root.add_child(ring)
+
+
+func _add_mirror_separator() -> void:
+	var separator := _box(Vector3(0.72, 0.95, 0.12), Color(0.05, 0.72, 0.66))
+	separator.name = "MirrorSeparator"
+	separator.position = Vector3(-0.35, 1.78, 0.45)
+	separator.rotation.y = -0.28
+	_upgrade_root.add_child(separator)
+
+
+func _add_concordance_coil() -> void:
+	var root := Node3D.new()
+	root.name = "ConcordanceCoil"
+	root.position = Vector3(0.35, 2.15, -0.42)
+	for index: int in 2:
+		var ring := _mesh_node(TorusMesh.new(), Color(0.95, 0.12 + index * 0.25, 0.5 - index * 0.3), true)
+		(ring.mesh as TorusMesh).inner_radius = 0.52 + index * 0.16
+		(ring.mesh as TorusMesh).outer_radius = 0.6 + index * 0.16
+		ring.rotation = Vector3(PI * 0.5, index * 0.35, index * 0.5)
+		root.add_child(ring)
+	_upgrade_root.add_child(root)
 
 
 func _box(size: Vector3, color: Color) -> MeshInstance3D:

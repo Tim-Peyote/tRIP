@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+[ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/brothers_echo.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,10 @@ vegetation_family = 6
 geology_family = 6
 poi_family = &"root_mouth"
 mystery_ids = Array[StringName]([&"mystery.borrowed_voice", &"mystery.root_lung", &"mystery.brothers_echo"])
+mysteries = Array[ExtResource("2")]([ExtResource("2")])
+local_ingredient_ids = Array[StringName]([&"ingredient.concordance_cap"])
+transition_recipe_id = &"recipe.final_concordance"
+next_phase_id = &"phase.distant_heart"
 landscape_statement = "Поверхность разрыта корневыми полостями: колонны-стволы, клубни размером с валуны, провалы и подземные русла."
 elevation_scale = 1.08
 ridge_bias = 0.38

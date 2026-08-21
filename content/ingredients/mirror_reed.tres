@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="IngredientDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/ingredient_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"ingredient.mirror_reed"
+display_name = "Зеркальный камыш"
+description = "Обугленный стебель сохраняет отражение места, которого уже нет в Яви."
+tags = Array[StringName]([&"reed", &"mirror_tide", &"reflection"])
+harvest_parts = Array[int]([0])
+unit_mass = 0.16
+unit_volume = 0.3
+freshness_hours = 10.0
+biome_tags = Array[StringName]([&"ashen_silence"])
+allowed_operations = Array[StringName]([&"grind", &"heat"])
+trait_channels = {&"mirror_tide": 0.88}

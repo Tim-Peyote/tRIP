@@ -429,3 +429,11 @@ Effect snapshot → perception layers ──┘
 
 Первый ритуал представлен обычным `InteractableComponent` на физическом cairn. После открытия действие `road_laboratory` (`L`) только просит orchestrator проявить/убрать лагерь; ввод не знает ни о cooking nodes, ни о сохранении. Радиус лагеря публикует завершённое событие возвращения для objective loop.
 - Постоянные изменения chunk сохраняются стабильными object IDs, а не NodePath.
+
+## 17. World content progression
+
+`BiomeContentPack` является data-driven контрактом мира: ecology/geology, авторские `WorldMysteryDefinition`, локальные ingredient IDs, переходный recipe ID и следующий story phase. `WorldProgressionOrchestrator` соединяет эти definitions с процедурным terrain, журналом рецептов, cooking result и persistence, не создавая зависимость ресурсов от UI.
+
+Каждый сгенерированный landmark получает `WorldMysteryPOI` с обычным `InteractableComponent` и соседний `GeneratedBiomeIngredient`. Scatter заранее резервирует вокруг landmark свободную композиционную зону, а heightfield формирует локальную поляну; POI поэтому является художественным ограничением генерации, а не объектом, случайно брошенным поверх леса.
+
+Успешно приготовленная формула записывается как освоенная, но переход происходит только после употребления полученного consumable. Acute effect channels управляют телесной ценой и presentation, а `story_phase_id` сохраняет самый глубокий подтверждённый слой после окончания эффекта и загрузки сохранения.
