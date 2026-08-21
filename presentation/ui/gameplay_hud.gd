@@ -109,6 +109,8 @@ func _ready() -> void:
 		filter_button.toggle_mode = true
 	for journal_tab: Button in [%JournalTabSpecies, %JournalTabHypotheses, %JournalTabRecipes]:
 		journal_tab.toggle_mode = true
+	get_viewport().size_changed.connect(_update_inventory_responsive_layout)
+	_update_inventory_responsive_layout()
 	_refresh_inventory_filter_buttons()
 
 
@@ -684,7 +686,8 @@ func _update_inventory_panel() -> void:
 
 func _make_inventory_empty_state() -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(624.0, 294.0)
+	panel.custom_minimum_size = Vector2(0.0, 294.0)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color("788875"), 0.34))
 	var center := CenterContainer.new()
 	panel.add_child(center)
@@ -713,6 +716,27 @@ func _make_inventory_empty_state() -> Control:
 	body.add_theme_font_size_override("font_size", 14)
 	content.add_child(body)
 	return panel
+
+
+func _update_inventory_responsive_layout() -> void:
+	var viewport_width := get_viewport_rect().size.x
+	var list_scroll := $InventoryPanel/Margin/Layout/Body/ListScroll as ScrollContainer
+	var body := $InventoryPanel/Margin/Layout/Body as HBoxContainer
+	if viewport_width >= 1180.0:
+		inventory_list.columns = 4
+		list_scroll.custom_minimum_size.x = 640.0
+		inventory_detail_panel.custom_minimum_size.x = 330.0
+		body.add_theme_constant_override("separation", 36)
+	elif viewport_width >= 940.0:
+		inventory_list.columns = 3
+		list_scroll.custom_minimum_size.x = 478.0
+		inventory_detail_panel.custom_minimum_size.x = 310.0
+		body.add_theme_constant_override("separation", 28)
+	else:
+		inventory_list.columns = 2
+		list_scroll.custom_minimum_size.x = 308.0
+		inventory_detail_panel.custom_minimum_size.x = 280.0
+		body.add_theme_constant_override("separation", 20)
 
 
 func _show_empty_inventory_detail() -> void:

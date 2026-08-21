@@ -66,7 +66,7 @@ static func make_key_chip() -> StyleBoxFlat:
 
 static func make_inventory_panel() -> StyleBoxFlat:
 	var style := _box(Color(0.075, 0.09, 0.078, 0.84), Color(0.76, 0.84, 0.61, 0.28), 1, 18, 22)
-	style.border_width_top = 1
+	style.border_width_top = 2
 	style.border_width_left = 1
 	style.shadow_color = Color(0, 0, 0, 0.42)
 	style.shadow_size = 14

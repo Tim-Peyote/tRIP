@@ -520,15 +520,10 @@ color = Color(0.018, 0.024, 0.021, 0.46)
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -570.0
-offset_top = -330.0
-offset_right = 570.0
-offset_bottom = 330.0
+anchor_left = 0.045
+anchor_top = 0.055
+anchor_right = 0.955
+anchor_bottom = 0.945
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
@@ -665,18 +660,29 @@ theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 18
 
-[node name="DetailContent" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin"]
+[node name="DetailLayout" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin"]
 layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DetailScroll" type="ScrollContainer" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DetailContent" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="InventoryDetailCategory" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventoryDetailCategory" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
 theme_override_font_sizes/font_size = 12
 text = "КАТЕГОРИЯ"
 
-[node name="InventoryDetailIcon" type="TextureRect" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventoryDetailIcon" type="TextureRect" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 94)
 layout_mode = 2
@@ -684,62 +690,62 @@ expand_mode = 1
 stretch_mode = 5
 texture_filter = 1
 
-[node name="InventoryDetailTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventoryDetailTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.76, 0.83, 0.66, 1)
 theme_override_font_sizes/font_size = 24
 text = "Образец"
 
-[node name="DetailRule" type="HSeparator" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="DetailRule" type="HSeparator" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 layout_mode = 2
 
-[node name="InventoryDetailBody" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventoryDetailBody" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Выберите предмет слева."
 autowrap_mode = 2
 
-[node name="QualityTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="QualityTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
 theme_override_font_sizes/font_size = 12
 text = "ЛУЧШЕЕ КАЧЕСТВО"
 
-[node name="InventoryQualityBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventoryQualityBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 max_value = 1.0
 show_percentage = false
 
-[node name="FreshnessTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="FreshnessTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
 theme_override_font_sizes/font_size = 12
 text = "СРЕДНЯЯ СВЕЖЕСТЬ"
 
-[node name="InventoryFreshnessBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventoryFreshnessBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 max_value = 1.0
 show_percentage = false
 
-[node name="SpecimenTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="SpecimenTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
 theme_override_font_sizes/font_size = 13
 text = "ОБРАЗЦЫ В СУМКЕ"
 
-[node name="InventorySpecimenList" type="ItemList" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventorySpecimenList" type="ItemList" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 allow_reselect = true
 
-[node name="InventoryUseButton" type="Button" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailContent"]
+[node name="InventoryUseButton" type="Button" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 disabled = true
