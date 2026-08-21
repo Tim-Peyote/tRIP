@@ -16,6 +16,8 @@ extends Node3D
 @onready var session_persistence: SessionPersistenceOrchestrator = %SessionPersistenceOrchestrator
 @onready var deep_grove_gate: SimplePortal = $ForestClearing/DeepGroveGate
 @onready var biome_visual_controller: BiomeVisualController = %BiomeVisualController
+@onready var world_phase_orchestrator: WorldPhaseOrchestrator = %WorldPhaseOrchestrator
+@onready var world_phase_developer_panel: WorldPhaseDeveloperPanel = %WorldPhaseDeveloperPanel
 @onready var forest_trail: Node3D = $ForestTrail
 @onready var deep_grove: Node3D = $DeepGrove
 @onready var root_well: RootWellChunk = $RootWell
@@ -27,6 +29,8 @@ extends Node3D
 
 func _ready() -> void:
 	($ExpeditionTerrain as ExpeditionTerrain).setup(player)
+	world_phase_orchestrator.setup($ExpeditionTerrain as ExpeditionTerrain, biome_visual_controller)
+	world_phase_developer_panel.setup(world_phase_orchestrator, $ExpeditionTerrain as ExpeditionTerrain)
 	for node: Node in find_children("*", "CookingToolComponent", true, false):
 		(node as CookingToolComponent).setup(cooking_orchestrator)
 	for node: Node in find_children("*", "PhysicalCookingStationComponent", true, false):
@@ -139,8 +143,7 @@ func _on_route_unlock_changed(is_unlocked: bool) -> void:
 
 func apply_gameplay_channels(channels: Dictionary[StringName, float]) -> void:
 	var spore_vision_active := float(channels.get(&"spore_vision", 0.0)) > 0.1
-	($ExpeditionTerrain as ExpeditionTerrain).set_world_phase(ExpeditionTerrain.PHASE_MYCELIAL if spore_vision_active else ExpeditionTerrain.PHASE_ORDINARY)
-	biome_visual_controller.set_metamorphosis(spore_vision_active)
+	world_phase_orchestrator.apply_gameplay_channels(channels)
 	hidden_mycelium.visible = spore_vision_active
 	player.set_spore_vision_active(spore_vision_active)
 	player.set_spore_resistance(float(channels.get(&"spore_resistance", 0.0)))

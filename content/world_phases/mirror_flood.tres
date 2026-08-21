@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/mirror_visual_profile.tres" id="2"]
+[resource]
+script = ExtResource("1")
+id = &"phase.mirror_flood"
+order = 5
+display_name = "Зеркальный разлив"
+description = "Вода повторяет объекты с ошибками и подсовывает игроку двойники правильных ингредиентов."
+effect_channel = &"mirror_tide"
+stabilizing_recipe_id = &"recipe.mirror_reed_broth"
+visual_profile = ExtResource("2")
+geometry_family = 1
+canopy_low = Color(0.015, 0.26, 0.3, 1)
+canopy_high = Color(0.12, 0.92, 0.72, 1)
+stone_low = Color(0.04, 0.24, 0.3, 1)
+stone_high = Color(0.35, 0.84, 0.88, 1)
+beacon_color = Color(0.06, 1, 0.78, 1)
+poi_family = &"reflection_pool"
+cave_bias = 0.3

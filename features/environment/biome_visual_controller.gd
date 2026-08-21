@@ -12,6 +12,7 @@ var _tween: Tween
 var _sky_material: ProceduralSkyMaterial
 var _base_profile: BiomeVisualProfile
 var _metamorphosis_active: bool = false
+var _world_override: BiomeVisualProfile
 
 
 func setup(world_environment: WorldEnvironment) -> void:
@@ -30,19 +31,32 @@ func setup(world_environment: WorldEnvironment) -> void:
 
 func show_shelter(_actor: Node = null) -> void:
 	_base_profile = shelter_profile
-	apply_profile(mycelial_profile if _metamorphosis_active else _base_profile)
+	apply_profile(_world_override if _world_override != null else _base_profile)
 
 
 func show_forest(_actor: Node = null) -> void:
 	_base_profile = forest_profile
-	apply_profile(mycelial_profile if _metamorphosis_active else _base_profile)
+	apply_profile(_world_override if _world_override != null else _base_profile)
 
 
 func set_metamorphosis(active: bool) -> void:
 	if _metamorphosis_active == active:
 		return
 	_metamorphosis_active = active
-	apply_profile(mycelial_profile if active else _base_profile)
+	if active:
+		set_world_override(mycelial_profile)
+	else:
+		clear_world_override()
+
+
+func set_world_override(profile: BiomeVisualProfile) -> void:
+	_world_override = profile
+	apply_profile(profile)
+
+
+func clear_world_override() -> void:
+	_world_override = null
+	apply_profile(_base_profile)
 
 
 func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void:

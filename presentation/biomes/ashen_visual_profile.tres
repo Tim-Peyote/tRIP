@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BiomeVisualProfile" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/visual/biome_visual_profile.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"biome.ashen_silence"
+sky_top_color = Color(0.025, 0.03, 0.035, 1)
+sky_horizon_color = Color(0.32, 0.34, 0.31, 1)
+sky_energy = 0.45
+ambient_color = Color(0.32, 0.34, 0.31, 1)
+ambient_energy = 0.72
+fog_color = Color(0.34, 0.35, 0.32, 1)
+fog_density = 0.035
+fog_light_energy = 0.82
+volumetric_density = 0.028
+volumetric_albedo = Color(0.48, 0.49, 0.45, 1)
+volumetric_emission = Color(0.012, 0.012, 0.01, 1)
+volumetric_length = 42.0

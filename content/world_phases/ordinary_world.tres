@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/forest_visual_profile.tres" id="2"]
+[resource]
+script = ExtResource("1")
+id = &"phase.ordinary"
+display_name = "Явь · Сырая тайга"
+description = "Исходная горная тайга, в которой следы брата ещё подчиняются обычной географии."
+visual_profile = ExtResource("2")
+poi_family = &"abandoned_fieldwork"

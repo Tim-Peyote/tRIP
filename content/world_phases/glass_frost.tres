@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/frost_visual_profile.tres" id="2"]
+[resource]
+script = ExtResource("1")
+id = &"phase.glass_frost"
+order = 3
+display_name = "Стеклянная изморозь"
+description = "Время густеет, растения кристаллизуются, а память сохраняется в ледяных пещерах."
+effect_channel = &"frost_memory"
+stabilizing_recipe_id = &"recipe.glass_lichen_decoction"
+visual_profile = ExtResource("2")
+geometry_family = 4
+canopy_low = Color(0.04, 0.28, 0.48, 1)
+canopy_high = Color(0.42, 0.94, 1, 1)
+stone_low = Color(0.12, 0.38, 0.54, 1)
+stone_high = Color(0.72, 0.95, 1, 1)
+beacon_color = Color(0.34, 0.92, 1, 1)
+poi_family = &"frozen_archive"
+cave_bias = 0.75

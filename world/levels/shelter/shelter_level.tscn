@@ -1,4 +1,4 @@
-[gd_scene load_steps=71 format=3]
+[gd_scene load_steps=73 format=3]
 
 [ext_resource type="Script" path="res://world/levels/shelter/shelter_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://features/player/player.tscn" id="2_player"]
@@ -33,6 +33,8 @@
 [ext_resource type="PackedScene" path="res://world/levels/root_well/root_well_chunk.tscn" id="31_root_well"]
 [ext_resource type="Script" path="res://world/terrain/expedition_terrain.gd" id="32_terrain"]
 [ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/mycelial_visual_profile.tres" id="33_mycelial_profile"]
+[ext_resource type="Script" path="res://features/environment/world_phase_orchestrator.gd" id="34_phase_orchestrator"]
+[ext_resource type="Script" path="res://features/developer/world_phase_developer_panel.gd" id="35_phase_developer"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.105, 0.086, 0.062, 1)
@@ -236,6 +238,14 @@ script = ExtResource("23_biome_controller")
 shelter_profile = ExtResource("24_shelter_profile")
 forest_profile = ExtResource("25_forest_profile")
 mycelial_profile = ExtResource("33_mycelial_profile")
+
+[node name="WorldPhaseOrchestrator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("34_phase_orchestrator")
+
+[node name="WorldPhaseDeveloperPanel" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("35_phase_developer")
 
 [node name="ShelterDressing" parent="." instance=ExtResource("22_dressing")]
 

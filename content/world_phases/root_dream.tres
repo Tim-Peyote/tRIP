@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/root_dream_visual_profile.tres" id="2"]
+[resource]
+script = ExtResource("1")
+id = &"phase.root_dream"
+order = 6
+display_name = "Корневой сон"
+description = "Поверхность проваливается в корневые полости, где голос брата смешан с голосом леса."
+effect_channel = &"root_dream"
+stabilizing_recipe_id = &"recipe.deep_root_kisel"
+visual_profile = ExtResource("2")
+geometry_family = 3
+canopy_low = Color(0.18, 0.055, 0.012, 1)
+canopy_high = Color(0.62, 0.25, 0.035, 1)
+stone_low = Color(0.14, 0.055, 0.025, 1)
+stone_high = Color(0.48, 0.22, 0.07, 1)
+beacon_color = Color(0.95, 0.34, 0.035, 1)
+poi_family = &"root_mouth"
+cave_bias = 1.0
+hazard_bias = 0.7

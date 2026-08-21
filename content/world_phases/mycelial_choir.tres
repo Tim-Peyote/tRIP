@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/mycelial_visual_profile.tres" id="2"]
+[resource]
+script = ExtResource("1")
+id = &"phase.mycelial_choir"
+order = 1
+display_name = "Мицелиальный хор"
+description = "Грибница проявляет память местности, скрытые тропы и чужие мысли."
+effect_channel = &"spore_vision"
+stabilizing_recipe_id = &"recipe.spore_sight_brew"
+visual_profile = ExtResource("2")
+geometry_family = 2
+canopy_low = Color(0.12, 0.03, 0.3, 1)
+canopy_high = Color(0.95, 0.08, 0.62, 1)
+stone_low = Color(0.05, 0.25, 0.4, 1)
+stone_high = Color(0.7, 0.12, 0.65, 1)
+beacon_color = Color(1, 0.06, 0.68, 1)
+poi_family = &"memory_ring"
+hazard_bias = 0.25

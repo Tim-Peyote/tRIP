@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
+[ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/heart_visual_profile.tres" id="2"]
+[resource]
+script = ExtResource("1")
+id = &"phase.distant_heart"
+order = 7
+display_name = "Сердце Дальнего леса"
+description = "Финальный мир собирается из следа брата и всех стабилизированных рецептов текущего прохождения."
+effect_channel = &"heart_resonance"
+stabilizing_recipe_id = &"recipe.final_concordance"
+visual_profile = ExtResource("2")
+geometry_family = 4
+canopy_low = Color(0.12, 0.015, 0.32, 1)
+canopy_high = Color(1, 0.18, 0.04, 1)
+stone_low = Color(0.04, 0.2, 0.32, 1)
+stone_high = Color(0.82, 0.08, 0.52, 1)
+beacon_color = Color(1, 0.32, 0.025, 1)
+poi_family = &"brothers_heart"
+cave_bias = 0.65
+hazard_bias = 0.9

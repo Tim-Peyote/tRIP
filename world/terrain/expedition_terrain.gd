@@ -13,6 +13,7 @@ const MIN_EXPEDITION_Z: float = 5.8
 
 var _run_seed: int = 0
 var _world_phase: StringName = PHASE_ORDINARY
+var _phase_definition: WorldPhaseDefinition
 var _phase_amount: float = 0.0
 var _target: Node3D
 var _last_center := Vector2i(999999, 999999)
@@ -57,6 +58,22 @@ func set_world_phase(value: StringName) -> void:
 	_world_phase = value
 	var tween := create_tween()
 	tween.tween_method(_set_phase_amount, _phase_amount, 1.0 if value == PHASE_MYCELIAL else 0.0, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_rebuild_loaded_decor()
+
+
+func apply_world_phase(definition: WorldPhaseDefinition) -> void:
+	if definition == null:
+		return
+	_phase_definition = definition
+	var next_phase := PHASE_ORDINARY if definition.is_baseline() else definition.id
+	if _world_phase == next_phase:
+		return
+	_world_phase = next_phase
+	if _terrain_material != null:
+		_terrain_material.set_shader_parameter(&"phase_low", definition.stone_low)
+		_terrain_material.set_shader_parameter(&"phase_high", definition.beacon_color)
+	var tween := create_tween()
+	tween.tween_method(_set_phase_amount, _phase_amount, 0.0 if definition.is_baseline() else 1.0, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_rebuild_loaded_decor()
 
 
@@ -230,7 +247,7 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	_add_rock_multimesh(body, coordinate, rng, 10 if biome != 2 else 18)
 	if abs(int(_chunk_seed(coordinate))) % 7 == 0:
 		_add_point_of_interest(body, coordinate, rng, biome)
-	if _world_phase == PHASE_MYCELIAL and abs(int(_chunk_seed(coordinate))) % 3 == 0:
+	if _is_altered_phase() and abs(int(_chunk_seed(coordinate))) % 3 == 0:
 		_add_mycelial_beacon(body, coordinate, rng)
 
 
@@ -242,20 +259,32 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 	trunk.radial_segments = 7
 	trunk.material = _standard_material(Color(0.24, 0.095, 0.035))
 	var crown: PrimitiveMesh
-	if biome == 0:
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.0
-		cone.bottom_radius = 1.45
-		cone.height = 2.4
-		cone.radial_segments = 8
-		crown = cone
-	else:
-		var sphere := SphereMesh.new()
-		sphere.radius = 1.35
-		sphere.height = 2.15
-		sphere.radial_segments = 8
-		sphere.rings = 4
-		crown = sphere
+	match biome:
+		0:
+			var cone := CylinderMesh.new()
+			cone.top_radius = 0.0
+			cone.bottom_radius = 1.45
+			cone.height = 2.4
+			cone.radial_segments = 8
+			crown = cone
+		1, 2:
+			var sphere := SphereMesh.new()
+			sphere.radius = 1.35
+			sphere.height = 2.15 if biome == 1 else 1.55
+			sphere.radial_segments = 8
+			sphere.rings = 4
+			crown = sphere
+		3:
+			var ring := TorusMesh.new()
+			ring.inner_radius = 0.55
+			ring.outer_radius = 1.35
+			ring.rings = 10
+			ring.ring_segments = 7
+			crown = ring
+		_:
+			var shard := PrismMesh.new()
+			shard.size = Vector3(1.8, 3.2, 1.5)
+			crown = shard
 	crown.material = _standard_material(Color(0.11, 0.34, 0.1) if biome != 2 else Color(0.24, 0.16, 0.42))
 	var trunks := _new_multimesh(trunk, count)
 	var crown_layers := 3 if biome == 0 else 2
@@ -279,8 +308,10 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 				offset += Vector3(cos(yaw + layer * PI), 0, sin(yaw + layer * PI)) * size * 0.65
 			crowns.set_instance_transform(placed * crown_layers + layer, Transform3D(Basis(Vector3.UP, yaw + layer * 0.3).scaled(Vector3(crown_scale, size, crown_scale)), Vector3(point.x, ground, point.y) + offset))
 			var ordinary := Color(0.055, 0.24, 0.075).lerp(Color(0.4, 0.55, 0.12), rng.randf_range(0.0, 0.65))
-			var altered := Color(0.15, 0.05, 0.32).lerp(Color(0.95, 0.12, 0.62), rng.randf_range(0.15, 0.8))
-			crowns.set_instance_color(placed * crown_layers + layer, altered if _world_phase == PHASE_MYCELIAL else ordinary)
+			var altered_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.15, 0.05, 0.32)
+			var altered_high := _phase_definition.canopy_high if _phase_definition != null else Color(0.95, 0.12, 0.62)
+			var altered := altered_low.lerp(altered_high, rng.randf_range(0.15, 0.8))
+			crowns.set_instance_color(placed * crown_layers + layer, altered if _is_altered_phase() else ordinary)
 		placed += 1
 	trunks.instance_count = placed
 	crowns.instance_count = placed * crown_layers
@@ -303,8 +334,10 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 		var basis := Basis.from_euler(Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(0.0, TAU), rng.randf_range(-0.2, 0.2))).scaled(Vector3(size * rng.randf_range(0.8, 1.5), size * rng.randf_range(0.45, 0.9), size))
 		multimesh.set_instance_transform(index, Transform3D(basis, Vector3(point.x, ground + size * 0.42, point.y)))
 		var ordinary := Color(0.19, 0.24, 0.2).lerp(Color(0.48, 0.42, 0.28), rng.randf())
-		var altered := Color(0.08, 0.32, 0.42).lerp(Color(0.7, 0.16, 0.65), rng.randf())
-		multimesh.set_instance_color(index, altered if _world_phase == PHASE_MYCELIAL else ordinary)
+		var altered_low := _phase_definition.stone_low if _phase_definition != null else Color(0.08, 0.32, 0.42)
+		var altered_high := _phase_definition.stone_high if _phase_definition != null else Color(0.7, 0.16, 0.65)
+		var altered := altered_low.lerp(altered_high, rng.randf())
+		multimesh.set_instance_color(index, altered if _is_altered_phase() else ordinary)
 	_add_multimesh_instance(body, "BoulderField", multimesh)
 
 
@@ -320,7 +353,7 @@ func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumbe
 		var shard := MeshInstance3D.new()
 		var mesh := PrismMesh.new()
 		mesh.size = Vector3(rng.randf_range(0.7, 1.5), rng.randf_range(3.5, 8.0), rng.randf_range(0.8, 1.8))
-		mesh.material = _standard_material(Color(0.25, 0.28, 0.24) if biome != 2 else Color(0.18, 0.12, 0.34), _world_phase == PHASE_MYCELIAL)
+		mesh.material = _standard_material(Color(0.25, 0.28, 0.24) if biome != 2 else Color(0.18, 0.12, 0.34), _is_altered_phase())
 		shard.mesh = mesh
 		var angle := TAU * float(index) / float(count) + rng.randf_range(-0.25, 0.25)
 		var radius := rng.randf_range(2.0, 5.5)
@@ -342,7 +375,7 @@ func _add_mycelial_beacon(body: Node3D, coordinate: Vector2i, rng: RandomNumberG
 	mesh.outer_radius = 1.45
 	mesh.rings = 12
 	mesh.ring_segments = 8
-	mesh.material = _standard_material(Color(0.9, 0.08, 0.62), true)
+	mesh.material = _standard_material(_phase_definition.beacon_color if _phase_definition != null else Color(0.9, 0.08, 0.62), true)
 	beacon.mesh = mesh
 	beacon.position = Vector3(center.x, _height_at(center.x, center.y) + 2.5, center.y)
 	beacon.rotation.x = PI * 0.5
@@ -372,9 +405,13 @@ func _is_reserved(point: Vector2) -> bool:
 
 
 func _biome_for_chunk(coordinate: Vector2i) -> int:
-	if _world_phase == PHASE_MYCELIAL:
-		return 2
+	if _is_altered_phase():
+		return _phase_definition.geometry_family if _phase_definition != null else 2
 	return 0 if _noise.get_noise_2d(float(coordinate.x) * 19.0, float(coordinate.y) * 19.0) < 0.16 else 1
+
+
+func _is_altered_phase() -> bool:
+	return _world_phase != PHASE_ORDINARY
 
 
 func _chunk_seed(coordinate: Vector2i) -> int:
@@ -436,6 +473,8 @@ func _build_terrain_material() -> ShaderMaterial:
 shader_type spatial;
 render_mode cull_disabled;
 uniform float metamorphosis : hint_range(0.0, 1.0) = 0.0;
+uniform vec3 phase_low : source_color = vec3(0.025, 0.16, 0.32);
+uniform vec3 phase_high : source_color = vec3(0.82, 0.025, 0.7);
 varying float pulse;
 void vertex() {
 	float wave_a = sin(VERTEX.x * 0.075 + TIME * 0.65);
@@ -446,7 +485,7 @@ void vertex() {
 void fragment() {
 	vec3 mundane = COLOR.rgb;
 	float bands = 0.5 + 0.5 * sin((VERTEX.x + VERTEX.z) * 0.09 + pulse * 2.0);
-	vec3 altered = mix(vec3(0.025, 0.16, 0.32), vec3(0.82, 0.025, 0.7), bands);
+	vec3 altered = mix(phase_low, phase_high, bands);
 	ALBEDO = mix(mundane, altered, metamorphosis * 0.96);
 	ROUGHNESS = mix(0.96, 0.62, metamorphosis);
 	EMISSION = altered * metamorphosis * (0.3 + max(pulse, 0.0) * 0.45);

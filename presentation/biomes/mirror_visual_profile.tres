@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BiomeVisualProfile" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/visual/biome_visual_profile.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"biome.mirror_flood"
+sky_top_color = Color(0.012, 0.12, 0.2, 1)
+sky_horizon_color = Color(0.12, 0.95, 0.8, 1)
+sky_energy = 1.45
+ambient_color = Color(0.12, 0.58, 0.54, 1)
+ambient_energy = 1.3
+fog_color = Color(0.06, 0.42, 0.46, 1)
+fog_density = 0.012
+fog_light_energy = 1.45
+volumetric_density = 0.009
+volumetric_albedo = Color(0.18, 0.68, 0.72, 1)
+volumetric_emission = Color(0.008, 0.09, 0.11, 1)
+volumetric_length = 86.0

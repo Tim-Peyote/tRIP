@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BiomeVisualProfile" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/resources/visual/biome_visual_profile.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"biome.distant_heart"
+sky_top_color = Color(0.025, 0.002, 0.085, 1)
+sky_horizon_color = Color(1, 0.22, 0.035, 1)
+sky_energy = 1.85
+ambient_color = Color(0.48, 0.16, 0.68, 1)
+ambient_energy = 1.65
+fog_color = Color(0.42, 0.04, 0.28, 1)
+fog_density = 0.017
+fog_light_energy = 1.75
+volumetric_density = 0.014
+volumetric_albedo = Color(0.68, 0.12, 0.5, 1)
+volumetric_emission = Color(0.14, 0.02, 0.09, 1)
+volumetric_length = 96.0

@@ -106,6 +106,7 @@ Full cycle and persistence test:
 - `J` — open/close the field herbarium
 - `G` — throw a stone to distract creatures
 - `Esc` — pause
+- `F10` — developer world-phase panel (`PageUp/PageDown`, `R`, `Backspace`)
 
 During inspection: hold left mouse and drag to rotate, use the wheel to zoom, or use `A/D` for stepped rotation. Finding every morphological clue confirms the species hypothesis.
 
