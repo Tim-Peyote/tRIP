@@ -4,6 +4,8 @@ extends Node
 signal snapshot_changed(snapshot_id: StringName)
 
 const SNAPSHOT_FADE_SECONDS: float = 0.35
+const UI_CUE_COOLDOWN_USEC: int = 120_000
+const UI_SELECT_COOLDOWN_USEC: int = 220_000
 const STABLE_AUDIO_BUS_STATE: Dictionary[StringName, bool] = {
 	&"Music": true,
 	&"UI": false,
@@ -21,14 +23,15 @@ var _cue_players: Array[AudioStreamPlayer] = []
 var _cue_streams: Dictionary[StringName, AudioStream] = {
 	&"open": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
 	&"close": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
-	&"select": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
-	&"confirm": preload("res://assets/third_party/kenney_audio/ui/bookClose.ogg"),
+	&"select": preload("res://assets/third_party/kenney_audio/ui/back_002.ogg"),
+	&"confirm": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
 	&"pickup": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
 	&"grab": preload("res://assets/third_party/kenney_audio/ui/handleSmallLeather.ogg"),
 	&"release": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
-	&"pause": preload("res://assets/third_party/kenney_audio/ui/bookClose.ogg"),
+	&"pause": preload("res://assets/third_party/kenney_audio/ui/dropLeather.ogg"),
 }
 var _cue_cursor: int = 0
+var _last_cue_usec: int = -UI_SELECT_COOLDOWN_USEC
 
 
 func _ready() -> void:
@@ -71,6 +74,11 @@ func is_master_audio_enabled() -> bool:
 func play_ui_cue(cue_id: StringName) -> void:
 	if _cue_players.is_empty() or not _cue_streams.has(cue_id):
 		return
+	var now_usec := Time.get_ticks_usec()
+	var cooldown := UI_SELECT_COOLDOWN_USEC if cue_id == &"select" else UI_CUE_COOLDOWN_USEC
+	if now_usec - _last_cue_usec < cooldown:
+		return
+	_last_cue_usec = now_usec
 	var player := _cue_players[_cue_cursor % _cue_players.size()]
 	_cue_cursor += 1
 	player.stream = _cue_streams[cue_id]
@@ -95,7 +103,8 @@ func _wire_button(button: Button) -> void:
 		return
 	button.set_meta(&"trip_audio_wired", true)
 	button.mouse_entered.connect(play_ui_cue.bind(&"select"))
-	button.focus_entered.connect(play_ui_cue.bind(&"select"))
+	# Focus is often reassigned automatically while panels rebuild. Playing a cue
+	# for both focus and hover produced dense overlapping impulses on startup.
 	button.pressed.connect(play_ui_cue.bind(&"confirm"))
 
 

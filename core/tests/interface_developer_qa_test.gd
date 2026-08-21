@@ -29,6 +29,18 @@ func _run() -> void:
 	_expect(recorded_cues.size() == 8, "Audio director is missing recorded UI cues.")
 	for cue_id: StringName in recorded_cues:
 		_expect(recorded_cues[cue_id] is AudioStreamOggVorbis, "UI cue is not a recorded OGG asset: %s" % cue_id)
+		var cue_path := (recorded_cues[cue_id] as AudioStream).resource_path
+		_expect(cue_path.ends_with("back_002.ogg") or cue_path.ends_with("handleSmallLeather.ogg") or cue_path.ends_with("dropLeather.ogg"), "UI cue still uses an edge-discontinuous sample: %s" % cue_id)
+	var limiter_voice := AudioStreamPlayer.new()
+	main.audio_director.add_child(limiter_voice)
+	var cue_players := main.audio_director.get("_cue_players") as Array[AudioStreamPlayer]
+	cue_players.append(limiter_voice)
+	var cursor_before := int(main.audio_director.get("_cue_cursor"))
+	main.audio_director.play_ui_cue(&"select")
+	main.audio_director.play_ui_cue(&"select")
+	_expect(int(main.audio_director.get("_cue_cursor")) == cursor_before + 1, "UI cue rate limiter allowed overlapping hover impulses.")
+	cue_players.erase(limiter_voice)
+	limiter_voice.queue_free()
 	main.main_menu.call("_show_settings")
 	await get_tree().process_frame
 	var settings_panel := main.main_menu.settings_panel
