@@ -20,6 +20,10 @@ func _run() -> void:
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame
+	_expect(main.audio_director.is_environment_audio_muted(), "Environment audio diagnostic did not mute every background bus.")
+	for bus_name: StringName in AudioDirector.ENVIRONMENT_AUDIO_BUSES:
+		var bus_index := AudioServer.get_bus_index(bus_name)
+		_expect(bus_index >= 0 and AudioServer.is_bus_mute(bus_index), "Background bus remained audible: %s" % bus_name)
 	var recorded_cues := main.audio_director.get("_cue_streams") as Dictionary
 	_expect(recorded_cues.size() == 8, "Audio director is missing recorded UI cues.")
 	for cue_id: StringName in recorded_cues:

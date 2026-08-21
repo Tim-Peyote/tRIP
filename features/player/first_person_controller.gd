@@ -77,6 +77,7 @@ var _weather_wind_strength: float = 0.0
 var _gameplay_enabled: bool = true
 var _physical_key_state: Dictionary[Key, bool] = {}
 var _raw_jump_just_pressed: bool = false
+var _physical_jump_was_down: bool = false
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -85,6 +86,8 @@ const CROUCHED_BODY_HEIGHT: float = 1.15
 
 
 func _ready() -> void:
+	set_process_input(true)
+	set_physics_process(true)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.fov = float(SettingsService.get_value(&"video", &"fov", field_of_view))
 	_look_pitch = camera_rig.rotation.x
@@ -159,7 +162,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	_coyote_remaining = coyote_time if is_on_floor() else maxf(_coyote_remaining - delta, 0.0)
 	_jump_buffer_remaining = maxf(_jump_buffer_remaining - delta, 0.0)
-	if _accepts_gameplay_input() and (Input.is_action_just_pressed(&"jump") or _raw_jump_just_pressed):
+	var physical_jump_down := _is_physical_key_down(KEY_SPACE)
+	var physical_jump_just_pressed := physical_jump_down and not _physical_jump_was_down
+	_physical_jump_was_down = physical_jump_down
+	if _accepts_gameplay_input() and (Input.is_action_just_pressed(&"jump") or _raw_jump_just_pressed or physical_jump_just_pressed):
 		_jump_buffer_remaining = jump_buffer_time
 	_raw_jump_just_pressed = false
 	if _accepts_gameplay_input():
@@ -261,16 +267,21 @@ func _accepts_gameplay_input() -> bool:
 func _get_movement_input() -> Vector2:
 	var mapped := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back", 0.15)
 	var physical := Vector2(
-		float(int(bool(_physical_key_state.get(KEY_D, false))) - int(bool(_physical_key_state.get(KEY_A, false)))),
-		float(int(bool(_physical_key_state.get(KEY_S, false))) - int(bool(_physical_key_state.get(KEY_W, false))))
+		float(int(_is_physical_key_down(KEY_D)) - int(_is_physical_key_down(KEY_A))),
+		float(int(_is_physical_key_down(KEY_S)) - int(_is_physical_key_down(KEY_W)))
 	).limit_length(1.0)
 	return physical if physical.length_squared() > mapped.length_squared() else mapped
+
+
+func _is_physical_key_down(keycode: Key) -> bool:
+	return bool(_physical_key_state.get(keycode, false)) or Input.is_physical_key_pressed(keycode)
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		_physical_key_state.clear()
 		_raw_jump_just_pressed = false
+		_physical_jump_was_down = false
 
 
 func set_spore_vision_active(value: bool) -> void:

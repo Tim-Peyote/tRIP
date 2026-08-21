@@ -4,6 +4,10 @@ extends Node
 signal snapshot_changed(snapshot_id: StringName)
 
 const SNAPSHOT_FADE_SECONDS: float = 0.35
+const ENVIRONMENT_AUDIO_BUSES: Array[StringName] = [
+	&"Music", &"World", &"Ambience", &"Creatures", &"Interactions", &"Voice", &"Perception",
+]
+const DIAGNOSTIC_MUTE_ENVIRONMENT_AUDIO: bool = true
 
 var _snapshot_id: StringName = &"default"
 var _cue_players: Array[AudioStreamPlayer] = []
@@ -21,6 +25,7 @@ var _cue_cursor: int = 0
 
 
 func _ready() -> void:
+	_set_environment_audio_muted(DIAGNOSTIC_MUTE_ENVIRONMENT_AUDIO)
 	if DisplayServer.get_name() == "headless":
 		return
 	for index: int in 4:
@@ -31,6 +36,21 @@ func _ready() -> void:
 		_cue_players.append(player)
 	get_tree().node_added.connect(_on_node_added)
 	call_deferred("_wire_existing_buttons")
+
+
+func _set_environment_audio_muted(value: bool) -> void:
+	for bus_name: StringName in ENVIRONMENT_AUDIO_BUSES:
+		var bus_index := AudioServer.get_bus_index(bus_name)
+		if bus_index >= 0:
+			AudioServer.set_bus_mute(bus_index, value)
+
+
+func is_environment_audio_muted() -> bool:
+	for bus_name: StringName in ENVIRONMENT_AUDIO_BUSES:
+		var bus_index := AudioServer.get_bus_index(bus_name)
+		if bus_index >= 0 and not AudioServer.is_bus_mute(bus_index):
+			return false
+	return true
 
 
 func play_ui_cue(cue_id: StringName) -> void:
