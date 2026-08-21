@@ -4,11 +4,17 @@ extends Node
 signal snapshot_changed(snapshot_id: StringName)
 
 const SNAPSHOT_FADE_SECONDS: float = 0.35
-const ENVIRONMENT_AUDIO_BUSES: Array[StringName] = [
-	&"Music", &"World", &"Ambience", &"Creatures", &"Interactions", &"Voice", &"Perception",
-]
-const DIAGNOSTIC_MUTE_ENVIRONMENT_AUDIO: bool = true
-const DIAGNOSTIC_MUTE_MASTER_AUDIO: bool = true
+const SAFE_AUDIO_BUS_STATE: Dictionary[StringName, bool] = {
+	&"Music": true,
+	&"UI": true,
+	&"PlayerFoley": false,
+	&"World": false,
+	&"Ambience": false,
+	&"Creatures": true,
+	&"Interactions": true,
+	&"Voice": true,
+	&"Perception": true,
+}
 
 var _snapshot_id: StringName = &"default"
 var _cue_players: Array[AudioStreamPlayer] = []
@@ -26,10 +32,10 @@ var _cue_cursor: int = 0
 
 
 func _ready() -> void:
-	_set_environment_audio_muted(DIAGNOSTIC_MUTE_ENVIRONMENT_AUDIO)
+	_apply_safe_audio_bus_state()
 	var master_bus := AudioServer.get_bus_index(&"Master")
 	if master_bus >= 0:
-		AudioServer.set_bus_mute(master_bus, DIAGNOSTIC_MUTE_MASTER_AUDIO)
+		AudioServer.set_bus_mute(master_bus, false)
 	if DisplayServer.get_name() == "headless":
 		return
 	for index: int in 4:
@@ -42,24 +48,24 @@ func _ready() -> void:
 	call_deferred("_wire_existing_buttons")
 
 
-func _set_environment_audio_muted(value: bool) -> void:
-	for bus_name: StringName in ENVIRONMENT_AUDIO_BUSES:
+func _apply_safe_audio_bus_state() -> void:
+	for bus_name: StringName in SAFE_AUDIO_BUS_STATE:
 		var bus_index := AudioServer.get_bus_index(bus_name)
 		if bus_index >= 0:
-			AudioServer.set_bus_mute(bus_index, value)
+			AudioServer.set_bus_mute(bus_index, SAFE_AUDIO_BUS_STATE[bus_name])
 
 
-func is_environment_audio_muted() -> bool:
-	for bus_name: StringName in ENVIRONMENT_AUDIO_BUSES:
+func is_safe_audio_bus_state_applied() -> bool:
+	for bus_name: StringName in SAFE_AUDIO_BUS_STATE:
 		var bus_index := AudioServer.get_bus_index(bus_name)
-		if bus_index >= 0 and not AudioServer.is_bus_mute(bus_index):
+		if bus_index < 0 or AudioServer.is_bus_mute(bus_index) != SAFE_AUDIO_BUS_STATE[bus_name]:
 			return false
 	return true
 
 
-func is_master_audio_muted() -> bool:
+func is_master_audio_enabled() -> bool:
 	var master_bus := AudioServer.get_bus_index(&"Master")
-	return master_bus >= 0 and AudioServer.is_bus_mute(master_bus)
+	return master_bus >= 0 and not AudioServer.is_bus_mute(master_bus)
 
 
 func play_ui_cue(cue_id: StringName) -> void:
