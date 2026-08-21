@@ -64,9 +64,14 @@ func set_world_phase(value: StringName) -> void:
 func apply_world_phase(definition: WorldPhaseDefinition) -> void:
 	if definition == null:
 		return
+	var target_clearance := 0.12
+	var should_reground_target := is_instance_valid(_target) and _target.global_position.z >= MIN_EXPEDITION_Z
+	if should_reground_target:
+		target_clearance = maxf(_target.global_position.y - _height_at(_target.global_position.x, _target.global_position.z), 0.12)
+	var definition_changed := _phase_definition != definition
 	_phase_definition = definition
 	var next_phase := PHASE_ORDINARY if definition.is_baseline() else definition.id
-	if _world_phase == next_phase:
+	if _world_phase == next_phase and not definition_changed:
 		return
 	_world_phase = next_phase
 	if _terrain_material != null:
@@ -74,7 +79,13 @@ func apply_world_phase(definition: WorldPhaseDefinition) -> void:
 		_terrain_material.set_shader_parameter(&"phase_high", definition.beacon_color)
 	var tween := create_tween()
 	tween.tween_method(_set_phase_amount, _phase_amount, 0.0 if definition.is_baseline() else 1.0, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_rebuild_loaded_decor()
+	if should_reground_target:
+		var safe_position := _target.global_position
+		safe_position.y = _height_at(safe_position.x, safe_position.z) + target_clearance
+		_target.global_position = safe_position
+		if _target is CharacterBody3D:
+			(_target as CharacterBody3D).velocity.y = 0.0
+	_rebuild_world_geometry()
 
 
 func get_world_phase() -> StringName:
@@ -83,6 +94,19 @@ func get_world_phase() -> StringName:
 
 func get_loaded_chunk_count() -> int:
 	return _chunks.size()
+
+
+func get_loaded_ecology_signature() -> String:
+	var parts := PackedStringArray()
+	var pack := _get_content_pack()
+	parts.append(pack.get_generation_signature() if pack != null else "unassigned")
+	for coordinate: Vector2i in _chunks:
+		var body := _chunks[coordinate]
+		for child: Node in body.get_children():
+			if child.name != "Terrain" and child.name != "Collision":
+				parts.append(child.name)
+	parts.sort()
+	return "|".join(parts)
 
 
 func get_height_at_global(world_position: Vector3) -> float:
@@ -213,9 +237,36 @@ func _build_chunk_mesh(coordinate: Vector2i) -> ArrayMesh:
 
 func _height_at(x: float, z: float) -> float:
 	var point := Vector2(x, z)
-	var macro := _noise.get_noise_2d(x, z) * 11.0
-	var ridges := absf(_detail_noise.get_noise_2d(x * 0.42 + 90.0, z * 0.42 - 40.0)) * 4.2
+	var pack := _get_content_pack()
+	var elevation_scale := pack.elevation_scale if pack != null else 1.0
+	var ridge_bias := pack.ridge_bias if pack != null else 0.25
+	var macro := _noise.get_noise_2d(x, z) * 11.0 * elevation_scale
+	var ridges := absf(_detail_noise.get_noise_2d(x * 0.42 + 90.0, z * 0.42 - 40.0)) * lerpf(2.4, 8.2, ridge_bias)
 	var height := macro + ridges - 1.5
+	if pack != null:
+		match pack.ecology_family:
+			BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
+				var karst := maxf(_detail_noise.get_noise_2d(x * 0.7 - 130.0, z * 0.7 + 80.0), 0.0)
+				height -= karst * karst * 7.5 * pack.basin_bias
+				height += sin(x * 0.085 + z * 0.04) * 0.7
+			BiomeContentPack.EcologyFamily.CRIMSON_STEPPE:
+				height += absf(sin(x * 0.052) + cos(z * 0.047)) * 2.6
+				height = floorf(height * 0.48) / 0.48 + _detail_noise.get_noise_2d(x, z) * 0.35
+			BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
+				height += absf(_noise.get_noise_2d(x * 0.55, z * 0.55)) * 5.5
+				height = floorf(height * 0.34) / 0.34
+			BiomeContentPack.EcologyFamily.ASHEN_TUNDRA:
+				height = lerpf(height, _noise.get_noise_2d(x * 0.35, z * 0.35) * 5.5, 0.58)
+			BiomeContentPack.EcologyFamily.MIRROR_WETLAND:
+				height = lerpf(height, floorf(height * 0.55) / 0.55, 0.7)
+				height -= maxf(sin(x * 0.035) * cos(z * 0.041), 0.0) * 3.8 * pack.basin_bias
+			BiomeContentPack.EcologyFamily.ROOT_CAVERN:
+				var sink := maxf(_detail_noise.get_noise_2d(x * 0.9 + 260.0, z * 0.9), 0.0)
+				height -= pow(sink, 3.0) * 10.0
+				height += sin(x * 0.11) * cos(z * 0.09) * 1.4
+			BiomeContentPack.EcologyFamily.HEART_PLATEAU:
+				var radius := point.length()
+				height += sin(radius * 0.09 + atan2(z, x) * 3.0) * 3.2
 	var wandering_center := sin(z * 0.018 + float(_run_seed % 97)) * 18.0
 	height -= (1.0 - smoothstep(4.0, 15.0, absf(x - wandering_center))) * 3.4
 	height = _blend_disc(height, point, Vector2(0, 15), 11.0, 0.0)
@@ -231,63 +282,130 @@ func _height_at(x: float, z: float) -> float:
 
 
 func _terrain_color(point: Vector2, height: float, slope: float) -> Color:
-	var color := Color(0.105, 0.205, 0.085).lerp(Color(0.31, 0.29, 0.13), clampf((height + 3.0) / 15.0, 0.0, 1.0))
+	var pack := _get_content_pack()
+	var ground_low := pack.ground_low if pack != null else Color(0.105, 0.205, 0.085)
+	var ground_high := pack.ground_high if pack != null else Color(0.31, 0.29, 0.13)
+	var color := ground_low.lerp(ground_high, clampf((height + 3.0) / 15.0, 0.0, 1.0))
 	var trail := 1.0 - smoothstep(1.15, 3.1, _distance_to_segment(point, Vector2(0, 17), Vector2(0, 49)))
-	color = color.lerp(Color(0.31, 0.19, 0.075), trail * 0.72)
+	color = color.lerp(ground_high.darkened(0.18), trail * 0.55)
 	var grove := 1.0 - smoothstep(10.0, 25.0, point.distance_to(Vector2(27, 17)))
-	color = color.lerp(Color(0.075, 0.23, 0.18), grove * 0.45)
-	return color.lerp(Color(0.31, 0.265, 0.2), smoothstep(0.12, 0.38, slope))
+	color = color.lerp(ground_low.lightened(0.12), grove * 0.35)
+	return color.lerp(ground_high.lightened(0.16), smoothstep(0.12, 0.38, slope))
 
 
 func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = _chunk_seed(coordinate)
-	var biome := _biome_for_chunk(coordinate)
-	_add_tree_multimeshes(body, coordinate, rng, 18 if biome == 0 else 12, biome)
-	_add_rock_multimesh(body, coordinate, rng, 10 if biome != 2 else 18)
-	if abs(int(_chunk_seed(coordinate))) % 7 == 0:
-		_add_point_of_interest(body, coordinate, rng, biome)
-	if _is_altered_phase() and abs(int(_chunk_seed(coordinate))) % 3 == 0:
+	var pack := _get_content_pack()
+	var vegetation_density := pack.vegetation_density if pack != null else 1.0
+	var geology_density := pack.geology_density if pack != null else 1.0
+	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(16.0 * vegetation_density)))
+	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density)))
+	var landmark_period := pack.landmark_period if pack != null else 7
+	if abs(int(_chunk_seed(coordinate))) % landmark_period == 0:
+		_add_point_of_interest(body, coordinate, rng)
+	if pack != null and pack.water_frequency > 0.0 and rng.randf() < pack.water_frequency:
+		_add_water_feature(body, coordinate, rng, pack)
+	if pack != null and pack.cave_frequency > 0.0 and rng.randf() < pack.cave_frequency:
+		_add_cave_feature(body, coordinate, rng, pack)
+	if _is_altered_phase() and abs(int(_chunk_seed(coordinate))) % 4 == 0:
 		_add_mycelial_beacon(body, coordinate, rng)
 
 
-func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int, biome: int) -> void:
+func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
+	var pack := _get_content_pack()
+	var family := pack.vegetation_family if pack != null else BiomeContentPack.VegetationFamily.CEDAR_FIR
 	var trunk := CylinderMesh.new()
-	trunk.top_radius = 0.16
-	trunk.bottom_radius = 0.38
+	trunk.top_radius = 0.12
+	trunk.bottom_radius = 0.34
 	trunk.height = 5.2
 	trunk.radial_segments = 7
-	trunk.material = _standard_material(Color(0.24, 0.095, 0.035))
+	var trunk_color := Color(0.24, 0.095, 0.035)
 	var crown: PrimitiveMesh
-	match biome:
-		0:
+	var crown_layers := 2
+	var size_low := 0.75
+	var size_high := 1.65
+	match family:
+		BiomeContentPack.VegetationFamily.CEDAR_FIR:
 			var cone := CylinderMesh.new()
 			cone.top_radius = 0.0
 			cone.bottom_radius = 1.45
 			cone.height = 2.4
 			cone.radial_segments = 8
 			crown = cone
-		1, 2:
+			crown_layers = 3
+		BiomeContentPack.VegetationFamily.GIANT_FUNGI:
 			var sphere := SphereMesh.new()
-			sphere.radius = 1.35
-			sphere.height = 2.15 if biome == 1 else 1.55
-			sphere.radial_segments = 8
+			sphere.radius = 1.8
+			sphere.height = 0.72
+			sphere.radial_segments = 10
 			sphere.rings = 4
 			crown = sphere
-		3:
+			trunk_color = Color(0.3, 0.18, 0.32)
+			trunk.top_radius = 0.28
+			trunk.bottom_radius = 0.42
+			crown_layers = 1
+		BiomeContentPack.VegetationFamily.ANTLER_LARCH:
+			var antler := PrismMesh.new()
+			antler.size = Vector3(0.42, 3.5, 0.5)
+			crown = antler
+			trunk_color = Color(0.16, 0.018, 0.012)
+			crown_layers = 4
+		BiomeContentPack.VegetationFamily.ICE_LICHEN:
+			var crystal := PrismMesh.new()
+			crystal.size = Vector3(1.4, 3.8, 1.1)
+			crown = crystal
+			trunk_color = Color(0.08, 0.28, 0.4)
+			crown_layers = 2
+			trunk.height = 3.6
+		BiomeContentPack.VegetationFamily.BURNT_SNAGS:
+			var snag := CylinderMesh.new()
+			snag.top_radius = 0.0
+			snag.bottom_radius = 0.24
+			snag.height = 2.2
+			snag.radial_segments = 5
+			crown = snag
+			trunk_color = Color(0.035, 0.028, 0.025)
+			crown_layers = 1
+			size_low = 0.62
+		BiomeContentPack.VegetationFamily.REED_ISLANDS:
+			var seed_head := SphereMesh.new()
+			seed_head.radius = 0.18
+			seed_head.height = 0.72
+			seed_head.radial_segments = 6
+			seed_head.rings = 3
+			crown = seed_head
+			trunk.top_radius = 0.025
+			trunk.bottom_radius = 0.05
+			trunk.height = 2.4
+			trunk_color = Color(0.11, 0.31, 0.22)
+			crown_layers = 1
+			size_low = 0.45
+			size_high = 1.05
+		BiomeContentPack.VegetationFamily.ROOT_COLUMNS:
 			var ring := TorusMesh.new()
-			ring.inner_radius = 0.55
-			ring.outer_radius = 1.35
+			ring.inner_radius = 0.46
+			ring.outer_radius = 1.05
 			ring.rings = 10
 			ring.ring_segments = 7
 			crown = ring
+			trunk.top_radius = 0.42
+			trunk.bottom_radius = 0.72
+			trunk_color = Color(0.22, 0.07, 0.018)
+			crown_layers = 2
 		_:
-			var shard := PrismMesh.new()
-			shard.size = Vector3(1.8, 3.2, 1.5)
-			crown = shard
-	crown.material = _standard_material(Color(0.11, 0.34, 0.1) if biome != 2 else Color(0.24, 0.16, 0.42))
+			var heart_ring := TorusMesh.new()
+			heart_ring.inner_radius = 0.62
+			heart_ring.outer_radius = 1.38
+			heart_ring.rings = 9
+			heart_ring.ring_segments = 6
+			crown = heart_ring
+			trunk_color = Color(0.08, 0.12, 0.28)
+			crown_layers = 3
+	trunk.material = _standard_material(trunk_color)
+	var crown_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.055, 0.24, 0.075)
+	crown.material = _standard_material(crown_low, family != BiomeContentPack.VegetationFamily.CEDAR_FIR)
 	var trunks := _new_multimesh(trunk, count)
-	var crown_layers := 3 if biome == 0 else 2
 	var crowns := _new_multimesh(crown, count * crown_layers)
 	var placed := 0
 	for _attempt in count * 5:
@@ -296,17 +414,27 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 		var point := _random_chunk_point(coordinate, rng)
 		if _is_reserved(point):
 			continue
-		var size := rng.randf_range(0.75, 1.65)
+		var size := rng.randf_range(size_low, size_high)
 		var ground := _height_at(point.x, point.y)
 		var yaw := rng.randf_range(0.0, TAU)
-		trunks.set_instance_transform(placed, Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size)), Vector3(point.x, ground + 2.6 * size, point.y)))
+		trunks.set_instance_transform(placed, Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size)), Vector3(point.x, ground + trunk.height * 0.5 * size, point.y)))
 		trunks.set_instance_color(placed, Color(0.18, 0.065, 0.025).lerp(Color(0.36, 0.16, 0.05), rng.randf()))
 		for layer in crown_layers:
 			var crown_scale := size * (1.15 - float(layer) * 0.2)
 			var offset := Vector3(0, size * (4.0 + float(layer) * 1.2), 0)
-			if biome != 0:
+			if family != BiomeContentPack.VegetationFamily.CEDAR_FIR:
 				offset += Vector3(cos(yaw + layer * PI), 0, sin(yaw + layer * PI)) * size * 0.65
-			crowns.set_instance_transform(placed * crown_layers + layer, Transform3D(Basis(Vector3.UP, yaw + layer * 0.3).scaled(Vector3(crown_scale, size, crown_scale)), Vector3(point.x, ground, point.y) + offset))
+			if family == BiomeContentPack.VegetationFamily.ANTLER_LARCH:
+				offset += Vector3(cos(yaw + layer * 1.57), float(layer) * 0.3, sin(yaw + layer * 1.57)) * size * 1.15
+			if family == BiomeContentPack.VegetationFamily.CONCORDANT_GROVE:
+				offset.y += sin(float(layer) * 2.1) * size
+			var crown_rotation := Vector3(0.0, yaw + layer * 0.3, 0.0)
+			if family == BiomeContentPack.VegetationFamily.ROOT_COLUMNS:
+				crown_rotation.x = PI * 0.5
+			elif family == BiomeContentPack.VegetationFamily.CONCORDANT_GROVE:
+				crown_rotation.x = PI * 0.5
+				crown_rotation.z = float(layer) * 0.52
+			crowns.set_instance_transform(placed * crown_layers + layer, Transform3D(Basis.from_euler(crown_rotation).scaled(Vector3(crown_scale, size, crown_scale)), Vector3(point.x, ground, point.y) + offset))
 			var ordinary := Color(0.055, 0.24, 0.075).lerp(Color(0.4, 0.55, 0.12), rng.randf_range(0.0, 0.65))
 			var altered_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.15, 0.05, 0.32)
 			var altered_high := _phase_definition.canopy_high if _phase_definition != null else Color(0.95, 0.12, 0.62)
@@ -315,53 +443,176 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 		placed += 1
 	trunks.instance_count = placed
 	crowns.instance_count = placed * crown_layers
-	_add_multimesh_instance(body, "TreeTrunks", trunks)
-	_add_multimesh_instance(body, "TreeCrowns", crowns)
+	_add_multimesh_instance(body, "VegetationTrunks_%d" % family, trunks)
+	_add_multimesh_instance(body, "VegetationCrowns_%d" % family, crowns)
 
 
 func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.9
-	mesh.height = 1.35
-	mesh.radial_segments = 7
-	mesh.rings = 3
-	mesh.material = _standard_material(Color(0.26, 0.28, 0.24))
+	var pack := _get_content_pack()
+	var family := pack.geology_family if pack != null else BiomeContentPack.GeologyFamily.ROUNDED_GRANITE
+	var mesh: PrimitiveMesh
+	match family:
+		BiomeContentPack.GeologyFamily.ROUNDED_GRANITE, BiomeContentPack.GeologyFamily.ROOT_NODULES:
+			var rounded := SphereMesh.new()
+			rounded.radius = 0.9
+			rounded.height = 1.35
+			rounded.radial_segments = 7
+			rounded.rings = 3
+			mesh = rounded
+		BiomeContentPack.GeologyFamily.KARST_RIBS, BiomeContentPack.GeologyFamily.ICE_CRYSTALS, BiomeContentPack.GeologyFamily.FLOATING_STRATA:
+			var shard := PrismMesh.new()
+			shard.size = Vector3(1.2, 2.8, 1.0)
+			mesh = shard
+		BiomeContentPack.GeologyFamily.RED_SCREE:
+			var scree := PrismMesh.new()
+			scree.size = Vector3(1.8, 1.2, 1.4)
+			mesh = scree
+		BiomeContentPack.GeologyFamily.ASH_COLUMNS:
+			var column := CylinderMesh.new()
+			column.top_radius = 0.28
+			column.bottom_radius = 0.72
+			column.height = 2.8
+			column.radial_segments = 5
+			mesh = column
+		_:
+			var shelf := CylinderMesh.new()
+			shelf.top_radius = 1.15
+			shelf.bottom_radius = 1.4
+			shelf.height = 0.38
+			shelf.radial_segments = 7
+			mesh = shelf
+	mesh.material = _standard_material(pack.ground_high if pack != null else Color(0.26, 0.28, 0.24), family == BiomeContentPack.GeologyFamily.ICE_CRYSTALS or family == BiomeContentPack.GeologyFamily.FLOATING_STRATA)
 	var multimesh := _new_multimesh(mesh, count)
-	for index in count:
+	var placed := 0
+	for _attempt in count * 5:
+		if placed >= count:
+			break
 		var point := _random_chunk_point(coordinate, rng)
+		if _is_reserved(point):
+			continue
 		var size := rng.randf_range(0.4, 1.9)
 		var ground := _height_at(point.x, point.y)
-		var basis := Basis.from_euler(Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(0.0, TAU), rng.randf_range(-0.2, 0.2))).scaled(Vector3(size * rng.randf_range(0.8, 1.5), size * rng.randf_range(0.45, 0.9), size))
-		multimesh.set_instance_transform(index, Transform3D(basis, Vector3(point.x, ground + size * 0.42, point.y)))
+		var vertical_scale := size * rng.randf_range(0.45, 0.9)
+		var basis := Basis.from_euler(Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(0.0, TAU), rng.randf_range(-0.2, 0.2))).scaled(Vector3(size * rng.randf_range(0.8, 1.5), vertical_scale, size))
+		var mesh_height := 1.35
+		if mesh is PrismMesh:
+			mesh_height = (mesh as PrismMesh).size.y
+		elif mesh is CylinderMesh:
+			mesh_height = (mesh as CylinderMesh).height
+		multimesh.set_instance_transform(placed, Transform3D(basis, Vector3(point.x, ground + mesh_height * vertical_scale * 0.42, point.y)))
 		var ordinary := Color(0.19, 0.24, 0.2).lerp(Color(0.48, 0.42, 0.28), rng.randf())
 		var altered_low := _phase_definition.stone_low if _phase_definition != null else Color(0.08, 0.32, 0.42)
 		var altered_high := _phase_definition.stone_high if _phase_definition != null else Color(0.7, 0.16, 0.65)
 		var altered := altered_low.lerp(altered_high, rng.randf())
-		multimesh.set_instance_color(index, altered if _is_altered_phase() else ordinary)
-	_add_multimesh_instance(body, "BoulderField", multimesh)
+		multimesh.set_instance_color(placed, altered if _is_altered_phase() else ordinary)
+		placed += 1
+	multimesh.instance_count = placed
+	_add_multimesh_instance(body, "Geology_%d" % family, multimesh)
 
 
-func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, biome: int) -> void:
+func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
 	var center := Vector2((float(coordinate.x) + 0.5) * chunk_size, (float(coordinate.y) + 0.5) * chunk_size)
 	if _is_reserved(center):
 		return
 	var root := Node3D.new()
 	root.name = "GeneratedPOI"
 	body.add_child(root)
+	var pack := _get_content_pack()
+	var poi_family := pack.poi_family if pack != null else &"field_station"
 	var count := 5 + rng.randi_range(0, 4)
 	for index in count:
 		var shard := MeshInstance3D.new()
-		var mesh := PrismMesh.new()
-		mesh.size = Vector3(rng.randf_range(0.7, 1.5), rng.randf_range(3.5, 8.0), rng.randf_range(0.8, 1.8))
-		mesh.material = _standard_material(Color(0.25, 0.28, 0.24) if biome != 2 else Color(0.18, 0.12, 0.34), _is_altered_phase())
+		var mesh: PrimitiveMesh
+		match poi_family:
+			&"memory_ring", &"root_mouth", &"brothers_heart":
+				var ring := TorusMesh.new()
+				ring.inner_radius = rng.randf_range(0.7, 1.2)
+				ring.outer_radius = ring.inner_radius + rng.randf_range(0.18, 0.34)
+				ring.rings = 10
+				ring.ring_segments = 7
+				mesh = ring
+			&"reflection_pool":
+				var pool := CylinderMesh.new()
+				pool.top_radius = rng.randf_range(1.2, 2.3)
+				pool.bottom_radius = pool.top_radius * 1.08
+				pool.height = 0.08
+				pool.radial_segments = 12
+				mesh = pool
+			&"vanishing_camp":
+				var pole := CylinderMesh.new()
+				pole.top_radius = 0.06
+				pole.bottom_radius = 0.09
+				pole.height = rng.randf_range(2.4, 4.8)
+				pole.radial_segments = 5
+				mesh = pole
+			_:
+				var prism := PrismMesh.new()
+				prism.size = Vector3(rng.randf_range(0.45, 1.4), rng.randf_range(2.8, 7.0), rng.randf_range(0.45, 1.5))
+				mesh = prism
+		var accent := pack.accent_color if pack != null else Color(0.55, 0.6, 0.4)
+		mesh.material = _standard_material(accent.darkened(rng.randf_range(0.0, 0.38)), _is_altered_phase())
 		shard.mesh = mesh
 		var angle := TAU * float(index) / float(count) + rng.randf_range(-0.25, 0.25)
 		var radius := rng.randf_range(2.0, 5.5)
 		var point := center + Vector2(cos(angle), sin(angle)) * radius
-		shard.position = Vector3(point.x, _height_at(point.x, point.y) + mesh.size.y * 0.45, point.y)
+		var height_offset := 0.15
+		if mesh is PrismMesh:
+			height_offset = (mesh as PrismMesh).size.y * 0.45
+		elif mesh is CylinderMesh:
+			height_offset = (mesh as CylinderMesh).height * 0.5
+		else:
+			height_offset = 2.0 + float(index) * 0.18
+		shard.position = Vector3(point.x, _height_at(point.x, point.y) + height_offset, point.y)
 		shard.rotation.y = -angle
+		if mesh is TorusMesh:
+			shard.rotation.x = PI * 0.5 if poi_family == &"reflection_pool" else 0.0
 		root.add_child(shard)
-	root.set_meta(&"poi_kind", &"stone_crown")
+	root.set_meta(&"poi_kind", poi_family)
+	if pack != null and not pack.mystery_ids.is_empty():
+		root.set_meta(&"mystery_id", pack.mystery_ids[abs(int(_chunk_seed(coordinate))) % pack.mystery_ids.size()])
+
+
+func _add_water_feature(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var center := _random_chunk_point(coordinate, rng)
+	if _is_reserved(center):
+		return
+	var pool := MeshInstance3D.new()
+	pool.name = "BiomeWater"
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = rng.randf_range(2.2, 4.8)
+	mesh.bottom_radius = mesh.top_radius * 1.08
+	mesh.height = 0.055
+	mesh.radial_segments = 18
+	var material := _standard_material(pack.accent_color.darkened(0.28), true)
+	material.metallic = 0.72
+	material.roughness = 0.18
+	mesh.material = material
+	pool.mesh = mesh
+	pool.position = Vector3(center.x, _height_at(center.x, center.y) + 0.05, center.y)
+	body.add_child(pool)
+
+
+func _add_cave_feature(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	var center := _random_chunk_point(coordinate, rng)
+	if _is_reserved(center):
+		return
+	var cave := Node3D.new()
+	cave.name = "CaveMouth"
+	var ground := _height_at(center.x, center.y)
+	for index in 5:
+		var rib := MeshInstance3D.new()
+		var mesh := TorusMesh.new()
+		mesh.inner_radius = 1.15 + float(index) * 0.12
+		mesh.outer_radius = mesh.inner_radius + 0.32
+		mesh.rings = 10
+		mesh.ring_segments = 7
+		mesh.material = _standard_material(pack.ground_low.darkened(0.42))
+		rib.mesh = mesh
+		rib.position = Vector3(center.x, ground + 1.35, center.y + float(index) * 0.42)
+		rib.rotation.x = PI * 0.5
+		cave.add_child(rib)
+	cave.set_meta(&"poi_kind", &"cave_%s" % pack.id)
+	body.add_child(cave)
 
 
 func _add_mycelial_beacon(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
@@ -389,7 +640,7 @@ func _random_chunk_point(coordinate: Vector2i, rng: RandomNumberGenerator) -> Ve
 func _is_reserved(point: Vector2) -> bool:
 	if is_instance_valid(_target):
 		var target_point := Vector2(_target.global_position.x, _target.global_position.z)
-		if point.distance_to(target_point) < 8.5:
+		if point.distance_to(target_point) < 14.0:
 			return true
 	if point.y < MIN_EXPEDITION_Z + 2.0:
 		return true
@@ -414,6 +665,10 @@ func _is_altered_phase() -> bool:
 	return _world_phase != PHASE_ORDINARY
 
 
+func _get_content_pack() -> BiomeContentPack:
+	return _phase_definition.content_pack if _phase_definition != null else null
+
+
 func _chunk_seed(coordinate: Vector2i) -> int:
 	return int(base_seed) * 73856093 ^ int(_run_seed) * 19349663 ^ coordinate.x * 83492791 ^ coordinate.y * 2971215073
 
@@ -425,6 +680,12 @@ func _rebuild_loaded_chunks() -> void:
 		_chunks[coordinate].queue_free()
 	_chunks.clear()
 	_pending = coordinates
+
+
+func _rebuild_world_geometry() -> void:
+	var focus := _target.global_position if is_instance_valid(_target) else Vector3(0, 0, 15)
+	_rebuild_loaded_chunks()
+	_refresh_chunks(focus, true)
 
 
 func _rebuild_loaded_decor() -> void:

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"biome_pack.ordinary_taiga"
+ecology_family = 0
+vegetation_family = 0
+geology_family = 0
+poi_family = &"field_station"
+mystery_ids = Array[StringName]([&"mystery.brothers_notch", &"mystery.wrong_footprints", &"mystery.silent_wintering"])
+landscape_statement = "Черневая пихтово-кедровая тайга в речной долине: крупный лес, мокрый бурелом, гранитные выходы и следы геологической партии."
+elevation_scale = 1.0
+ridge_bias = 0.3
+vegetation_density = 1.25
+geology_density = 0.8
+landmark_period = 7
+ground_low = Color(0.055, 0.15, 0.065, 1)
+ground_high = Color(0.28, 0.27, 0.12, 1)
+accent_color = Color(0.63, 0.78, 0.3, 1)

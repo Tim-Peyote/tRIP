@@ -6,6 +6,9 @@ const DEVELOPER_PATH: String = "/tmp/trip_world_developer_capture.png"
 const CRIMSON_PATH: String = "/tmp/trip_world_crimson_capture.png"
 const FROST_PATH: String = "/tmp/trip_world_frost_capture.png"
 const ASHEN_PATH: String = "/tmp/trip_world_ashen_capture.png"
+const MIRROR_PATH: String = "/tmp/trip_world_mirror_capture.png"
+const ROOT_PATH: String = "/tmp/trip_world_root_capture.png"
+const HEART_PATH: String = "/tmp/trip_world_heart_capture.png"
 
 
 func _ready() -> void:
@@ -17,7 +20,8 @@ func _ready() -> void:
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
-	var viewpoint := Vector3(18, 0, 76)
+	# The comparison camera sits on the deterministic wandering route, not on a ridge.
+	var viewpoint := Vector3(10.5, 0, 76)
 	viewpoint.y = terrain.get_height_at_global(viewpoint) + 0.12
 	terrain.ensure_area_at(viewpoint)
 	level.player.global_position = viewpoint
@@ -43,6 +47,12 @@ func _ready() -> void:
 		showcase_error = await _capture_phase(level, terrain, &"phase.glass_frost", FROST_PATH)
 	if showcase_error == OK:
 		showcase_error = await _capture_phase(level, terrain, &"phase.ashen_silence", ASHEN_PATH)
+	if showcase_error == OK:
+		showcase_error = await _capture_phase(level, terrain, &"phase.mirror_flood", MIRROR_PATH)
+	if showcase_error == OK:
+		showcase_error = await _capture_phase(level, terrain, &"phase.root_dream", ROOT_PATH)
+	if showcase_error == OK:
+		showcase_error = await _capture_phase(level, terrain, &"phase.distant_heart", HEART_PATH)
 	if first_error == OK and second_error == OK and third_error == OK:
 		print("Streaming world captures saved.")
 	main.queue_free()

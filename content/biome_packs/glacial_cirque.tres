@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"biome_pack.glacial_cirque"
+ecology_family = 3
+vegetation_family = 3
+geology_family = 3
+poi_family = &"frozen_archive"
+mystery_ids = Array[StringName]([&"mystery.voice_in_ice", &"mystery.reversed_avalanche", &"mystery.frozen_hour"])
+landscape_statement = "Высокогорный кар с моренами и ледяными террасами: редкие лишайники, кристаллические гребни и замёрзшие архивы памяти."
+elevation_scale = 1.42
+ridge_bias = 0.88
+basin_bias = 0.36
+cave_frequency = 0.72
+water_frequency = 0.2
+vegetation_density = 0.38
+geology_density = 1.8
+landmark_period = 4
+ground_low = Color(0.045, 0.19, 0.3, 1)
+ground_high = Color(0.52, 0.82, 0.92, 1)
+accent_color = Color(0.32, 0.94, 1, 1)

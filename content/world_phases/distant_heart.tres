@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=4 format=3]
 [ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
 [ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/heart_visual_profile.tres" id="2"]
+[ext_resource type="BiomeContentPack" path="res://content/biome_packs/heart_plateau.tres" id="3"]
 [resource]
 script = ExtResource("1")
 id = &"phase.distant_heart"
@@ -10,6 +11,7 @@ description = "Финальный мир собирается из следа б
 effect_channel = &"heart_resonance"
 stabilizing_recipe_id = &"recipe.final_concordance"
 visual_profile = ExtResource("2")
+content_pack = ExtResource("3")
 geometry_family = 4
 canopy_low = Color(0.12, 0.015, 0.32, 1)
 canopy_high = Color(1, 0.18, 0.04, 1)

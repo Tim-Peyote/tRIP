@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"biome_pack.ashen_tundra"
+ecology_family = 4
+vegetation_family = 4
+geology_family = 4
+poi_family = &"vanishing_camp"
+mystery_ids = Array[StringName]([&"mystery.bell_without_tower", &"mystery.camp_erasure", &"mystery.footsteps_ahead"])
+landscape_statement = "Ветровая горная тундра после старого пожара: обугленные лиственницы, пепельные столбы, исчезающие стоянки и почти нулевая дальность."
+elevation_scale = 0.78
+ridge_bias = 0.5
+basin_bias = 0.12
+vegetation_density = 0.42
+geology_density = 1.15
+landmark_period = 5
+ground_low = Color(0.065, 0.065, 0.06, 1)
+ground_high = Color(0.3, 0.29, 0.26, 1)
+accent_color = Color(0.86, 0.19, 0.055, 1)

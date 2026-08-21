@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"biome_pack.mirror_wetland"
+ecology_family = 5
+vegetation_family = 5
+geology_family = 5
+poi_family = &"reflection_pool"
+mystery_ids = Array[StringName]([&"mystery.second_camp", &"mystery.reflection_arrives_first", &"mystery.false_ingredient"])
+landscape_statement = "Затопленная озёрная долина: тростниковые острова, слоистые берега, зеркальные протоки и двойники полевых стоянок."
+elevation_scale = 0.52
+ridge_bias = 0.08
+basin_bias = 0.82
+water_frequency = 0.88
+vegetation_density = 1.05
+geology_density = 0.62
+landmark_period = 3
+ground_low = Color(0.018, 0.16, 0.18, 1)
+ground_high = Color(0.08, 0.42, 0.38, 1)
+accent_color = Color(0.04, 1, 0.75, 1)

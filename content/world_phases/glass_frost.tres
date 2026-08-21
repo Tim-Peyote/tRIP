@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WorldPhaseDefinition" load_steps=4 format=3]
 [ext_resource type="Script" path="res://core/resources/world_phase_definition.gd" id="1"]
 [ext_resource type="BiomeVisualProfile" path="res://presentation/biomes/frost_visual_profile.tres" id="2"]
+[ext_resource type="BiomeContentPack" path="res://content/biome_packs/glacial_cirque.tres" id="3"]
 [resource]
 script = ExtResource("1")
 id = &"phase.glass_frost"
@@ -10,6 +11,7 @@ description = "Время густеет, растения кристаллиз�
 effect_channel = &"frost_memory"
 stabilizing_recipe_id = &"recipe.glass_lichen_decoction"
 visual_profile = ExtResource("2")
+content_pack = ExtResource("3")
 geometry_family = 4
 canopy_low = Color(0.04, 0.28, 0.48, 1)
 canopy_high = Color(0.42, 0.94, 1, 1)

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="BiomeContentPack" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"biome_pack.heart_plateau"
+ecology_family = 7
+vegetation_family = 7
+geology_family = 7
+poi_family = &"brothers_heart"
+mystery_ids = Array[StringName]([&"mystery.final_laboratory", &"mystery.recipe_that_remembers", &"mystery.two_brothers_one_shadow"])
+landscape_statement = "Высокое плато собирает освоенные слои в невозможную экосистему: парящие пласты, кольцевые рощи и финальная лаборатория."
+elevation_scale = 1.3
+ridge_bias = 0.66
+basin_bias = 0.44
+cave_frequency = 0.7
+water_frequency = 0.42
+vegetation_density = 1.18
+geology_density = 1.5
+landmark_period = 2
+ground_low = Color(0.025, 0.11, 0.24, 1)
+ground_high = Color(0.48, 0.04, 0.32, 1)
+accent_color = Color(1, 0.28, 0.02, 1)
