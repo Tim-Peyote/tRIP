@@ -23,7 +23,7 @@ const ECOLOGY_MOTION_SHADER = preload("res://presentation/shaders/ecology_motion
 @export_range(2, 6, 1) var visual_radius: int = 3
 @export_range(1, 3, 1) var collision_radius: int = 1
 @export_range(7, 25, 2) var distant_chunk_resolution: int = 13
-@export_range(7, 25, 2) var collision_resolution: int = 13
+@export_range(7, 25, 2) var collision_resolution: int = 25
 @export_range(1, 4, 1) var chunks_per_frame: int = 1
 @export_range(1.0, 12.0, 0.5, "suffix:ms") var generation_budget_ms: float = 4.0
 @export var base_seed: int = 61937
@@ -1664,7 +1664,7 @@ void fragment() {
 	ground = mix(ground, ground * 0.58 + phase_high * 0.16, slope_mask * 0.62);
 	ALBEDO = ground;
 	ROUGHNESS = mix(0.94, 0.72, metamorphosis) - cells * 0.08;
-	EMISSION = altered_palette * metamorphosis * (0.1 + max(pulse, 0.0) * 0.22) * (1.0 - slope_mask * 0.55);
+	EMISSION = ground * 0.06 + altered_palette * metamorphosis * (0.1 + max(pulse, 0.0) * 0.22) * (1.0 - slope_mask * 0.55);
 }
 """
 	var material := ShaderMaterial.new()

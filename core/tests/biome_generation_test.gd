@@ -75,7 +75,7 @@ func _validate_landscape_rules() -> void:
 			_expect(body.get_node_or_null("Collision") == null, "A horizon-only chunk still owns collision.")
 	var center_chunk := terrain.get_loaded_chunk_nodes().filter(func(body: StaticBody3D) -> bool: return int(body.get_meta(&"terrain_detail_tier", 0)) == 2).front() as StaticBody3D
 	var center_collision := center_chunk.get_node_or_null("Collision") as CollisionShape3D
-	_expect(center_collision != null and center_collision.shape.get_faces().size() <= 900, "Near terrain collision did not use the reduced collision LOD.")
+	_expect(center_collision != null and center_collision.shape.get_faces().size() <= 3500, "Near terrain collision exceeded its bounded physics mesh budget.")
 	terrain.set_world_phase(ExpeditionTerrain.PHASE_MYCELIAL)
 	_expect(terrain.get_world_phase() == ExpeditionTerrain.PHASE_MYCELIAL, "Consumable world phase was not applied to terrain generation.")
 	_validate_ecology_compositions(terrain)

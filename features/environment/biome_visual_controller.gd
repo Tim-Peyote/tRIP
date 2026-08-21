@@ -27,7 +27,12 @@ func setup(world_environment: WorldEnvironment) -> void:
 		if _environment.sky.sky_material is ProceduralSkyMaterial:
 			_sky_material = _environment.sky.sky_material.duplicate(true) as ProceduralSkyMaterial
 			_environment.sky.sky_material = _sky_material
-	_primary_light = world_environment.get_parent().find_child("MoonLight", true, false) as DirectionalLight3D
+	# The environment lives under Main/Presentation while the biome key light lives
+	# inside the active level. Resolve it from this controller's level first; the old
+	# sibling-only lookup silently left every biome on the shelter's dim default.
+	_primary_light = get_parent().find_child("MoonLight", true, false) as DirectionalLight3D
+	if _primary_light == null and get_tree().current_scene != null:
+		_primary_light = get_tree().current_scene.find_child("MoonLight", true, false) as DirectionalLight3D
 	_base_profile = shelter_profile
 	apply_profile(shelter_profile, true)
 
@@ -74,6 +79,8 @@ func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void
 		_tween.tween_property(_environment, "background_color", profile.background_color, 0.65)
 		_tween.tween_property(_environment, "ambient_light_color", profile.ambient_color, 0.65)
 		_tween.tween_property(_environment, "ambient_light_energy", profile.ambient_energy, 0.65)
+		_tween.tween_property(_environment, "ambient_light_sky_contribution", profile.ambient_sky_contribution, 0.65)
+		_tween.tween_property(_environment, "tonemap_exposure", profile.tonemap_exposure, 0.65)
 		if is_instance_valid(_primary_light):
 			_tween.tween_property(_primary_light, "light_color", profile.primary_light_color, 0.85)
 			_tween.tween_property(_primary_light, "light_energy", profile.primary_light_energy, 0.85)
@@ -99,6 +106,8 @@ func _set_values(profile: BiomeVisualProfile) -> void:
 	_environment.background_color = profile.background_color
 	_environment.ambient_light_color = profile.ambient_color
 	_environment.ambient_light_energy = profile.ambient_energy
+	_environment.ambient_light_sky_contribution = profile.ambient_sky_contribution
+	_environment.tonemap_exposure = profile.tonemap_exposure
 	if is_instance_valid(_primary_light):
 		_primary_light.light_color = profile.primary_light_color
 		_primary_light.light_energy = profile.primary_light_energy
@@ -116,3 +125,7 @@ func _set_values(profile: BiomeVisualProfile) -> void:
 		_sky_material.ground_bottom_color = profile.ground_bottom_color
 		_sky_material.ground_horizon_color = profile.ground_horizon_color
 		_sky_material.sky_energy_multiplier = profile.sky_energy
+
+
+func get_primary_light() -> DirectionalLight3D:
+	return _primary_light
