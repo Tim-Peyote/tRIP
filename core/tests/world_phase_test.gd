@@ -54,6 +54,7 @@ func _run() -> void:
 			_expect(terrain_signature.contains("Groundcover_%d" % definition.content_pack.ecology_family), "Every world must instantiate its own groundcover family.")
 			_expect(terrain.get_node_or_null("BiomeHorizon") != null, "World phase did not build a distant horizon layer.")
 			_expect(terrain.get_node_or_null("BiomeAtmosphere") != null, "World phase did not build an atmospheric particle layer.")
+			_expect(terrain.get_ambience_ecology_family() == definition.content_pack.ecology_family, "Biome ambience did not follow the active ecology family.")
 	_expect(ecology_families.size() == 8, "The eight worlds do not have eight distinct ecology families.")
 	_expect(vegetation_families.size() == 8, "The eight worlds reuse a vegetation family.")
 	_expect(geology_families.size() == 8, "The eight worlds reuse a geology family.")

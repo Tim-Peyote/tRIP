@@ -5,6 +5,7 @@ const PHASE_ORDINARY: StringName = &"ordinary"
 const PHASE_MYCELIAL: StringName = &"mycelial"
 const MIN_EXPEDITION_Z: float = 5.8
 const BIOME_MESH_LIBRARY = preload("res://world/terrain/biome_mesh_library.gd")
+const BIOME_AMBIENCE = preload("res://presentation/audio/biome_procedural_ambience.gd")
 
 @export_range(16.0, 64.0, 1.0) var chunk_size: float = 30.0
 @export_range(9, 49, 2) var chunk_resolution: int = 25
@@ -27,6 +28,7 @@ var _horizon_root: Node3D
 var _atmosphere: GPUParticles3D
 var _generated_mesh_cache: Dictionary[StringName, Mesh] = {}
 var _mesh_library: RefCounted = BIOME_MESH_LIBRARY.new()
+var _biome_ambience: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -108,6 +110,10 @@ func get_generated_mesh_cache_size() -> int:
 	return _generated_mesh_cache.size()
 
 
+func get_ambience_ecology_family() -> int:
+	return int(_biome_ambience.get("ecology_family")) if is_instance_valid(_biome_ambience) else -1
+
+
 func get_loaded_ecology_signature() -> String:
 	var parts := PackedStringArray()
 	var pack := _get_content_pack()
@@ -134,6 +140,8 @@ func _process(_delta: float) -> void:
 		if is_instance_valid(_atmosphere):
 			_atmosphere.visible = expedition_visible
 			_atmosphere.global_position = _target.global_position + Vector3(0.0, 4.0, 0.0)
+		if is_instance_valid(_biome_ambience):
+			_biome_ambience.volume_db = -13.0 if expedition_visible else -80.0
 		var center := _chunk_coordinate(_target.global_position)
 		if center != _last_center:
 			_refresh_chunks(_target.global_position, true)
@@ -756,6 +764,11 @@ func _rebuild_presentation_layers() -> void:
 	add_child(_horizon_root)
 	var pack := _get_content_pack()
 	var ecology := pack.ecology_family if pack != null else BiomeContentPack.EcologyFamily.ALTAI_TAIGA
+	if not is_instance_valid(_biome_ambience):
+		_biome_ambience = BIOME_AMBIENCE.new() as AudioStreamPlayer
+		_biome_ambience.name = "BiomeProceduralAmbience"
+		add_child(_biome_ambience)
+	_biome_ambience.call("configure", ecology, base_seed + _run_seed)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = base_seed * 97 + _run_seed * 53 + ecology * 101
 	match ecology:
