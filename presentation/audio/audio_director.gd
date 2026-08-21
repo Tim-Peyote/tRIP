@@ -22,12 +22,12 @@ var _snapshot_id: StringName = &"default"
 var _cue_players: Array[AudioStreamPlayer] = []
 var _cue_streams: Dictionary[StringName, AudioStream] = {
 	&"open": preload("res://assets/third_party/kenney_ui_audio_official/panel_open.ogg"),
-	&"close": preload("res://assets/third_party/kenney_ui_audio_official/panel_close.ogg"),
+	&"close": preload("res://assets/third_party/kenney_ui_audio_official/pause_soft.ogg"),
 	&"select": preload("res://assets/third_party/kenney_ui_audio_official/rollover_soft.ogg"),
 	&"confirm": preload("res://assets/third_party/kenney_ui_audio_official/click_confirm.ogg"),
 	&"pickup": preload("res://assets/third_party/kenney_ui_audio_official/click_confirm.ogg"),
 	&"grab": preload("res://assets/third_party/kenney_ui_audio_official/panel_open.ogg"),
-	&"release": preload("res://assets/third_party/kenney_ui_audio_official/panel_close.ogg"),
+	&"release": preload("res://assets/third_party/kenney_ui_audio_official/rollover_soft.ogg"),
 	&"pause": preload("res://assets/third_party/kenney_ui_audio_official/pause_soft.ogg"),
 }
 var _cue_cursor: int = 0

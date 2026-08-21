@@ -115,7 +115,6 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	_active_player.inventory.consumable_used.connect(_active_player.play_consumption_animation)
 	effect_orchestrator.gameplay_channels_changed.connect(_on_effect_gameplay_channels_changed)
 	audio_director.set_snapshot(&"default")
-	_active_player.interactor.physical_hold_changed.connect(func(active: bool) -> void: audio_director.play_ui_cue(&"grab" if active else &"release"))
 	_active_player.interactor.interaction_completed.connect(audio_director.play_ui_cue.bind(&"confirm"))
 
 

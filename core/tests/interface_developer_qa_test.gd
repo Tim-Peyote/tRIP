@@ -31,6 +31,7 @@ func _run() -> void:
 		_expect(recorded_cues[cue_id] is AudioStreamOggVorbis, "UI cue is not a recorded OGG asset: %s" % cue_id)
 		var cue_path := (recorded_cues[cue_id] as AudioStream).resource_path
 		_expect(cue_path.contains("kenney_ui_audio_official"), "UI cue does not use the clean official replacement pack: %s" % cue_id)
+		_expect(not cue_path.ends_with("panel_close.ogg"), "Known looping panel_close sample is still mapped at runtime: %s" % cue_id)
 		_expect(not (recorded_cues[cue_id] as AudioStreamOggVorbis).loop, "UI cue was imported as a loop: %s" % cue_id)
 	var limiter_voice := AudioStreamPlayer.new()
 	main.audio_director.add_child(limiter_voice)
