@@ -86,6 +86,7 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 	]
 	var families: Dictionary[StringName, bool] = {}
 	var key_lights: Dictionary[Color, bool] = {}
+	var motion_signatures: Dictionary[String, bool] = {}
 	for path: String in phase_paths:
 		var phase := load(path) as WorldPhaseDefinition
 		var pack := phase.content_pack
@@ -95,6 +96,7 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 		_expect(not pack.composition_family.is_empty(), "%s has no authored ecology composition." % pack.id)
 		families[pack.composition_family] = true
 		key_lights[phase.visual_profile.primary_light_color] = true
+		motion_signatures["%.3f:%.3f" % [pack.ecology_motion_strength, pack.ecology_motion_speed]] = true
 		_expect(phase.visual_profile.ambient_energy <= 0.72, "%s flattens geometry with excessive ambient light." % phase.id)
 		terrain.apply_world_phase(phase)
 		var body := StaticBody3D.new()
@@ -108,6 +110,7 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 		body.free()
 	_expect(families.size() == phase_paths.size(), "Worlds reuse ecology compositions instead of owning distinct spatial motifs.")
 	_expect(key_lights.size() == phase_paths.size(), "Worlds reuse the same key light instead of owning distinct lighting direction and color.")
+	_expect(motion_signatures.size() == phase_paths.size(), "Worlds reuse one vegetation motion profile.")
 
 
 func _create_scatter() -> BiomeDressingScatter:

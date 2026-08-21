@@ -56,6 +56,8 @@ enum GeologyFamily {
 @export_range(2, 24, 1) var landmark_period: int = 7
 @export_range(1, 8, 1) var composition_period: int = 3
 @export_range(0.6, 2.4, 0.05) var composition_scale: float = 1.0
+@export_range(0.0, 0.5, 0.01) var ecology_motion_strength: float = 0.08
+@export_range(0.1, 3.0, 0.05) var ecology_motion_speed: float = 1.0
 @export var ground_low: Color = Color(0.08, 0.16, 0.07)
 @export var ground_high: Color = Color(0.3, 0.28, 0.13)
 @export var accent_color: Color = Color(0.65, 0.8, 0.35)

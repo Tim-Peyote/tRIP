@@ -13,6 +13,7 @@ const PHASE_MYCELIAL: StringName = &"mycelial"
 const MIN_EXPEDITION_Z: float = 5.8
 const BIOME_MESH_LIBRARY = preload("res://world/terrain/biome_mesh_library.gd")
 const BIOME_AMBIENCE = preload("res://presentation/audio/biome_procedural_ambience.gd")
+const ECOLOGY_MOTION_SHADER = preload("res://presentation/shaders/ecology_motion.gdshader")
 
 @export_range(16.0, 64.0, 1.0) var chunk_size: float = 30.0
 @export_range(9, 49, 2) var chunk_resolution: int = 25
@@ -607,7 +608,7 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			crown_layers = 3
 	_set_mesh_material(trunk, _standard_material(trunk_color))
 	var crown_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.055, 0.24, 0.075)
-	_set_mesh_material(crown, _standard_material(crown_low, family != BiomeContentPack.VegetationFamily.CEDAR_FIR))
+	_set_mesh_material(crown, _ecology_motion_material(crown_low, pack, 0.34, 0.14 if _is_altered_phase() else 0.0))
 	var trunks := _new_multimesh(trunk, count)
 	var crowns := _new_multimesh(crown, count * crown_layers)
 	var placed := 0
@@ -723,8 +724,7 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 		Color(0.12, 0.095, 0.075), Color(0.08, 0.48, 0.34), Color(0.62, 0.16, 0.025), Color(0.92, 0.14, 0.72),
 	]
 	var color: Color = colors[ecology]
-	var material := _standard_material(color, ecology != BiomeContentPack.EcologyFamily.ALTAI_TAIGA)
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var material := _ecology_motion_material(color, pack, 1.65, 0.12 if ecology != BiomeContentPack.EcologyFamily.ALTAI_TAIGA else 0.0)
 	_set_mesh_material(mesh, material)
 	var multimesh := _new_multimesh(mesh, count)
 	var placed := 0
@@ -1463,6 +1463,17 @@ func _standard_material(color: Color, emission: bool = false) -> StandardMateria
 		material.emission_enabled = true
 		material.emission = color
 		material.emission_energy_multiplier = 0.48
+	return material
+
+
+func _ecology_motion_material(color: Color, pack: BiomeContentPack, height_response: float, emission_strength: float) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = ECOLOGY_MOTION_SHADER
+	material.set_shader_parameter(&"base_color", color)
+	material.set_shader_parameter(&"motion_strength", pack.ecology_motion_strength if pack != null else 0.08)
+	material.set_shader_parameter(&"motion_speed", pack.ecology_motion_speed if pack != null else 1.0)
+	material.set_shader_parameter(&"height_response", height_response)
+	material.set_shader_parameter(&"emission_strength", emission_strength)
 	return material
 
 
