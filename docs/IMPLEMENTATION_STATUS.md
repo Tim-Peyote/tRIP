@@ -558,3 +558,15 @@ ingredient.mooncap
 - Developer panel показывает активную фауну; `K` переселяет виды, `N` переключает плотность.
 - `TRip biome population test` проверяет каталоги, character-sheet validation, покрытие восьми миров, фактическое заселение чанков, смену состава при метаморфозе и developer density contract.
 - Полный набор из двадцати одного headless-теста проходит; runtime-фауна дополнительно принята Forward+/Metal capture `/tmp/trip_biome_population_capture.png`.
+
+## First-person controller and rigged player body
+
+- Подключён CC0 `Animated Human` от Quaternius: скелет, low-poly mesh и девять импортированных клипов. Оригинальная лицензия, ссылка и палитры хранятся вместе с asset.
+- `PlayerAvatarAnimator` переключает Idle/Walk/Run/Jump/Working по реальному состоянию контроллера с коротким blend и speed scaling. Тело отбрасывает анимированную тень, но не клипует first-person camera.
+- Аналоговый input больше не нормализуется до полной скорости; добавлены отдельное торможение, forward-only sprint и сохранение фактической скорости походки.
+- Добавлены Space/B jump, input buffer, coyote time, crouch jump lock, floor snap, slope limit и автоматическое преодоление низких препятствий после проверки свободного объёма и поверхности сверху.
+- Камера получила небольшой поворот от боковой скорости и затухающий landing spring. Viewmodel реагирует на дыхание, взгляд, фактическую походку, спринт, присед и приземление.
+- CharacterBody ограниченно толкает лёгкие `RigidBody3D`, используя скорость до разрешения столкновения; сила ограничена, чтобы мелкий реквизит не выстреливал.
+- `PlayerFoley` синтезирует вариативные шаги, отрыв и приземление на шине `PlayerFoley`; громкость шага следует crouch/walk/sprint intensity, а посадка — фактической вертикальной скорости.
+- `player_avatar_import_test` фиксирует Skeleton3D, AnimationPlayer и набор клипов. `player_controller_test` проверяет аналоговую скорость, торможение, спринт, прыжок, приземление, crouch capsule, стену, низкую ступень, rigid-body push и animation states.
+- Rig и walk animation приняты Forward+/Metal capture `/tmp/trip_player_avatar_capture.png`.

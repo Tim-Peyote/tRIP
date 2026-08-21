@@ -97,6 +97,7 @@ Full cycle and persistence test:
 - `Mouse` — look
 - `Shift` — sprint
 - `C` — crouch
+- `Space` — buffered jump; low natural obstacles are stepped over automatically
 - `E` / left mouse — interact or hold interaction
 - `F` — enter/leave inspection of the focused object
 - `Right Mouse` — select another harvest part
@@ -111,7 +112,9 @@ Full cycle and persistence test:
 
 During inspection: hold left mouse and drag to rotate, use the wheel to zoom, or use `A/D` for stepped rotation. Finding every morphological clue confirms the species hypothesis.
 
-Gamepad defaults are installed through InputMap at boot: left/right sticks, A interact, X inspect, stick buttons for sprint/crouch, Start pause.
+Gamepad defaults are installed through InputMap at boot: left/right sticks, A interact, X inspect, B jump, stick buttons for sprint/crouch, Start pause.
+
+The player uses the CC0 `Animated Human` rig by Quaternius for world-body shadows and locomotion animation. Source and license are preserved under `assets/third_party/quaternius_animated_human/`.
 
 Physical cooking order: grind a clean cap, add water, transfer the mash, light a low fire, stir at least twice while warm, watch for silver steam, then bottle the result. High heat can ruin the mixture.
 

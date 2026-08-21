@@ -471,3 +471,11 @@ Gameplay HUD владеет взаимоисключающими полевым�
 `BiomePopulationOrchestrator` читает только загруженные terrain chunks и текущий `WorldPhaseOrchestrator`. Seed и координата детерминированно выбирают совместимый вид и группу. Уход чанка освобождает популяцию, смена слоя переселяет активное окно, а developer hooks позволяют повторить раскладку и переключить плотность. `BiomeCreatureActor` является процедурным low-poly runtime-прототипом общего locomotion-контракта; финальные скелетные сцены заменят визуальную сборку, сохранив state machine и данные character sheet.
 
 NPC не проходят через общий scatter. Их встречами владеет будущий authored encounter director, потому что сюжетный персонаж требует условий, проверки подлинности и последствий, а не одного spawn weight.
+
+## 22. First-person body and locomotion
+
+`FirstPersonController` остаётся единственным владельцем физического состояния: wish direction, аналоговая сила ввода, ускорение/торможение, forward-only sprint, crouch capsule, buffered jump, coyote time, floor snap, slope limit, low-step traversal, gravity, landing impulse и ограниченный push динамических тел. Камера, viewmodel и звук читают итоговую скорость и приземление, но не вычисляют движение самостоятельно.
+
+`PlayerAvatarAnimator` является заменяемым presentation-адаптером. Он переводит физические состояния `idle/walk/run/jump/work` в клипы импортированного CC0-скелета и настраивает world body как shadow-only, чтобы голова модели не пересекала first-person camera. Смена FBX или переход на собственную модель не затрагивает контроллер. Отдельный camera-space viewmodel отвечает за инструменты и руки; его дыхание, инерция взгляда, походка, crouch/sprint lowering и landing response происходят из тех же locomotion channels.
+
+Низкая ступень проверяется тремя физическими запросами: препятствие на текущей высоте, свободный объём над ним и наличие поверхности для приземления. Поэтому контроллер не телепортируется вверх по стене и не зависает на небольшом камне. Толчок `RigidBody3D` использует сохранённую скорость до `move_and_slide`, поскольку итоговая velocity уже обнулена контактом.

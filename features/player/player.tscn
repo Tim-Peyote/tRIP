@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://features/player/first_person_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://features/interaction/interaction_orchestrator.gd" id="2_interactor"]
@@ -7,6 +7,9 @@
 [ext_resource type="Script" path="res://features/tools/toolbelt_component.gd" id="5_toolbelt"]
 [ext_resource type="Script" path="res://features/stealth/distraction_thrower_component.gd" id="6_thrower"]
 [ext_resource type="PackedScene" path="res://features/stealth/distraction_projectile.tscn" id="7_projectile"]
+[ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_human/Animated Human.fbx" id="8_avatar"]
+[ext_resource type="Script" path="res://features/player/player_avatar_animator.gd" id="9_avatar_driver"]
+[ext_resource type="Script" path="res://features/player/player_foley.gd" id="10_foley"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
 radius = 0.34
@@ -95,7 +98,20 @@ shading_mode = 0
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 25
+floor_snap_length = 0.32
+floor_max_angle = 0.837758
+floor_stop_on_slope = true
+safe_margin = 0.035
 script = ExtResource("1_player")
+
+[node name="AvatarAnimator" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("9_avatar_driver")
+
+[node name="RiggedBody" parent="AvatarAnimator" instance=ExtResource("8_avatar")]
+
+[node name="PlayerFoley" type="Node" parent="."]
+script = ExtResource("10_foley")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 unique_name_in_owner = true

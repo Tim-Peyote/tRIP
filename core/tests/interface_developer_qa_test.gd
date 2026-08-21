@@ -25,6 +25,7 @@ func _run() -> void:
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
 	level.expedition_clock.running = false
 	var player := level.player
+	player.set_gameplay_input_override_for_testing(true)
 	var hud := main.gameplay_hud
 	var start_position := player.global_position
 	Input.action_press(&"move_forward")
@@ -38,6 +39,7 @@ func _run() -> void:
 		await get_tree().physics_frame
 	_expect(player.is_crouched() and player.camera_rig.position.y < 1.5, "Crouch did not lower the first-person stance.")
 	Input.action_release(&"crouch")
+	player.set_gameplay_input_override_for_testing(false)
 
 	var old_fov := float(SettingsService.get_value(&"video", &"fov", 75.0))
 	SettingsService.set_value(&"video", &"fov", 82.0)

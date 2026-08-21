@@ -14,6 +14,7 @@ func _run() -> void:
 	add_child(level)
 	await get_tree().physics_frame
 	var player := level.player
+	player.set_gameplay_input_override_for_testing(true)
 	var listener := level.forest_clearing.listener
 	listener.movement_speed = 0.0
 	player.global_position = listener.global_position + Vector3(0, -0.55, -3.0)

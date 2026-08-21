@@ -7,6 +7,8 @@ signal journal_requested
 signal tool_state_changed(display_name: String, is_equipped: bool)
 signal distraction_created(projectile: DistractionProjectile)
 signal distraction_count_changed(remaining: int)
+signal landed(impact_speed: float)
+signal jumped
 
 @export_category("Look")
 @export_range(0.01, 1.0, 0.01) var mouse_sensitivity: float = 0.12
@@ -19,6 +21,12 @@ signal distraction_count_changed(remaining: int)
 @export_range(0.1, 8.0, 0.1, "suffix:m/s") var crouch_speed: float = 1.8
 @export_range(1.0, 30.0, 0.5) var ground_acceleration: float = 16.0
 @export_range(1.0, 20.0, 0.5) var air_acceleration: float = 4.0
+@export_range(1.0, 30.0, 0.5) var ground_deceleration: float = 20.0
+@export_range(1.0, 10.0, 0.1, "suffix:m/s") var jump_velocity: float = 4.6
+@export_range(0.0, 0.3, 0.01, "suffix:s") var coyote_time: float = 0.12
+@export_range(0.0, 0.3, 0.01, "suffix:s") var jump_buffer_time: float = 0.14
+@export_range(0.0, 8.0, 0.1) var rigid_body_push_force: float = 1.8
+@export_range(0.0, 0.5, 0.01, "suffix:m") var step_height: float = 0.28
 
 @export_category("Camera Feel")
 @export_range(0.0, 0.08, 0.001) var head_bob_amount: float = 0.018
@@ -38,6 +46,7 @@ signal distraction_count_changed(remaining: int)
 @onready var knife_viewmodel: Node3D = %KnifeViewModel
 @onready var vial_viewmodel: Node3D = %VialViewModel
 @onready var distraction_thrower: DistractionThrowerComponent = %DistractionThrowerComponent
+@onready var avatar_animator: PlayerAvatarAnimator = %AvatarAnimator
 
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 var _look_pitch: float = 0.0
@@ -52,6 +61,16 @@ var _spore_vision_active: bool = false
 var _spore_resistance: float = 0.0
 var _crimson_drive_amount: float = 0.0
 var _consumption_tween: Tween
+var _coyote_remaining: float = 0.0
+var _jump_buffer_remaining: float = 0.0
+var _landing_offset: float = 0.0
+var _landing_velocity: float = 0.0
+var _camera_roll: float = 0.0
+var _previously_grounded: bool = false
+var _is_sprinting: bool = false
+var _wish_direction: Vector3 = Vector3.ZERO
+var _gameplay_input_override: bool = false
+var _pre_slide_planar_velocity: Vector3 = Vector3.ZERO
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -73,6 +92,12 @@ func _ready() -> void:
 	distraction_thrower.count_changed.connect(distraction_count_changed.emit)
 	_last_position = global_position
 	_viewmodel_rest_position = viewmodel.position
+	floor_snap_length = 0.32
+	floor_max_angle = deg_to_rad(48.0)
+	floor_stop_on_slope = true
+	floor_constant_speed = false
+	safe_margin = 0.035
+	_previously_grounded = is_on_floor()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -91,6 +116,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"throw_distraction"):
 		distraction_thrower.throw(camera.global_position + -camera.global_basis.z * 0.35, -camera.global_basis.z)
 		get_viewport().set_input_as_handled()
+	if event.is_action_pressed(&"jump"):
+		_jump_buffer_remaining = jump_buffer_time
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var motion := event as InputEventMouseMotion
 		_viewmodel_look_offset += Vector2(motion.relative.x, motion.relative.y) * viewmodel_look_inertia
@@ -105,10 +132,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	_coyote_remaining = coyote_time if is_on_floor() else maxf(_coyote_remaining - delta, 0.0)
+	_jump_buffer_remaining = maxf(_jump_buffer_remaining - delta, 0.0)
+	if _accepts_gameplay_input() and Input.is_action_just_pressed(&"jump"):
+		_jump_buffer_remaining = jump_buffer_time
+	if _accepts_gameplay_input():
 		_update_gamepad_look(delta)
-	_update_stance(delta)
-	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		_update_stance(delta)
+	if not _accepts_gameplay_input():
 		velocity.x = move_toward(velocity.x, 0.0, ground_acceleration * delta)
 		velocity.z = move_toward(velocity.z, 0.0, ground_acceleration * delta)
 		_apply_gravity(delta)
@@ -116,15 +147,30 @@ func _physics_process(delta: float) -> void:
 		_update_viewmodel(delta, 0.0)
 		return
 
-	var input_vector := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
+	var input_vector := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back", 0.15)
+	var input_amount := minf(input_vector.length(), 1.0)
 	var local_direction := Vector3(input_vector.x, 0.0, input_vector.y)
-	var world_direction := (global_basis * local_direction).normalized()
+	var world_direction := global_basis * local_direction
+	if world_direction.length_squared() > 0.0001:
+		world_direction = world_direction.normalized()
+	if is_on_floor():
+		world_direction = world_direction.slide(get_floor_normal()).normalized()
+	_wish_direction = world_direction
 	var target_speed := _get_target_speed()
-	var acceleration := ground_acceleration if is_on_floor() else air_acceleration
-	velocity.x = move_toward(velocity.x, world_direction.x * target_speed, acceleration * delta)
-	velocity.z = move_toward(velocity.z, world_direction.z * target_speed, acceleration * delta)
+	var has_input := input_amount > 0.01
+	var acceleration := (ground_acceleration if has_input else ground_deceleration) if is_on_floor() else air_acceleration
+	velocity.x = move_toward(velocity.x, world_direction.x * target_speed * input_amount, acceleration * delta)
+	velocity.z = move_toward(velocity.z, world_direction.z * target_speed * input_amount, acceleration * delta)
+	_try_jump()
+	var falling_speed := -velocity.y
 	_apply_gravity(delta)
+	_try_step_up(delta)
+	_pre_slide_planar_velocity = Vector3(velocity.x, 0.0, velocity.z)
 	move_and_slide()
+	_push_rigid_bodies()
+	if not _previously_grounded and is_on_floor() and falling_speed > 2.0:
+		_on_landed(falling_speed)
+	_previously_grounded = is_on_floor()
 	var movement_strength := clampf(get_planar_speed() / maxf(target_speed, 0.01), 0.0, 1.0)
 	_update_camera_feel(delta, movement_strength)
 	_update_viewmodel(delta, movement_strength)
@@ -137,6 +183,10 @@ func release_mouse() -> void:
 
 func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func set_gameplay_input_override_for_testing(value: bool) -> void:
+	_gameplay_input_override = value
 
 
 func get_stealth_exposure() -> float:
@@ -157,6 +207,18 @@ func is_crouched() -> bool:
 	return _is_crouched
 
 
+func is_grounded() -> bool:
+	return is_on_floor()
+
+
+func is_sprinting() -> bool:
+	return _is_sprinting
+
+
+func _accepts_gameplay_input() -> bool:
+	return _gameplay_input_override or Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+
+
 func set_spore_vision_active(value: bool) -> void:
 	_spore_vision_active = value
 
@@ -174,6 +236,8 @@ func play_consumption_animation(_effect_ids: Array[StringName], _display_name: S
 		_consumption_tween.kill()
 	var resting_position := vial_viewmodel.position
 	var resting_rotation := vial_viewmodel.rotation
+	if avatar_animator != null:
+		avatar_animator.play_work_action()
 	vial_viewmodel.visible = true
 	_consumption_tween = create_tween()
 	_consumption_tween.set_trans(Tween.TRANS_SINE)
@@ -208,9 +272,12 @@ func _update_gamepad_look(delta: float) -> void:
 
 func _get_target_speed() -> float:
 	var drive_multiplier := lerpf(1.0, 1.22, _crimson_drive_amount)
+	_is_sprinting = false
 	if _is_crouched:
 		return crouch_speed * drive_multiplier
-	if Input.is_action_pressed(&"sprint"):
+	var forward_intent := -_wish_direction.dot(global_basis.z)
+	if Input.is_action_pressed(&"sprint") and forward_intent > 0.35:
+		_is_sprinting = true
 		return sprint_speed * drive_multiplier
 	return walk_speed * drive_multiplier
 
@@ -238,23 +305,67 @@ func _apply_gravity(delta: float) -> void:
 		velocity.y = -0.2
 
 
+func _try_jump() -> void:
+	if _jump_buffer_remaining <= 0.0 or _coyote_remaining <= 0.0 or _is_crouched:
+		return
+	velocity.y = jump_velocity
+	_jump_buffer_remaining = 0.0
+	_coyote_remaining = 0.0
+	floor_snap_length = 0.0
+	jumped.emit()
+	call_deferred("_restore_floor_snap")
+
+
+func _restore_floor_snap() -> void:
+	floor_snap_length = 0.32
+
+
+func _try_step_up(delta: float) -> void:
+	if step_height <= 0.0 or not is_on_floor() or velocity.y > 0.1:
+		return
+	var horizontal_motion := Vector3(velocity.x, 0.0, velocity.z) * delta
+	if horizontal_motion.length_squared() < 0.00001 or not test_move(global_transform, horizontal_motion):
+		return
+	var raised := global_transform.translated(Vector3.UP * step_height)
+	if test_move(raised, horizontal_motion):
+		return
+	var advanced := raised.translated(horizontal_motion)
+	if not test_move(advanced, Vector3.DOWN * (step_height + floor_snap_length + 0.04)):
+		return
+	global_position.y += step_height
+
+
+func _on_landed(impact_speed: float) -> void:
+	var strength := clampf((impact_speed - 2.0) / 8.0, 0.0, 1.0)
+	_landing_velocity = -0.55 * strength
+	landed.emit(impact_speed)
+
+
 func _update_camera_feel(delta: float, input_strength: float) -> void:
 	var bob_scale := float(SettingsService.get_value(&"accessibility", &"head_bob", 0.65))
 	if is_on_floor() and input_strength > 0.05:
 		_bob_time += delta * head_bob_frequency * (_get_target_speed() / walk_speed)
 	_bob_weight = move_toward(_bob_weight, input_strength if is_on_floor() else 0.0, delta * 5.5)
+	_landing_velocity += -_landing_offset * 65.0 * delta
+	_landing_velocity *= exp(-10.0 * delta)
+	_landing_offset += _landing_velocity * delta
+	var lateral_speed := global_basis.x.dot(Vector3(velocity.x, 0.0, velocity.z))
+	_camera_roll = lerpf(_camera_roll, clampf(-lateral_speed * 0.0022, -0.012, 0.012), clampf(delta * 7.0, 0.0, 1.0))
 	var bob := Vector3(
 		cos(_bob_time * 0.5) * head_bob_amount * 0.45,
 		sin(_bob_time) * head_bob_amount,
 		0.0
 	) * bob_scale * _bob_weight
+	bob.y += _landing_offset * bob_scale
 	camera.position = camera.position.lerp(bob, clampf(delta * 12.0, 0.0, 1.0))
+	camera.rotation.z = lerp_angle(camera.rotation.z, _camera_roll * bob_scale, clampf(delta * 10.0, 0.0, 1.0))
 
 
 func _update_viewmodel(delta: float, input_strength: float) -> void:
 	_viewmodel_look_offset = _viewmodel_look_offset.lerp(Vector2.ZERO, clampf(delta * 9.0, 0.0, 1.0))
 	var movement_weight := clampf(input_strength, 0.0, 1.0) if is_on_floor() else 0.0
-	var sprint_weight := 1.0 if movement_weight > 0.05 and Input.is_action_pressed(&"sprint") and not _is_crouched else 0.0
+	var sprint_weight := 1.0 if movement_weight > 0.05 and _is_sprinting else 0.0
+	var breathing := Vector3(sin(Time.get_ticks_msec() * 0.0014) * 0.0015, cos(Time.get_ticks_msec() * 0.0017) * 0.0018, 0.0)
 	var gait := Vector3(
 		cos(_bob_time * 0.5) * viewmodel_bob_amount,
 		-sin(_bob_time) * viewmodel_bob_amount * 0.45,
@@ -263,7 +374,8 @@ func _update_viewmodel(delta: float, input_strength: float) -> void:
 	var inertia := Vector3(-_viewmodel_look_offset.x, _viewmodel_look_offset.y, 0.0)
 	var sprint_lower := Vector3(0.015, -0.035, 0.035) * sprint_weight
 	var crouch_lower := Vector3(0.0, -0.012, 0.012) if _is_crouched else Vector3.ZERO
-	var target_position := _viewmodel_rest_position + gait + inertia + sprint_lower + crouch_lower
+	var landing_response := Vector3(0.0, _landing_offset * 1.8, -absf(_landing_offset) * 0.7)
+	var target_position := _viewmodel_rest_position + gait + inertia + sprint_lower + crouch_lower + breathing + landing_response
 	viewmodel.position = viewmodel.position.lerp(target_position, clampf(delta * 11.0, 0.0, 1.0))
 	var target_rotation := Vector3(
 		_viewmodel_look_offset.y * 0.8,
@@ -279,13 +391,29 @@ func _update_steps() -> void:
 	if not is_on_floor() or planar_distance <= 0.0:
 		return
 	_step_distance += planar_distance
-	var sprinting := Input.is_action_pressed(&"sprint") and not _is_crouched and get_planar_speed() > walk_speed * 1.05
+	var sprinting := _is_sprinting and get_planar_speed() > walk_speed * 1.05
 	var stride := 0.72 if _is_crouched else (1.25 if sprinting else 0.9)
 	if _step_distance >= stride:
 		_step_distance = 0.0
 		var intensity := 0.28 if _is_crouched else (1.0 if sprinting else 0.55)
 		noise_emitter.emit_noise(7.0 if intensity > 0.8 else 3.5, &"footstep", intensity)
 		step_taken.emit(global_position, intensity)
+
+
+func _push_rigid_bodies() -> void:
+	if rigid_body_push_force <= 0.0:
+		return
+	for index: int in get_slide_collision_count():
+		var collision := get_slide_collision(index)
+		var body := collision.get_collider() as RigidBody3D
+		if body == null or body.freeze:
+			continue
+		var horizontal_normal := collision.get_normal()
+		horizontal_normal.y = 0.0
+		if horizontal_normal.length_squared() < 0.001:
+			continue
+		var push := -horizontal_normal.normalized() * minf(_pre_slide_planar_velocity.length() * rigid_body_push_force, 5.0)
+		body.apply_central_impulse(push * 0.1)
 
 
 func _on_tool_changed(_tool_id: StringName, is_equipped: bool) -> void:
