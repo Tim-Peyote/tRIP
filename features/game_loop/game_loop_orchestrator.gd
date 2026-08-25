@@ -255,7 +255,7 @@ func _on_cooking_result(result: RecipeResolution, _display_name: String) -> void
 	route_unlocked = true
 	stage = Stage.REWARD
 	var quality_names := ["испорчено", "нестабильно", "рабочее", "чистое", "открытие"]
-	var elapsed_seconds := roundi(_clock.progress * _clock.expedition_duration)
+	var elapsed_seconds := roundi(_clock.get_elapsed_seconds())
 	var summary: Dictionary = {
 		"title": "ПЕРВАЯ ЦЕПЬ ЗАМКНУТА",
 		"quality": quality_names[result.quality],

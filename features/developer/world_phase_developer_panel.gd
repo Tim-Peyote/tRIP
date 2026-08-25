@@ -355,7 +355,7 @@ func _add_current_biome_sample() -> void:
 func _cycle_time() -> void:
 	if _clock == null:
 		return
-	var stops := [0.12, 0.52, 0.82]
+	var stops := [0.12, 0.65, 0.82]
 	var next := 0.12
 	for stop: float in stops:
 		if stop > _clock.progress + 0.05:

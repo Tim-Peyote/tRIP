@@ -261,8 +261,10 @@ func _set_values(profile: BiomeVisualProfile, preserve_weather_modifiers: bool =
 
 
 func _time_state(profile: BiomeVisualProfile) -> Dictionary:
-	var dusk := smoothstep(0.28, 0.66, _time_progress)
-	var night := smoothstep(0.68, 0.92, _time_progress)
+	var dusk := smoothstep(0.56, 0.72, _time_progress)
+	var evening_night := smoothstep(0.72, 0.82, _time_progress)
+	var dawn_night := 1.0 - smoothstep(0.0, 0.08, _time_progress)
+	var night := maxf(evening_night, dawn_night)
 	# Keep a cool zenith while the horizon burns. Tinting the whole dome orange
 	# flattened dusk into a single-colour backdrop and erased atmospheric depth.
 	var dusk_top := profile.sky_top_color.darkened(0.18).lerp(profile.dusk_horizon_color.darkened(0.48), 0.08)

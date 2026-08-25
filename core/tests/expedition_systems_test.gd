@@ -38,10 +38,17 @@ func _run() -> void:
 	_expect(level.objective_orchestrator.stage == ExpeditionObjectiveOrchestrator.Stage.COMPLETE, "Returning did not complete the expedition.")
 
 	level.expedition_clock.running = false
-	level.expedition_clock.set_progress(0.5)
+	level.expedition_clock.set_progress(0.65)
 	_expect(level.expedition_clock.phase == ExpeditionClock.Phase.DUSK, "Clock did not enter dusk.")
 	level.expedition_clock.set_progress(0.8)
 	_expect(level.expedition_clock.phase == ExpeditionClock.Phase.NIGHT, "Clock did not enter night.")
+	_expect(is_equal_approx(level.expedition_clock.get_daylight_duration(), 1260.0), "Daylight does not use the 21-minute pacing target.")
+	_expect(is_equal_approx(level.expedition_clock.get_night_duration(), 540.0), "Night does not use the 9-minute pacing target.")
+	level.expedition_clock.set_progress(0.99)
+	var day_before_wrap := level.expedition_clock.day_index
+	level.expedition_clock.advance(30.0)
+	_expect(level.expedition_clock.day_index == day_before_wrap + 1 and level.expedition_clock.progress < 0.04, "Clock did not wrap into the next dawn.")
+	_expect(level.expedition_clock.get_elapsed_seconds() >= 30.0, "Expedition elapsed time was lost when the day wrapped.")
 
 	var event := GameplayNoiseEvent.new()
 	event.origin = forest.listener.global_position + Vector3(1, 0, 0)

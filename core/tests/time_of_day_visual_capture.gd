@@ -3,6 +3,7 @@ extends Node
 const DAY_PATH := "/tmp/trip_taiga_day_capture.png"
 const DUSK_PATH := "/tmp/trip_taiga_dusk_capture.png"
 const NIGHT_PATH := "/tmp/trip_taiga_night_capture.png"
+const DAWN_PATH := "/tmp/trip_taiga_dawn_capture.png"
 
 
 func _ready() -> void:
@@ -27,9 +28,11 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var error := await _capture(level, 0.08, DAY_PATH)
 	if error == OK:
-		error = await _capture(level, 0.53, DUSK_PATH)
+		error = await _capture(level, 0.65, DUSK_PATH)
 	if error == OK:
 		error = await _capture(level, 0.9, NIGHT_PATH)
+	if error == OK:
+		error = await _capture(level, 0.04, DAWN_PATH)
 	if error == OK:
 		print("Time-of-day captures saved.")
 	get_tree().quit(error)
