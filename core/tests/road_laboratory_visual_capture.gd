@@ -15,13 +15,15 @@ func _ready() -> void:
 	var cairn := laboratory.get_node("FirstRitualCairn") as RitualCairn
 	var interactable := cairn.find_children("*", "InteractableComponent", true, false)[0] as InteractableComponent
 	interactable.complete_interaction(level.player)
-	var camp_position := laboratory.laboratory_position
-	level.player.global_position = camp_position + Vector3(0, 1.0, 7.5)
-	level.player.rotation.y = 0.0
+	var portable_root := laboratory.get_node("PortableLaboratory") as Node3D
+	level.player.global_position = portable_root.to_global(Vector3(0, 1.0, 6.2))
+	level.player.rotation.y = portable_root.global_rotation.y
+	level.player.camera.rotation.x = -0.34
 	level.player.process_mode = Node.PROCESS_MODE_DISABLED
 	await get_tree().create_timer(0.58).timeout
 	var metamorph_error := get_viewport().get_texture().get_image().save_png(METAMORPHOSIS_PATH)
 	await get_tree().create_timer(1.05).timeout
+	level.cooking_orchestrator.cycle_heat()
 	for _frame: int in 12:
 		await get_tree().process_frame
 	var image := get_viewport().get_texture().get_image()

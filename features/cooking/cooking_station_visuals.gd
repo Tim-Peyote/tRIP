@@ -25,6 +25,10 @@ var _bellows_rest: Transform3D
 
 
 func _ready() -> void:
+	refresh_rest_transforms()
+
+
+func refresh_rest_transforms() -> void:
 	_pestle_rest = pestle.transform
 	_jug_rest = water_jug.transform
 	_ladle_rest = ladle.transform

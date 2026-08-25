@@ -22,6 +22,7 @@ var _busy: bool = false
 var _proximity_area: Area3D
 var _session_active: bool = false
 var _metamorphosis_tween: Tween
+var _dressing: PortableLaboratoryDressing
 
 
 func setup(player: FirstPersonController, terrain: ExpeditionTerrain, portable_nodes: Array[Node]) -> void:
@@ -69,7 +70,7 @@ func manifest_near_player(animate: bool = true) -> void:
 	var forward := -_player.global_basis.z
 	forward.y = 0.0
 	forward = forward.normalized()
-	laboratory_position = _grounded(_player.global_position + forward * 4.2)
+	laboratory_position = _find_camp_position(_player.global_position, forward)
 	_laboratory_root.global_position = laboratory_position
 	_laboratory_root.rotation.y = _player.rotation.y
 	if animate:
@@ -101,6 +102,7 @@ func to_save_data() -> Dictionary:
 		"manifested": manifested,
 		"ritual_position": _vector_to_array(ritual_position),
 		"laboratory_position": _vector_to_array(laboratory_position),
+		"laboratory_yaw": _laboratory_root.rotation.y,
 	}
 
 
@@ -113,6 +115,7 @@ func apply_save_data(data: Dictionary) -> void:
 	_cairn.global_position = ritual_position
 	_cairn.set_available(not unlocked)
 	_laboratory_root.global_position = laboratory_position
+	_laboratory_root.rotation.y = float(data.get("laboratory_yaw", _player.rotation.y))
 	_set_lab_active(manifested)
 	ritual_state_changed.emit(unlocked, manifested)
 
@@ -229,41 +232,8 @@ func _set_interactions_enabled(value: bool) -> void:
 
 
 func _build_portable_camp() -> void:
-	var wood := StandardMaterial3D.new()
-	wood.albedo_color = Color("5f3923")
-	wood.roughness = 0.88
-	var cloth := StandardMaterial3D.new()
-	cloth.albedo_color = Color("273f35")
-	cloth.roughness = 0.76
-	for x: float in [-2.25, 2.25]:
-		var pole := MeshInstance3D.new()
-		var pole_mesh := CylinderMesh.new()
-		pole_mesh.top_radius = 0.055
-		pole_mesh.bottom_radius = 0.08
-		pole_mesh.height = 2.45
-		pole_mesh.radial_segments = 6
-		pole.mesh = pole_mesh
-		pole.material_override = wood
-		pole.position = Vector3(x, 1.22, -2.45)
-		_laboratory_root.add_child(pole)
-	var tarp := MeshInstance3D.new()
-	var tarp_mesh := PrismMesh.new()
-	tarp_mesh.size = Vector3(4.8, 0.08, 2.7)
-	tarp.mesh = tarp_mesh
-	tarp.material_override = cloth
-	tarp.position = Vector3(0, 2.35, -2.3)
-	tarp.rotation_degrees = Vector3(0, 0, 4)
-	_laboratory_root.add_child(tarp)
-	for index: int in 9:
-		var angle := TAU * float(index) / 9.0
-		var stone := MeshInstance3D.new()
-		var stone_mesh := BoxMesh.new()
-		stone_mesh.size = Vector3(0.32, 0.2, 0.25)
-		stone.mesh = stone_mesh
-		stone.material_override = wood
-		stone.position = Vector3(cos(angle) * 0.62, 0.12, sin(angle) * 0.62)
-		stone.rotation.y = -angle
-		_laboratory_root.add_child(stone)
+	_dressing = PortableLaboratoryDressing.new()
+	_dressing.build(_laboratory_root)
 
 
 func _build_proximity_area() -> void:
@@ -343,6 +313,30 @@ func _grounded(value: Vector3) -> Vector3:
 	var result := value
 	result.y = _terrain.get_height_at_global(value) + 0.03
 	return result
+
+
+func _find_camp_position(origin: Vector3, forward: Vector3) -> Vector3:
+	# The camp spans several metres. Evaluate a few nearby footprints instead
+	# of balancing the whole laboratory on the height at a single point.
+	var right := Vector3(forward.z, 0.0, -forward.x).normalized()
+	var best := _grounded(origin + forward * 4.2)
+	var best_score := INF
+	for distance: float in [3.8, 4.6, 5.4]:
+		for lateral: float in [-2.0, 0.0, 2.0]:
+			var candidate := origin + forward * distance + right * lateral
+			var minimum_height := INF
+			var maximum_height := -INF
+			for offset: Vector2 in [Vector2.ZERO, Vector2(-3.2, -2.0), Vector2(3.2, -2.0), Vector2(-3.2, 1.4), Vector2(3.2, 1.4)]:
+				var sample := candidate + right * offset.x + forward * offset.y
+				var height := _terrain.get_height_at_global(sample)
+				minimum_height = minf(minimum_height, height)
+				maximum_height = maxf(maximum_height, height)
+			var relief := maximum_height - minimum_height
+			var score := relief + absf(lateral) * 0.025 + absf(distance - 4.6) * 0.018
+			if score < best_score:
+				best_score = score
+				best = _grounded(candidate)
+	return best
 
 
 func _vector_to_array(value: Vector3) -> Array[float]:
