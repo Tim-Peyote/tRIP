@@ -80,6 +80,8 @@ func _test_visual_shader_contract() -> void:
 	var sky_shader := FileAccess.get_file_as_string("res://presentation/shaders/altai_sky.gdshader")
 	_expect(sky_shader.contains("shader_type sky"), "Altai sky shader is missing or invalid.")
 	_expect(not sky_shader.contains("TIME *"), "Sky shader updates radiance every frame through TIME.")
+	_expect(not sky_shader.contains("atan(EYEDIR") and not sky_shader.contains("asin(clamp(EYEDIR"), "Sky shader reintroduced pole-pinching spherical UVs at the zenith.")
+	_expect(sky_shader.contains("directional_noise") and sky_shader.contains("directional_stars"), "Sky shader is missing seamless Cartesian sky sampling.")
 
 
 func _test_recipe_resolution() -> void:

@@ -28,6 +28,39 @@ float cloud_noise(vec2 p) {
 	return result;
 }
 
+// Longitude/latitude UVs collapse every texel into one point at the zenith.
+// Blend three Cartesian projections instead, so clouds and stars remain
+// continuous when the player looks straight up and across cubemap faces.
+vec3 direction_weights(vec3 direction, float sharpness) {
+	vec3 weights = pow(abs(normalize(direction)), vec3(sharpness));
+	return weights / max(dot(weights, vec3(1.0)), 0.0001);
+}
+
+float directional_noise(vec3 direction, float scale, vec3 seed) {
+	vec3 weights = direction_weights(direction, 5.0);
+	float x_projection = cloud_noise(direction.yz * scale + seed.xy);
+	float y_projection = cloud_noise(direction.xz * scale + seed.yz);
+	float z_projection = cloud_noise(direction.xy * scale + seed.zx);
+	return dot(vec3(x_projection, y_projection, z_projection), weights);
+}
+
+float star_projection(vec2 coordinates, vec2 seed) {
+	vec2 grid = coordinates + seed;
+	vec2 cell = floor(grid);
+	vec2 local = fract(grid);
+	float chosen = step(0.955, hash21(cell + seed * 0.37));
+	vec2 offset = vec2(hash21(cell + 7.3), hash21(cell + 31.9)) * 0.56 + 0.22;
+	return (1.0 - smoothstep(0.02, 0.075, length(local - offset))) * chosen;
+}
+
+float directional_stars(vec3 direction, float scale) {
+	vec3 weights = direction_weights(direction, 9.0);
+	float x_projection = star_projection(direction.yz * scale, vec2(17.3, 41.7));
+	float y_projection = star_projection(direction.xz * scale, vec2(-23.9, 8.4));
+	float z_projection = star_projection(direction.xy * scale, vec2(52.1, -14.6));
+	return dot(vec3(x_projection, y_projection, z_projection), weights);
+}
+
 void sky() {
 	float elevation = clamp(EYEDIR.y, -1.0, 1.0);
 	float upper_gradient = pow(clamp(elevation, 0.0, 1.0), 0.42);
@@ -38,9 +71,9 @@ void sky() {
 
 	// A stationary layered cloud field: weather changes coverage, but avoiding
 	// TIME keeps the radiance cubemap from being regenerated every frame.
-	vec2 spherical = vec2(atan(EYEDIR.z, EYEDIR.x) / 6.2831853 + 0.5, asin(clamp(EYEDIR.y, -1.0, 1.0)) / 3.1415926 + 0.5);
-	float cloud_field = cloud_noise(spherical * vec2(38.0, 18.0) + vec2(4.1, -2.7));
-	float cloud_detail = cloud_noise(spherical * vec2(89.0, 43.0) + vec2(-8.7, 5.1));
+	vec3 sky_direction = normalize(EYEDIR);
+	float cloud_field = directional_noise(sky_direction, 7.5, vec3(4.1, -2.7, 9.6));
+	float cloud_detail = directional_noise(sky_direction, 19.0, vec3(-8.7, 5.1, 13.2));
 	cloud_field = mix(cloud_field, cloud_detail, 0.28);
 	float cloud_threshold = mix(0.72, 0.36, clamp(trip_cloud_coverage, 0.0, 1.0));
 	float cloud_erosion = smoothstep(0.28, 0.72, cloud_detail);
@@ -57,18 +90,12 @@ void sky() {
 	// Stable procedural star field, visible only above the horizon at night.
 	// The grid intentionally matches the low radiance cubemap budget. Sub-pixel
 	// stars disappear after cubemap filtering, so each chosen cell owns one dot.
-	vec2 star_grid = spherical * vec2(360.0, 180.0);
-	vec2 star_cell = floor(star_grid);
-	vec2 star_local = fract(star_grid);
-	float star_seed = hash21(star_cell);
-	vec2 star_offset = vec2(hash21(star_cell + 7.3), hash21(star_cell + 31.9)) * 0.56 + 0.22;
-	float star_dot = 1.0 - smoothstep(0.02, 0.075, length(star_local - star_offset));
-	float star = star_dot * step(0.955, star_seed) * smoothstep(-0.01, 0.16, elevation) * night_amount;
-	float star_temperature = hash21(star_cell + 19.7);
+	float star = directional_stars(sky_direction, 92.0) * smoothstep(-0.01, 0.16, elevation) * night_amount;
+	float star_temperature = directional_noise(sky_direction, 31.0, vec3(19.7, -3.8, 27.1));
 	float star_glow = smoothstep(0.72, 1.0, star);
 	color += mix(vec3(0.56, 0.72, 1.0), vec3(1.0, 0.86, 0.66), star_temperature) * (star * 3.8 + star_glow * 1.4);
 	float galactic_band = exp(-pow(abs(dot(normalize(EYEDIR), normalize(vec3(0.18, 0.72, -0.67)))), 2.0) * 32.0);
-	float galactic_texture = cloud_noise(spherical * vec2(14.0, 7.0) + vec2(2.4, 9.3));
+	float galactic_texture = directional_noise(sky_direction, 4.2, vec3(2.4, 9.3, -6.7));
 	color += vec3(0.11, 0.15, 0.28) * galactic_band * galactic_texture * night_amount * smoothstep(0.02, 0.32, elevation) * (1.0 - clouds);
 
 	if (LIGHT0_ENABLED) {
