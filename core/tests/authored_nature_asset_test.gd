@@ -37,7 +37,7 @@ func _ready() -> void:
 
 func _validate_normalized_scale() -> void:
 	var library := AuthoredNatureAssetLibrary.new()
-	for family: StringName in [&"tall_pine", &"round_pine", &"rock", &"forest_floor", &"fungi"]:
+	for family: StringName in [&"tall_pine", &"round_pine", &"young_pine", &"rock", &"forest_floor", &"fungi", &"grass_cluster"]:
 		var instance := library.instantiate_variant(family, 0)
 		_expect(instance != null, "Authored nature family failed to instantiate: %s" % family)
 		if instance == null:

@@ -197,7 +197,7 @@ func _run() -> void:
 	developer.set_panel_visible(true)
 	await get_tree().process_frame
 	var panel := developer.find_child("WorldPhaseDeveloperPanel", true, false) as PanelContainer
-	_expect(panel != null and panel.position.y + panel.size.y <= 720.0, "Developer panel overflows the reference viewport.")
+	_expect(panel != null and panel.position.y + panel.size.y <= 720.0, "Developer panel overflows the reference viewport: rect=%s viewport=%s" % [panel.get_rect() if panel != null else Rect2(), get_viewport().get_visible_rect()])
 	_expect(developer.find_children("*", "Button", true, false).size() >= 18, "Developer panel is missing rapid QA actions.")
 	var laboratory := level.get_road_laboratory()
 	_expect(laboratory.developer_toggle(false), "Developer laboratory toggle was unavailable.")

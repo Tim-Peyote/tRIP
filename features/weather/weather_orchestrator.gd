@@ -39,6 +39,7 @@ var wind: Vector3 = Vector3.ZERO
 var automatic: bool = true
 
 var _player: FirstPersonController
+var _terrain: ExpeditionTerrain
 var _environment: Environment
 var _precipitation: GPUParticles3D
 var _lightning: DirectionalLight3D
@@ -57,10 +58,23 @@ var _base_contrast: float = 1.0
 var _base_saturation: float = 1.0
 var _base_glow_intensity: float = 0.52
 var _ecology_family: int = BiomeContentPack.EcologyFamily.ALTAI_TAIGA
+var _local_context: Dictionary = {
+	"zone": ExpeditionTerrain.LandscapeZone.DENSE_FOREST,
+	"zone_id": &"dense_forest",
+	"altitude": 0.0,
+	"moisture": 0.45,
+	"exposure": 0.5,
+	"can_snow": false,
+	"forest_shelter": 0.5,
+}
+var _context_tick: float = 0.0
+var _wind_target := Vector3(0.35, 0.0, 0.12)
+var _wind_shift_time: float = 0.0
 
 
-func setup(world_environment: WorldEnvironment, player: FirstPersonController) -> void:
+func setup(world_environment: WorldEnvironment, player: FirstPersonController, terrain: ExpeditionTerrain = null) -> void:
 	_player = player
+	_terrain = terrain
 	_environment = world_environment.environment if world_environment != null else null
 	if _environment != null:
 		_base_fog_density = _environment.fog_density
@@ -69,6 +83,7 @@ func setup(world_environment: WorldEnvironment, player: FirstPersonController) -
 		_base_saturation = _environment.adjustment_saturation
 		_base_glow_intensity = _environment.glow_intensity
 	_rng.seed = 98317
+	_sample_local_context(true)
 	_build_precipitation()
 	_build_lightning()
 	_build_audio()
@@ -120,7 +135,35 @@ func set_ecology_family(value: int) -> void:
 
 
 func get_weather_weights() -> Array:
-	return (WEATHER_WEIGHTS.get(_ecology_family, WEATHER_WEIGHTS[BiomeContentPack.EcologyFamily.ALTAI_TAIGA]) as Array).duplicate()
+	var weights := (WEATHER_WEIGHTS.get(_ecology_family, WEATHER_WEIGHTS[BiomeContentPack.EcologyFamily.ALTAI_TAIGA]) as Array).duplicate()
+	if not is_instance_valid(_terrain):
+		return weights
+	var zone := int(_local_context.get("zone", ExpeditionTerrain.LandscapeZone.DENSE_FOREST))
+	var altitude := float(_local_context.get("altitude", 0.0))
+	var moisture := float(_local_context.get("moisture", 0.45))
+	match zone:
+		ExpeditionTerrain.LandscapeZone.RIVER_VALLEY, ExpeditionTerrain.LandscapeZone.BASIN:
+			weights[State.DRIZZLE] *= lerpf(1.1, 1.55, moisture)
+			weights[State.FOG] *= lerpf(1.2, 1.8, moisture)
+			weights[State.STORM] *= 0.78
+		ExpeditionTerrain.LandscapeZone.DENSE_FOREST:
+			weights[State.DRIZZLE] *= 1.18
+			weights[State.FOG] *= 1.32
+			weights[State.STORM] *= 0.84
+		ExpeditionTerrain.LandscapeZone.HIGHLAND, ExpeditionTerrain.LandscapeZone.BOUNDARY:
+			weights[State.STORM] *= 1.34
+			weights[State.SNOW] *= lerpf(1.15, 1.8, altitude)
+			weights[State.FOG] *= 1.12
+		ExpeditionTerrain.LandscapeZone.ALPINE:
+			weights[State.STORM] *= 1.42
+			weights[State.SNOW] *= 2.25
+			weights[State.DRIZZLE] *= 0.34
+	if not bool(_local_context.get("can_snow", false)):
+		var displaced_snow := float(weights[State.SNOW])
+		weights[State.SNOW] = 0.15
+		weights[State.DRIZZLE] += displaced_snow * 0.42
+		weights[State.FOG] += displaced_snow * 0.28
+	return weights
 
 
 func _process(delta: float) -> void:
@@ -131,6 +174,11 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set(&"trip_wind_strength", clampf(wind.length() / 8.5, 0.0, 1.0))
 	_state_time += delta
 	_reactive_tick += delta
+	_context_tick += delta
+	if _context_tick >= 1.0:
+		_context_tick = 0.0
+		_sample_local_context(false)
+	_update_wind(delta)
 	_update_surface_state(delta)
 	_update_lightning(delta)
 	_update_audio(delta)
@@ -142,6 +190,8 @@ func _process(delta: float) -> void:
 
 
 func set_weather(next_state: State, strength: float = 1.0, immediate: bool = false) -> void:
+	if next_state == State.SNOW and automatic and is_instance_valid(_terrain) and not bool(_local_context.get("can_snow", false)):
+		next_state = State.DRIZZLE if float(_local_context.get("moisture", 0.0)) >= 0.42 else State.FOG
 	state = next_state
 	intensity = clampf(strength, 0.0, 1.0)
 	_state_time = 0.0
@@ -187,14 +237,15 @@ func get_state_title() -> String:
 
 
 func get_debug_text() -> String:
-	return "%s · %d°C · сила %d%% · земля %d%% · ветер %.1f м/с · %s" % [
-		get_state_title(), roundi(get_ambient_temperature()), roundi(intensity * 100.0), roundi(wetness * 100.0), wind.length(),
+	return "%s · %s · %d°C · сила %d%% · земля %d%% · ветер %.1f м/с · %s" % [
+		get_state_title(), String(_local_context.get("zone_id", &"dense_forest")), roundi(get_ambient_temperature()), roundi(intensity * 100.0), roundi(wetness * 100.0), wind.length(),
 		"авто" if automatic else "ручной режим",
 	]
 
 
 func get_ambient_temperature() -> float:
 	var result := float(ECOLOGY_TEMPERATURES.get(_ecology_family, 10.0))
+	result -= float(_local_context.get("altitude", 0.0)) * 11.0
 	match state:
 		State.STORM: result -= 5.0 * intensity
 		State.DRIZZLE: result -= 2.5 * intensity
@@ -235,6 +286,49 @@ func _target_wetness() -> float:
 		_: return 0.0
 
 
+func get_local_context() -> Dictionary:
+	return _local_context.duplicate()
+
+
+func _sample_local_context(immediate: bool) -> void:
+	if not is_instance_valid(_terrain) or not is_instance_valid(_player):
+		return
+	var previous_zone := int(_local_context.get("zone", -1))
+	_local_context = _terrain.get_environment_context(_player.global_position)
+	var zone_changed := previous_zone != int(_local_context.get("zone", -1))
+	if state == State.SNOW and not bool(_local_context.get("can_snow", false)) and automatic:
+		set_weather(State.DRIZZLE if float(_local_context.get("moisture", 0.0)) >= 0.42 else State.FOG, intensity, immediate)
+		return
+	if zone_changed:
+		_configure_particles()
+		_apply_environment(immediate)
+		state_changed.emit(state, get_state_title(), intensity)
+
+
+func _update_wind(delta: float) -> void:
+	_wind_shift_time -= delta
+	if _wind_shift_time <= 0.0:
+		_wind_shift_time = _rng.randf_range(6.0, 15.0) if state == State.STORM else _rng.randf_range(18.0, 42.0)
+		var current_angle := atan2(_wind_target.z, _wind_target.x)
+		var maximum_turn := 1.0 if state == State.STORM else 0.48
+		var next_angle := current_angle + _rng.randf_range(-maximum_turn, maximum_turn)
+		var exposure := float(_local_context.get("exposure", 0.5))
+		var shelter := float(_local_context.get("forest_shelter", 0.0))
+		var weather_speed := lerpf(0.35, 8.5, intensity)
+		if state == State.CLEAR:
+			weather_speed *= 0.42
+		elif state == State.FOG:
+			weather_speed *= 0.16
+		elif state == State.SNOW:
+			weather_speed *= 0.78
+		var local_speed := weather_speed * lerpf(0.62, 1.28, exposure) * (1.0 - shelter * 0.52)
+		_wind_target = Vector3(cos(next_angle), 0.0, sin(next_angle)) * local_speed
+	wind = wind.move_toward(_wind_target, delta * (2.8 if state == State.STORM else 0.72))
+	var process := _precipitation.process_material as ParticleProcessMaterial if is_instance_valid(_precipitation) else null
+	if process != null:
+		process.direction = Vector3(wind.x * (0.12 if state == State.SNOW else 0.065), -0.4 if state == State.SNOW else -1.0, wind.z * (0.12 if state == State.SNOW else 0.065)).normalized()
+
+
 func _update_surface_state(delta: float) -> void:
 	var target := _target_wetness()
 	var rate := (0.055 + intensity * 0.08) if target > wetness else 0.012
@@ -271,11 +365,19 @@ func _build_precipitation() -> void:
 func _configure_particles() -> void:
 	if _precipitation == null:
 		return
-	_precipitation.emitting = state in [State.DRIZZLE, State.STORM, State.SNOW] and intensity > 0.02
-	_precipitation.amount = roundi(lerpf(220.0, 1050.0, intensity))
-	wind = Vector3(_rng.randf_range(-1.0, 1.0), 0, _rng.randf_range(-0.6, 0.6)).normalized() * lerpf(0.4, 8.5, intensity)
+	var snow_is_local := state != State.SNOW or bool(_local_context.get("can_snow", false))
+	_precipitation.emitting = state in [State.DRIZZLE, State.STORM, State.SNOW] and intensity > 0.02 and snow_is_local
+	var shelter := float(_local_context.get("forest_shelter", 0.0))
+	var precipitation_scale := 1.0 - shelter * 0.34
+	_precipitation.amount = roundi(lerpf(220.0, 1050.0, intensity) * precipitation_scale)
+	var initial_direction := Vector3(_rng.randf_range(-1.0, 1.0), 0.0, _rng.randf_range(-0.8, 0.8)).normalized()
+	if initial_direction.length_squared() < 0.1:
+		initial_direction = Vector3(0.9, 0.0, 0.25)
+	_wind_target = initial_direction * lerpf(0.4, 8.5, intensity)
 	if state == State.FOG:
-		wind *= 0.15
+		_wind_target *= 0.15
+	if wind.length_squared() < 0.01:
+		wind = _wind_target
 	var process := ParticleProcessMaterial.new()
 	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
 	process.emission_box_extents = Vector3(13, 1.5, 13)
@@ -290,8 +392,8 @@ func _configure_particles() -> void:
 	# Real spatial droplets replace the old camera-facing half-metre quads. Those
 	# quads read as graphic stripes glued to the screen during wind and storms.
 	var droplet := SphereMesh.new()
-	droplet.radius = 0.012 if state != State.SNOW else 0.042
-	droplet.height = 0.085 if state != State.SNOW else 0.072
+	droplet.radius = 0.01 if state != State.SNOW else 0.036
+	droplet.height = 0.11 if state != State.SNOW else 0.036
 	droplet.radial_segments = 5
 	droplet.rings = 2
 	var material := StandardMaterial3D.new()
@@ -351,6 +453,21 @@ func _apply_environment(immediate: bool) -> void:
 			brightness_target = lerpf(1.0, 1.04, intensity)
 			saturation_target = lerpf(_base_saturation, _base_saturation * 0.84, intensity)
 			aerial_target = 0.86
+	var local_zone := int(_local_context.get("zone", ExpeditionTerrain.LandscapeZone.DENSE_FOREST))
+	var local_altitude := float(_local_context.get("altitude", 0.0))
+	var local_moisture := float(_local_context.get("moisture", 0.45))
+	if local_zone in [ExpeditionTerrain.LandscapeZone.RIVER_VALLEY, ExpeditionTerrain.LandscapeZone.BASIN]:
+		fog_target *= lerpf(1.08, 1.42, local_moisture)
+		volumetric_target *= lerpf(1.06, 1.3, local_moisture)
+	elif local_zone == ExpeditionTerrain.LandscapeZone.DENSE_FOREST:
+		fog_target *= 1.12
+	elif local_zone in [ExpeditionTerrain.LandscapeZone.HIGHLAND, ExpeditionTerrain.LandscapeZone.BOUNDARY]:
+		fog_target *= lerpf(1.0, 1.18, local_altitude)
+	elif local_zone == ExpeditionTerrain.LandscapeZone.ALPINE and state == State.FOG:
+		# The highest ridges can rise above a valley cloud deck instead of receiving
+		# the same opaque screen fog as the lowlands.
+		fog_target *= lerpf(0.78, 0.52, local_altitude)
+		volumetric_target *= lerpf(0.86, 0.58, local_altitude)
 	if immediate:
 		_environment.fog_density = fog_target
 		_environment.volumetric_fog_density = volumetric_target

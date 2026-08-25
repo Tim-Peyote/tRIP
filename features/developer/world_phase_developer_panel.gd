@@ -164,7 +164,9 @@ func _build_ui() -> void:
 	_seed_label = Label.new()
 	column.add_child(_seed_label)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 245)
+	# Status gained local weather and physiology lines; keep the tool list itself
+	# scrollable instead of allowing the entire QA panel to leave a 720p viewport.
+	scroll.custom_minimum_size = Vector2(0, 215)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)
 	var tools := VBoxContainer.new()

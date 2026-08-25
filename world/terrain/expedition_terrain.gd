@@ -19,6 +19,11 @@ const BIOME_AMBIENCE = preload("res://presentation/audio/biome_procedural_ambien
 const ECOLOGY_MOTION_SHADER = preload("res://presentation/shaders/ecology_motion.gdshader")
 const ILYA_ROOT_ECHO = preload("res://features/npcs/ilya_root_echo.tscn")
 
+enum LandscapeZone { SHELTER_EDGE, RIVER_VALLEY, DENSE_FOREST, HIGHLAND, ALPINE, BASIN, BOUNDARY }
+
+const REGION_STREAM_MARGIN: float = 1.12
+const REGION_FAILSAFE_RATIO: float = 1.045
+
 @export_range(16.0, 64.0, 1.0) var chunk_size: float = 30.0
 @export_range(9, 49, 2) var chunk_resolution: int = 25
 @export_range(1, 4, 1) var active_radius: int = 2
@@ -51,6 +56,8 @@ var _biome_ambience: AudioStreamPlayer
 var _decor_exclusion_centers: Array[Vector2] = []
 var _collected_biome_ingredient_spawns: Dictionary[StringName, bool] = {}
 var _discovered_mystery_ids: Dictionary[StringName, bool] = {}
+var _last_safe_target_position := Vector3(0.0, 1.0, 15.0)
+var _safe_position_tick: float = 0.0
 
 
 func _ready() -> void:
@@ -237,9 +244,10 @@ func simulate_nearest_mystery_event() -> bool:
 	return nearest != null and nearest.simulate_resolution()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if is_instance_valid(_target):
 		_recover_target_below_surface()
+		_update_region_failsafe(delta)
 		var expedition_visible := _target.global_position.z >= MIN_EXPEDITION_Z
 		if is_instance_valid(_horizon_root):
 			_horizon_root.visible = expedition_visible
@@ -303,6 +311,8 @@ func _refresh_chunks(world_position: Vector3, immediate_center: bool) -> void:
 	_desired_tiers.clear()
 	for offset: Vector2i in offsets:
 		var coordinate := center + offset
+		if not _chunk_intersects_region(coordinate):
+			continue
 		var tier := _detail_tier_for_offset(offset)
 		desired[coordinate] = true
 		_desired_tiers[coordinate] = tier
@@ -319,6 +329,8 @@ func _refresh_chunks(world_position: Vector3, immediate_center: bool) -> void:
 		for z_offset in range(-collision_radius, collision_radius + 1):
 			for x_offset in range(-collision_radius, collision_radius + 1):
 				var coordinate := center + Vector2i(x_offset, z_offset)
+				if not _desired_tiers.has(coordinate):
+					continue
 				var desired_tier := int(_desired_tiers.get(coordinate, 2))
 				_pending.erase(coordinate)
 				if not _chunks.has(coordinate):
@@ -338,6 +350,99 @@ func _recover_target_below_surface() -> void:
 	_target.global_position = safe_position
 	(_target as CharacterBody3D).velocity.y = 0.0
 	(_target as CharacterBody3D).apply_floor_snap()
+
+
+func _update_region_failsafe(delta: float) -> void:
+	if not _target is CharacterBody3D:
+		return
+	_safe_position_tick += delta
+	var ratio := get_region_ratio(Vector2(_target.global_position.x, _target.global_position.z))
+	if ratio <= 0.86 and _safe_position_tick >= 0.5:
+		_safe_position_tick = 0.0
+		_last_safe_target_position = _target.global_position
+		return
+	if ratio <= REGION_FAILSAFE_RATIO:
+		return
+	var safe_position := _last_safe_target_position
+	safe_position.y = _height_at(safe_position.x, safe_position.z) + 0.12
+	_target.global_position = safe_position
+	(_target as CharacterBody3D).velocity = Vector3.ZERO
+	(_target as CharacterBody3D).apply_floor_snap()
+
+
+func get_region_ratio(point: Vector2) -> float:
+	var pack := _get_content_pack()
+	var half_width := pack.region_half_width if pack != null else 410.0
+	var length := pack.region_length if pack != null else 920.0
+	var south := pack.region_south if pack != null else -120.0
+	var center := Vector2(0.0, south + length * 0.5)
+	var normalized := Vector2(absf(point.x - center.x) / half_width, absf(point.y - center.y) / (length * 0.5))
+	# A superellipse keeps broad playable valleys while still producing a natural,
+	# irregular mountain ring instead of a visible square or perfect circular wall.
+	return pow(pow(normalized.x, 2.4) + pow(normalized.y, 2.4), 1.0 / 2.4)
+
+
+func is_inside_playable_region(world_position: Vector3, margin: float = 0.0) -> bool:
+	return get_region_ratio(Vector2(world_position.x, world_position.z)) <= 1.0 + margin
+
+
+func get_route_end_z() -> float:
+	var pack := _get_content_pack()
+	var length := pack.region_length if pack != null else 920.0
+	var south := pack.region_south if pack != null else -120.0
+	return south + length * 0.89
+
+
+func get_environment_context(world_position: Vector3) -> Dictionary:
+	var point := Vector2(world_position.x, world_position.z)
+	var pack := _get_content_pack()
+	var ratio := get_region_ratio(point)
+	var height := _height_at(point.x, point.y)
+	var route_distance := _distance_to_expedition_route(point)
+	var patch := _noise.get_noise_2d(point.x * 0.61 + 311.0, point.y * 0.61 - 127.0)
+	var moisture_noise := _detail_noise.get_noise_2d(point.x * 0.24 - 71.0, point.y * 0.24 + 193.0)
+	var highland_bias := pack.highland_bias if pack != null else 0.8
+	var lowland_moisture := pack.lowland_moisture if pack != null else 0.45
+	var altitude := clampf((height + 4.0) / maxf(24.0, 34.0 / maxf(highland_bias, 0.2)), 0.0, 1.0)
+	var moisture := clampf(lowland_moisture + moisture_noise * 0.28 - altitude * 0.22, 0.0, 1.0)
+	var exposure := clampf(0.36 + altitude * 0.72 + absf(patch) * 0.24, 0.0, 1.0)
+	var zone := LandscapeZone.DENSE_FOREST
+	if point.y < 58.0:
+		zone = LandscapeZone.SHELTER_EDGE
+	elif ratio >= (pack.boundary_inner_ratio if pack != null else 0.78):
+		zone = LandscapeZone.BOUNDARY
+	elif altitude >= 0.78:
+		zone = LandscapeZone.ALPINE
+	elif altitude >= 0.53 or patch > 0.46:
+		zone = LandscapeZone.HIGHLAND
+	elif moisture >= 0.72 and (height < 3.5 or moisture_noise > 0.42):
+		zone = LandscapeZone.BASIN
+	elif route_distance <= (pack.route_width * 1.7 if pack != null else 9.5):
+		zone = LandscapeZone.RIVER_VALLEY
+	var zone_names: Array[StringName] = [&"shelter_edge", &"river_valley", &"dense_forest", &"highland", &"alpine", &"basin", &"boundary"]
+	var snow_allowed := zone in [LandscapeZone.HIGHLAND, LandscapeZone.ALPINE, LandscapeZone.BOUNDARY]
+	if pack != null and pack.ecology_family in [BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE, BiomeContentPack.EcologyFamily.ASHEN_TUNDRA]:
+		snow_allowed = true
+	return {
+		"zone": zone,
+		"zone_id": zone_names[zone],
+		"region_ratio": ratio,
+		"height": height,
+		"altitude": altitude,
+		"moisture": moisture,
+		"exposure": exposure,
+		"can_snow": snow_allowed,
+		"forest_shelter": 0.72 if zone == LandscapeZone.DENSE_FOREST else (0.38 if zone == LandscapeZone.RIVER_VALLEY else 0.0),
+	}
+
+
+func _chunk_intersects_region(coordinate: Vector2i) -> bool:
+	var start := Vector2(float(coordinate.x) * chunk_size, float(coordinate.y) * chunk_size)
+	var end := start + Vector2.ONE * chunk_size
+	for point: Vector2 in [start, Vector2(end.x, start.y), Vector2(start.x, end.y), end, (start + end) * 0.5]:
+		if get_region_ratio(point) <= REGION_STREAM_MARGIN:
+			return true
+	return false
 
 
 func _detail_tier_for_offset(offset: Vector2i) -> int:
@@ -467,6 +572,7 @@ func _height_at(x: float, z: float) -> float:
 	var route_distance := _distance_to_expedition_route(point)
 	var route_width := pack.route_width if pack != null else 5.5
 	var route_influence := 1.0 - smoothstep(route_width, route_width * 3.1, route_distance)
+	route_influence *= 1.0 - smoothstep(get_route_end_z() - 55.0, get_route_end_z() + 8.0, z)
 	var authored_route_blend := smoothstep(52.0, 84.0, z)
 	var route_seed_phase := float(posmod(_run_seed, 997)) * 0.013
 	var vista_period := float(pack.vista_period_chunks if pack != null else 6) * chunk_size
@@ -480,6 +586,7 @@ func _height_at(x: float, z: float) -> float:
 		if landmark_center.y >= MIN_EXPEDITION_Z + 2.0:
 			var landmark_height := _noise.get_noise_2d(landmark_center.x, landmark_center.y) * 5.2 * elevation_scale
 			height = _blend_disc(height, point, landmark_center, 9.5, landmark_height)
+	height += _boundary_height_offset(point, pack)
 	height = _blend_disc(height, point, Vector2(0, 15), 11.0, 0.0)
 	height = _blend_corridor(height, point, Vector2(0, 17), Vector2(0, 49), 4.4, 0.0, 0.35)
 	height = _blend_disc(height, point, Vector2(25, 15), 13.0, 0.1)
@@ -492,11 +599,51 @@ func _height_at(x: float, z: float) -> float:
 	return height
 
 
+func _boundary_height_offset(point: Vector2, pack: BiomeContentPack) -> float:
+	var inner_ratio := pack.boundary_inner_ratio if pack != null else 0.78
+	var boundary_height := pack.boundary_height if pack != null else 48.0
+	var ratio := get_region_ratio(point)
+	var rise := smoothstep(inner_ratio, 1.015, ratio)
+	if rise <= 0.0:
+		return 0.0
+	var family := pack.boundary_family if pack != null else BiomeContentPack.BoundaryFamily.MOUNTAIN_RING
+	var seed_phase := float(posmod(_run_seed, 8191)) * 0.0017
+	var broken_ridge := absf(_detail_noise.get_noise_2d(point.x * 0.31 + 611.0, point.y * 0.31 - 277.0))
+	var long_fold := 0.5 + 0.5 * sin(atan2(point.y, point.x) * 7.0 + seed_phase + ratio * 19.0)
+	var silhouette := lerpf(0.72, 1.18, broken_ridge * 0.68 + long_fold * 0.32)
+	match family:
+		BiomeContentPack.BoundaryFamily.KARST_WALL:
+			silhouette *= 0.82 + pow(broken_ridge, 2.0) * 0.75
+		BiomeContentPack.BoundaryFamily.RED_ESCARPMENT:
+			silhouette = floorf(silhouette * 4.0) / 4.0 + 0.18
+		BiomeContentPack.BoundaryFamily.ICE_CIRQUE:
+			silhouette *= 0.9 + absf(sin(point.x * 0.043 + point.y * 0.031)) * 0.52
+		BiomeContentPack.BoundaryFamily.ASH_RIDGE:
+			silhouette *= 0.78 + long_fold * 0.34
+		BiomeContentPack.BoundaryFamily.MARSH_BLUFF:
+			silhouette = 0.72 + floorf(broken_ridge * 3.0) * 0.12
+		BiomeContentPack.BoundaryFamily.ROOT_RAMPART:
+			silhouette *= 0.82 + absf(sin(point.x * 0.071 - point.y * 0.047)) * 0.48
+		BiomeContentPack.BoundaryFamily.FRACTURED_PLATEAU:
+			silhouette *= 1.16 if broken_ridge >= 0.48 else 0.74
+	return pow(rise, 1.35) * boundary_height * silhouette
+
+
 func _terrain_color(point: Vector2, height: float, slope: float) -> Color:
 	var pack := _get_content_pack()
 	var ground_low := pack.ground_low if pack != null else Color(0.105, 0.205, 0.085)
 	var ground_high := pack.ground_high if pack != null else Color(0.31, 0.29, 0.13)
 	var color := ground_low.lerp(ground_high, clampf((height + 3.0) / 15.0, 0.0, 1.0))
+	var region_ratio := get_region_ratio(point)
+	var vegetation_patch := _noise.get_noise_2d(point.x * 0.61 + 311.0, point.y * 0.61 - 127.0)
+	var moisture_patch := _detail_noise.get_noise_2d(point.x * 0.24 - 71.0, point.y * 0.24 + 193.0)
+	var highland_mask := smoothstep(5.0, 18.0, height)
+	var basin_mask := (1.0 - smoothstep(0.5, 5.0, height)) * smoothstep(0.2, 0.72, moisture_patch * 0.5 + 0.5)
+	color = color.lerp(ground_low.darkened(0.16), smoothstep(0.18, 0.62, vegetation_patch) * (1.0 - highland_mask) * 0.34)
+	color = color.lerp(ground_low.lerp(Color(0.08, 0.16, 0.14), 0.28).darkened(0.12), basin_mask * 0.42)
+	color = color.lerp(ground_high.lightened(0.1), highland_mask * 0.34)
+	if pack != null:
+		color = color.lerp(pack.ground_high.darkened(0.08), smoothstep(pack.boundary_inner_ratio, 1.0, region_ratio) * 0.58)
 	var authored_trail := 1.0 - smoothstep(1.15, 3.1, _distance_to_segment(point, Vector2(0, 17), Vector2(0, 49)))
 	var expedition_route := 1.0 - smoothstep(1.3, 4.6, _distance_to_expedition_route(point))
 	color = color.lerp(ground_high.darkened(0.18), maxf(authored_trail * 0.55, expedition_route * 0.42))
@@ -511,15 +658,41 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	var pack := _get_content_pack()
 	var vegetation_density := pack.vegetation_density if pack != null else 1.0
 	var geology_density := pack.geology_density if pack != null else 1.0
+	var center_position := Vector3((float(coordinate.x) + 0.5) * chunk_size, 0.0, (float(coordinate.y) + 0.5) * chunk_size)
+	var zone := int(get_environment_context(center_position).get("zone", LandscapeZone.DENSE_FOREST))
+	var tree_zone_scale := 1.0
+	var rock_zone_scale := 1.0
+	var ground_zone_scale := 1.0
+	match zone:
+		LandscapeZone.DENSE_FOREST:
+			tree_zone_scale = 1.38
+			rock_zone_scale = 0.78
+			ground_zone_scale = 1.3
+		LandscapeZone.RIVER_VALLEY, LandscapeZone.BASIN:
+			tree_zone_scale = 0.78
+			rock_zone_scale = 0.68
+			ground_zone_scale = 1.42
+		LandscapeZone.HIGHLAND:
+			tree_zone_scale = 0.58
+			rock_zone_scale = 1.42
+			ground_zone_scale = 0.72
+		LandscapeZone.ALPINE:
+			tree_zone_scale = 0.22
+			rock_zone_scale = 1.7
+			ground_zone_scale = 0.38
+		LandscapeZone.BOUNDARY:
+			tree_zone_scale = 0.34
+			rock_zone_scale = 1.85
+			ground_zone_scale = 0.42
 	var has_landmark := _should_place_landmark(coordinate, pack)
 	var landmark_center := _landmark_center(coordinate, pack)
 	_decor_exclusion_centers.clear()
 	if has_landmark and not _is_reserved(landmark_center):
 		_decor_exclusion_centers.append(landmark_center)
 	var procedural_tree_budget := 10.5 if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA else 16.0
-	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(procedural_tree_budget * vegetation_density)))
-	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density)))
-	_add_groundcover_multimesh(body, coordinate, rng, maxi(6, roundi(34.0 * vegetation_density)))
+	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(procedural_tree_budget * vegetation_density * tree_zone_scale)))
+	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density * rock_zone_scale)))
+	_add_groundcover_multimesh(body, coordinate, rng, maxi(4, roundi(34.0 * vegetation_density * ground_zone_scale)))
 	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
 		_add_authored_taiga_details(body, coordinate, rng)
 	if pack != null and _should_place_ecology_composition(coordinate, pack):
@@ -539,14 +712,26 @@ func _add_authored_taiga_details(body: Node3D, coordinate: Vector2i, rng: Random
 	# One authored hero accent per family is enough to break up the procedural
 	# silhouettes. Repeating imported scenes here duplicated hundreds of separate
 	# draw objects already represented by the tree/rock/groundcover MultiMeshes.
+	var chunk_center := Vector3((float(coordinate.x) + 0.5) * chunk_size, 0.0, (float(coordinate.y) + 0.5) * chunk_size)
+	var zone := int(get_environment_context(chunk_center).get("zone", LandscapeZone.DENSE_FOREST))
 	var families: Array[StringName] = [&"tall_pine", &"round_pine", &"forest_floor", &"rock", &"fungi"]
-	for family_index in families.size():
+	match zone:
+		LandscapeZone.RIVER_VALLEY, LandscapeZone.BASIN:
+			families = [&"round_pine", &"young_pine", &"grass_cluster", &"forest_floor", &"fungi"]
+		LandscapeZone.HIGHLAND, LandscapeZone.ALPINE:
+			families = [&"tall_pine", &"young_pine", &"rock", &"rock", &"grass_cluster"]
+		LandscapeZone.BOUNDARY:
+			families = [&"tall_pine", &"rock", &"rock", &"young_pine", &"forest_floor"]
+	var accent_count := 3 if zone in [LandscapeZone.DENSE_FOREST, LandscapeZone.RIVER_VALLEY, LandscapeZone.BASIN] else 2
+	var family_offset := absi(_chunk_seed(coordinate)) % families.size()
+	for selection_index in accent_count:
+		var family_index := posmod(family_offset + selection_index * 2, families.size())
 		var family := families[family_index]
 		var point := Vector2.ZERO
 		var accepted := false
 		for _attempt in 8:
 			point = _random_chunk_point(coordinate, rng)
-			var ecology_layer := 1 if family == &"rock" else (2 if family == &"fungi" or family == &"forest_floor" else 0)
+			var ecology_layer := 1 if family == &"rock" else (2 if family in [&"fungi", &"forest_floor", &"grass_cluster"] else 0)
 			if not _is_reserved(point) and _accept_ecology_point(point, ecology_layer, _get_content_pack()):
 				accepted = true
 				break
@@ -565,6 +750,10 @@ func _add_authored_taiga_details(body: Node3D, coordinate: Vector2i, rng: Random
 			scale_value = rng.randf_range(0.65, 1.35)
 		elif family == &"fungi":
 			scale_value = rng.randf_range(0.55, 0.95)
+		elif family == &"young_pine":
+			scale_value = rng.randf_range(0.8, 1.35)
+		elif family == &"grass_cluster":
+			scale_value = rng.randf_range(0.7, 1.25)
 		instance.position = Vector3(point.x, _height_at(point.x, point.y), point.y)
 		instance.rotation.y = rng.randf_range(0.0, TAU)
 		instance.scale *= scale_value
@@ -783,9 +972,12 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 	var crown_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.055, 0.24, 0.075)
 	_set_mesh_material(crown, _ecology_motion_material(crown_low, pack, 0.34, 0.14 if _is_altered_phase() else 0.0))
 	_set_mesh_material(secondary_crown, _ecology_motion_material(crown_low, pack, 0.34, 0.14 if _is_altered_phase() else 0.0))
-	var trunks := _new_multimesh(trunk, count)
-	var primary_crowns := _new_multimesh(crown, count * crown_layers)
-	var secondary_crowns := _new_multimesh(secondary_crown, count * crown_layers)
+	var cedar_is_combined := family == BiomeContentPack.VegetationFamily.CEDAR_FIR
+	var primary_visual := _combine_tree_mesh(trunk, crown, 1.42, trunk_height * 0.43) if cedar_is_combined else crown
+	var secondary_visual := _combine_tree_mesh(trunk, secondary_crown, 1.42, trunk_height * 0.43) if cedar_is_combined else secondary_crown
+	var trunks := _new_multimesh(trunk, 0 if cedar_is_combined else count)
+	var primary_crowns := _new_multimesh(primary_visual, count * crown_layers)
+	var secondary_crowns := _new_multimesh(secondary_visual, count * crown_layers)
 	var placed := 0
 	var primary_placed := 0
 	var secondary_placed := 0
@@ -801,9 +993,10 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 		var size := rng.randf_range(size_low, size_high)
 		var ground := _height_at(point.x, point.y)
 		var yaw := rng.randf_range(0.0, TAU)
-		var trunk_y := ground if trunk_has_base_origin else ground + trunk_height * 0.5 * size
-		trunks.set_instance_transform(placed, Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size)), Vector3(point.x, trunk_y, point.y)))
-		trunks.set_instance_color(placed, Color(0.18, 0.065, 0.025).lerp(Color(0.36, 0.16, 0.05), rng.randf()))
+		if not cedar_is_combined:
+			var trunk_y := ground if trunk_has_base_origin else ground + trunk_height * 0.5 * size
+			trunks.set_instance_transform(placed, Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size)), Vector3(point.x, trunk_y, point.y)))
+			trunks.set_instance_color(placed, Color(0.18, 0.065, 0.025).lerp(Color(0.36, 0.16, 0.05), rng.randf()))
 		# The ratio is deterministic per chunk, so streaming a chunk out and in never
 		# changes its silhouette. Secondary forms are common enough to shape the view,
 		# but primary forms still define the biome at a glance.
@@ -811,6 +1004,9 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 		for layer in crown_layers:
 			var crown_scale := size * (1.15 - float(layer) * 0.2)
 			var offset := Vector3(0, size * (trunk_height * 0.57 + float(layer) * 1.2), 0)
+			if cedar_is_combined:
+				crown_scale = size
+				offset = Vector3.ZERO
 			if family != BiomeContentPack.VegetationFamily.CEDAR_FIR:
 				offset += Vector3(cos(yaw + layer * PI), 0, sin(yaw + layer * PI)) * size * 0.65
 			if family == BiomeContentPack.VegetationFamily.ANTLER_LARCH:
@@ -835,12 +1031,27 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 				primary_crowns.set_instance_color(primary_placed, crown_color)
 				primary_placed += 1
 		placed += 1
-	trunks.instance_count = placed
+	trunks.instance_count = 0 if cedar_is_combined else placed
 	primary_crowns.instance_count = primary_placed
 	secondary_crowns.instance_count = secondary_placed
+	_set_multimesh_chunk_bounds(trunks, coordinate)
+	_set_multimesh_chunk_bounds(primary_crowns, coordinate)
+	_set_multimesh_chunk_bounds(secondary_crowns, coordinate)
 	_add_multimesh_instance(body, "VegetationTrunks_%d" % family, trunks)
 	_add_multimesh_instance(body, "VegetationCrownsPrimary_%d" % family, primary_crowns)
-	_add_multimesh_instance(body, "VegetationCrownsSecondary_%d" % family, secondary_crowns)
+	_add_multimesh_instance(body, "VegetationCrownsSecondary_%d" % family, secondary_crowns, false)
+
+
+func _combine_tree_mesh(trunk: Mesh, crown: Mesh, crown_scale: float, crown_height: float) -> ArrayMesh:
+	var combined := ArrayMesh.new()
+	var trunk_surface := SurfaceTool.new()
+	trunk_surface.append_from(trunk, 0, Transform3D.IDENTITY)
+	trunk_surface.commit(combined)
+	var crown_surface := SurfaceTool.new()
+	var crown_transform := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * crown_scale), Vector3.UP * crown_height)
+	crown_surface.append_from(crown, 0, crown_transform)
+	crown_surface.commit(combined)
+	return combined
 
 
 func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
@@ -931,8 +1142,10 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 		placed += 1
 	primary_multimesh.instance_count = primary_placed
 	secondary_multimesh.instance_count = secondary_placed
+	_set_multimesh_chunk_bounds(primary_multimesh, coordinate)
+	_set_multimesh_chunk_bounds(secondary_multimesh, coordinate)
 	_add_multimesh_instance(body, "GeologyPrimary_%d" % family, primary_multimesh)
-	_add_multimesh_instance(body, "GeologySecondary_%d" % family, secondary_multimesh)
+	_add_multimesh_instance(body, "GeologySecondary_%d" % family, secondary_multimesh, false)
 
 
 func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
@@ -966,6 +1179,7 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 		multimesh.set_instance_color(placed, tint)
 		placed += 1
 	multimesh.instance_count = placed
+	_set_multimesh_chunk_bounds(multimesh, coordinate)
 	# Hundreds of ankle-high plants do not contribute a readable silhouette, but
 	# rendering them into every directional shadow cascade is expensive.
 	_add_multimesh_instance(body, "Groundcover_%d" % ecology, multimesh, false)
@@ -1445,6 +1659,9 @@ func _random_chunk_point(coordinate: Vector2i, rng: RandomNumberGenerator) -> Ve
 func _accept_ecology_point(point: Vector2, layer: int, pack: BiomeContentPack) -> bool:
 	if pack == null:
 		return true
+	var region_ratio := get_region_ratio(point)
+	if region_ratio > 1.035:
+		return false
 	# Offset noise fields prevent trees, stone and groundcover from becoming one
 	# uniform procedural carpet. Each layer forms patches and leaves authored
 	# negative space around the route and major compositions.
@@ -1454,8 +1671,12 @@ func _accept_ecology_point(point: Vector2, layer: int, pack: BiomeContentPack) -
 	match layer:
 		0: # Vegetation forms groves and deliberate clearings.
 			var threshold := lerpf(0.08, -0.24, clampf(pack.vegetation_density / 1.6, 0.0, 1.0))
+			if region_ratio > pack.boundary_inner_ratio:
+				threshold += 0.34
 			return broad + detail * 0.28 > threshold
 		1: # Geology traces different bands instead of shadowing the trees.
+			if region_ratio > pack.boundary_inner_ratio:
+				return broad + detail * 0.35 > -0.42
 			return absf(broad * 0.7 - detail) > lerpf(0.34, 0.12, clampf(pack.geology_density / 1.8, 0.0, 1.0))
 		_: # Groundcover bridges grove edges but preserves open sight lines.
 			return broad * 0.62 + detail * 0.55 > -0.22
@@ -1533,6 +1754,8 @@ func _should_place_landmark(coordinate: Vector2i, pack: BiomeContentPack) -> boo
 	if posmod(coordinate.y - 2, period) != 0:
 		return false
 	var intended := _landmark_center_for_row(coordinate.y, pack)
+	if get_region_ratio(intended) >= (pack.boundary_inner_ratio - 0.04 if pack != null else 0.74):
+		return false
 	return coordinate.x == floori(intended.x / chunk_size)
 
 
@@ -1546,6 +1769,8 @@ func _should_place_ecology_composition(coordinate: Vector2i, pack: BiomeContentP
 	if _should_place_landmark_row(coordinate.y, pack):
 		return false
 	var intended := _composition_center_for_row(coordinate.y, pack)
+	if get_region_ratio(intended) >= pack.boundary_inner_ratio - 0.02:
+		return false
 	return coordinate.x == floori(intended.x / chunk_size)
 
 
@@ -1624,6 +1849,13 @@ func _new_multimesh(mesh: Mesh, count: int) -> MultiMesh:
 	return multimesh
 
 
+func _set_multimesh_chunk_bounds(multimesh: MultiMesh, coordinate: Vector2i) -> void:
+	# MultiMesh is culled as one object. Tight per-chunk bounds let Godot reject the
+	# entire grove behind/outside the camera instead of treating its AABB as unknown.
+	var origin := Vector3(float(coordinate.x) * chunk_size - 3.0, -72.0, float(coordinate.y) * chunk_size - 3.0)
+	multimesh.custom_aabb = AABB(origin, Vector3(chunk_size + 6.0, 156.0, chunk_size + 6.0))
+
+
 func _add_multimesh_instance(parent: Node3D, node_name: String, multimesh: MultiMesh, casts_shadow: bool = true) -> void:
 	if multimesh.instance_count == 0:
 		return
@@ -1661,7 +1893,9 @@ func _rebuild_presentation_layers() -> void:
 	_build_layered_ridge_horizon(rng, pack)
 	match ecology:
 		BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
-			_build_taiga_horizon_crown(rng, pack)
+			# The finite terrain now owns the forest silhouette. The old camera-centred
+			# cedar ring followed the player forever and exposed unpaired pole shapes.
+			pass
 		BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
 			_build_fungal_horizon(rng, pack)
 		_:
@@ -1735,6 +1969,12 @@ func _build_taiga_horizon_crown(rng: RandomNumberGenerator, pack: BiomeContentPa
 		var crown_scale := scale * rng.randf_range(0.88, 1.14)
 		var crown_basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * crown_scale)
 		crowns.set_instance_transform(index, Transform3D(crown_basis, position + Vector3.UP * 5.1 * scale))
+	# Separate trunk/crown MultiMeshes need the same explicit spatial envelope.
+	# Without it, Godot could keep the trunks while culling their crowns, producing
+	# the forest of bare poles visible in earlier builds.
+	var horizon_bounds := AABB(Vector3(-84.0, -5.0, -84.0), Vector3(168.0, 32.0, 168.0))
+	trunks.custom_aabb = horizon_bounds
+	crowns.custom_aabb = horizon_bounds
 	_add_multimesh_instance(_horizon_root, "DistantCedarTrunks", trunks, false)
 	_add_multimesh_instance(_horizon_root, "DistantCedarCrowns", crowns, false)
 
@@ -1982,6 +2222,7 @@ shader_type spatial;
 render_mode cull_disabled;
 uniform float metamorphosis : hint_range(0.0, 1.0) = 0.0;
 uniform float weather_wetness : hint_range(0.0, 1.0) = 0.0;
+uniform float weather_snow : hint_range(0.0, 1.0) = 0.0;
 uniform vec3 phase_low : source_color = vec3(0.025, 0.16, 0.32);
 uniform vec3 phase_high : source_color = vec3(0.82, 0.025, 0.7);
 varying float pulse;
@@ -2042,7 +2283,9 @@ void fragment() {
 	float cloud_shadow = terrain_cloud_shadow;
 	ground *= mix(1.0, mix(0.82, 0.7, trip_cloud_storm), cloud_shadow);
 	float wet_mask = weather_wetness * mix(0.62, 1.0, cells) * (1.0 - slope_mask * 0.72);
-	ALBEDO = mix(ground, ground * vec3(0.5, 0.58, 0.54), wet_mask * 0.7);
+	float snow_mask = weather_snow * smoothstep(0.34, 0.82, macro_cells + (1.0 - slope_mask) * 0.46);
+	vec3 weathered_ground = mix(ground, ground * vec3(0.5, 0.58, 0.54), wet_mask * 0.7);
+	ALBEDO = mix(weathered_ground, vec3(0.68, 0.79, 0.84) * mix(0.82, 1.08, cells), snow_mask * 0.88);
 	ROUGHNESS = clamp(mix(0.96, 0.78, metamorphosis) - cells * 0.07 + slope_mask * 0.08 - wet_mask * 0.54, 0.22, 1.0);
 	SPECULAR = mix(0.22, 0.68, wet_mask);
 	AO = mix(0.94, 0.78, slope_mask * 0.72 + cloud_shadow * 0.12);
@@ -2056,12 +2299,22 @@ void fragment() {
 	material.shader = shader
 	material.set_shader_parameter(&"metamorphosis", _phase_amount)
 	material.set_shader_parameter(&"weather_wetness", 0.0)
+	material.set_shader_parameter(&"weather_snow", 0.0)
 	return material
 
 
 func set_weather_wetness(value: float) -> void:
 	if _terrain_material != null:
 		_terrain_material.set_shader_parameter(&"weather_wetness", clampf(value, 0.0, 1.0))
+
+
+func set_weather_state(state: int, _title: String, intensity: float) -> void:
+	if _terrain_material == null:
+		return
+	var local_snow := state == 4 # WeatherOrchestrator.State.SNOW without a cyclic script dependency.
+	if local_snow and is_instance_valid(_target):
+		local_snow = bool(get_environment_context(_target.global_position).get("can_snow", false))
+	_terrain_material.set_shader_parameter(&"weather_snow", clampf(intensity, 0.0, 1.0) if local_snow else 0.0)
 
 
 func _blend_disc(current: float, point: Vector2, center: Vector2, radius: float, target_height: float) -> float:

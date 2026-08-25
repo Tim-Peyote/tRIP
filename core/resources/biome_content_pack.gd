@@ -34,6 +34,17 @@ enum GeologyFamily {
 	FLOATING_STRATA,
 }
 
+enum BoundaryFamily {
+	MOUNTAIN_RING,
+	KARST_WALL,
+	RED_ESCARPMENT,
+	ICE_CIRQUE,
+	ASH_RIDGE,
+	MARSH_BLUFF,
+	ROOT_RAMPART,
+	FRACTURED_PLATEAU,
+}
+
 @export var id: StringName
 @export var ecology_family: EcologyFamily = EcologyFamily.ALTAI_TAIGA
 @export var vegetation_family: VegetationFamily = VegetationFamily.CEDAR_FIR
@@ -63,10 +74,19 @@ enum GeologyFamily {
 @export_range(0.25, 2.0, 0.05) var route_wander_scale: float = 1.0
 @export_range(0.2, 2.0, 0.05) var route_relief_scale: float = 1.0
 @export_range(3, 12, 1, "suffix:chunks") var vista_period_chunks: int = 6
+@export_category("Finite region")
+@export var boundary_family: BoundaryFamily = BoundaryFamily.MOUNTAIN_RING
+@export_range(240.0, 720.0, 10.0, "suffix:m") var region_half_width: float = 410.0
+@export_range(540.0, 1200.0, 10.0, "suffix:m") var region_length: float = 920.0
+@export_range(-220.0, -40.0, 5.0, "suffix:m") var region_south: float = -120.0
+@export_range(0.68, 0.9, 0.01) var boundary_inner_ratio: float = 0.78
+@export_range(18.0, 72.0, 1.0, "suffix:m") var boundary_height: float = 48.0
+@export_range(0.2, 1.6, 0.05) var highland_bias: float = 0.8
+@export_range(0.0, 1.0, 0.05) var lowland_moisture: float = 0.45
 @export var ground_low: Color = Color(0.08, 0.16, 0.07)
 @export var ground_high: Color = Color(0.3, 0.28, 0.13)
 @export var accent_color: Color = Color(0.65, 0.8, 0.35)
 
 
 func get_generation_signature() -> String:
-	return "%s:%d:%d:%d:%s:%s:%.2f:%.2f:%.2f:%d" % [id, ecology_family, vegetation_family, geology_family, poi_family, composition_family, route_width, route_wander_scale, route_relief_scale, vista_period_chunks]
+	return "%s:%d:%d:%d:%s:%s:%.2f:%.2f:%.2f:%d:%d:%.0f:%.0f" % [id, ecology_family, vegetation_family, geology_family, poi_family, composition_family, route_width, route_wander_scale, route_relief_scale, vista_period_chunks, boundary_family, region_half_width, region_length]

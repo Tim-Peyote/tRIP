@@ -49,7 +49,7 @@ func _validate_landscape_rules() -> void:
 	var ordinary_pack := load("res://content/biome_packs/ordinary_taiga.tres") as BiomeContentPack
 	var previous_landmark_row := -999
 	var cadence_count := 0
-	for row: int in range(2, 31):
+	for row: int in range(2, 41):
 		var center := terrain.call("_landmark_center_for_row", row, ordinary_pack) as Vector2
 		var coordinate := Vector2i(floori(center.x / terrain.chunk_size), row)
 		if terrain.call("_should_place_landmark", coordinate, ordinary_pack):
@@ -59,7 +59,18 @@ func _validate_landscape_rules() -> void:
 			cadence_count += 1
 			var route_distance := absf(center.x - float(terrain.call("_route_center_x", center.y)))
 			_expect(route_distance >= 8.4 and route_distance <= 13.6, "Landmark was not staged at the readable edge of the expedition route.")
-	_expect(cadence_count >= 4, "The infinite route produced too few controlled landmark opportunities.")
+	_expect(cadence_count >= 3, "The finite region produced too few controlled landmark opportunities.")
+	var region_center_z := ordinary_pack.region_south + ordinary_pack.region_length * 0.5
+	var interior_height := terrain.get_height_at_global(Vector3(0.0, 0.0, region_center_z))
+	var boundary_point := Vector3(ordinary_pack.region_half_width * 0.98, 0.0, region_center_z)
+	var boundary_height := terrain.get_height_at_global(boundary_point)
+	_expect(boundary_height > interior_height + ordinary_pack.boundary_height * 0.45, "The finite map edge is not closed by its authored mountain ring.")
+	_expect(terrain.is_inside_playable_region(Vector3.ZERO) and not terrain.is_inside_playable_region(Vector3(ordinary_pack.region_half_width * 1.3, 0.0, region_center_z)), "Finite region containment does not distinguish its playable interior from the exterior.")
+	_expect(not terrain.call("_chunk_intersects_region", Vector2i(80, 80)), "Streaming still accepts chunks far beyond the finite region.")
+	var valley_context := terrain.get_environment_context(Vector3(float(terrain.call("_route_center_x", 240.0)), 0.0, 240.0))
+	var rim_context := terrain.get_environment_context(boundary_point)
+	_expect(StringName(valley_context.get("zone_id")) in [&"river_valley", &"dense_forest", &"basin"], "The route interior has no coherent lowland landscape zone.")
+	_expect(StringName(rim_context.get("zone_id")) == &"boundary" and float(rim_context.get("exposure")) > float(valley_context.get("exposure")), "The mountain rim is not exposed as a distinct weather zone.")
 	var far_z := 240.0
 	var route_x := float(terrain.call("_route_center_x", far_z))
 	var route_height := terrain.get_height_at_global(Vector3(route_x, 0, far_z))
@@ -104,6 +115,7 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 	var key_lights: Dictionary[Color, bool] = {}
 	var motion_signatures: Dictionary[String, bool] = {}
 	var route_signatures: Dictionary[String, bool] = {}
+	var boundary_signatures: Dictionary[String, bool] = {}
 	var expected_poi_focal_nodes := [
 		"WeatheredCedarMarker", "ListeningBellCap", "WarmBoneWithoutBeast", "FrozenMemorySlab_00",
 		"HalfErasedTentSkin", "StillWaterEye", "RootMouthDarkness", "BrotherArc_-1",
@@ -119,6 +131,8 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 		key_lights[phase.visual_profile.primary_light_color] = true
 		motion_signatures["%.3f:%.3f" % [pack.ecology_motion_strength, pack.ecology_motion_speed]] = true
 		route_signatures["%.2f:%.2f:%.2f:%d" % [pack.route_width, pack.route_wander_scale, pack.route_relief_scale, pack.vista_period_chunks]] = true
+		boundary_signatures["%d:%.0f:%.0f:%.0f" % [pack.boundary_family, pack.region_half_width, pack.region_length, pack.boundary_height]] = true
+		_expect(pack.region_length >= 700.0 and pack.region_half_width >= 300.0, "%s is too small to support a substantial finite expedition." % pack.id)
 		_expect(phase.visual_profile.ambient_energy <= 0.72, "%s flattens geometry with excessive ambient light." % phase.id)
 		terrain.apply_world_phase(phase)
 		var body := StaticBody3D.new()
@@ -170,6 +184,7 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 	_expect(key_lights.size() == phase_paths.size(), "Worlds reuse the same key light instead of owning distinct lighting direction and color.")
 	_expect(motion_signatures.size() == phase_paths.size(), "Worlds reuse one vegetation motion profile.")
 	_expect(route_signatures.size() == phase_paths.size(), "Worlds reuse one route rhythm instead of owning distinct navigation geometry.")
+	_expect(boundary_signatures.size() == phase_paths.size(), "Worlds reuse one finite-map boundary instead of owning distinct enclosing landscapes.")
 
 
 func _create_scatter() -> BiomeDressingScatter:
