@@ -48,6 +48,7 @@ signal jumped
 @onready var distraction_thrower: DistractionThrowerComponent = %DistractionThrowerComponent
 @onready var avatar_animator: PlayerAvatarAnimator = %AvatarAnimator
 @onready var first_person_arm_rig: FirstPersonArmRig = %RiggedFirstPersonArms
+@onready var vitals: PlayerVitalsComponent = %PlayerVitalsComponent
 
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 var _look_pitch: float = 0.0
@@ -171,12 +172,13 @@ func _physics_process(delta: float) -> void:
 	if _accepts_gameplay_input():
 		_update_gamepad_look(delta)
 		_update_stance(delta)
-	if not _accepts_gameplay_input():
+	if not _accepts_gameplay_input() or not vitals.can_act():
 		velocity.x = move_toward(velocity.x, 0.0, ground_acceleration * delta)
 		velocity.z = move_toward(velocity.z, 0.0, ground_acceleration * delta)
 		_apply_gravity(delta)
 		move_and_slide()
 		_update_viewmodel(delta, 0.0)
+		vitals.set_activity(false, false, delta)
 		return
 
 	var input_vector := _get_movement_input()
@@ -208,6 +210,7 @@ func _physics_process(delta: float) -> void:
 	_update_camera_feel(delta, movement_strength)
 	_update_viewmodel(delta, movement_strength)
 	_update_steps()
+	vitals.set_activity(_is_sprinting, movement_strength > 0.05, delta)
 
 
 func release_mouse() -> void:
@@ -296,9 +299,10 @@ func set_crimson_drive(value: float) -> void:
 	_crimson_drive_amount = clampf(value, 0.0, 1.0)
 
 
-func set_weather_modifiers(surface_wetness: float, wind_strength: float) -> void:
+func set_weather_modifiers(surface_wetness: float, wind_strength: float, ambient_temperature: float = 12.0) -> void:
 	_surface_wetness = clampf(surface_wetness, 0.0, 1.0)
 	_weather_wind_strength = maxf(wind_strength, 0.0)
+	vitals.set_environment(_surface_wetness, _weather_wind_strength, ambient_temperature)
 
 
 func _on_physical_hold_changed(active: bool) -> void:
@@ -354,12 +358,12 @@ func _update_gamepad_look(delta: float) -> void:
 
 
 func _get_target_speed() -> float:
-	var drive_multiplier := lerpf(1.0, 1.22, _crimson_drive_amount)
+	var drive_multiplier := lerpf(1.0, 1.22, _crimson_drive_amount) * vitals.get_movement_multiplier()
 	_is_sprinting = false
 	if _is_crouched:
 		return crouch_speed * drive_multiplier
 	var forward_intent := -_wish_direction.dot(global_basis.z)
-	if Input.is_action_pressed(&"sprint") and forward_intent > 0.35:
+	if Input.is_action_pressed(&"sprint") and forward_intent > 0.35 and vitals.can_sprint():
 		_is_sprinting = true
 		return sprint_speed * drive_multiplier
 	return walk_speed * drive_multiplier
@@ -390,6 +394,9 @@ func _apply_gravity(delta: float) -> void:
 
 func _try_jump() -> void:
 	if _jump_buffer_remaining <= 0.0 or _coyote_remaining <= 0.0 or _is_crouched:
+		return
+	if not vitals.spend_stamina(13.0, &"jump"):
+		_jump_buffer_remaining = 0.0
 		return
 	velocity.y = jump_velocity
 	_jump_buffer_remaining = 0.0
@@ -422,6 +429,8 @@ func _on_landed(impact_speed: float) -> void:
 	var strength := clampf((impact_speed - 2.0) / 8.0, 0.0, 1.0)
 	_landing_velocity = -0.55 * strength
 	landed.emit(impact_speed)
+	if impact_speed > 9.0:
+		vitals.apply_damage(pow(impact_speed - 8.0, 1.35) * 0.72, &"fall")
 
 
 func _update_camera_feel(delta: float, input_strength: float) -> void:

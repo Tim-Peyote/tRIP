@@ -87,6 +87,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	_active_player = _active_level.get_player()
 	world_metamorphosis_director.setup(_active_level.world_phase_orchestrator)
 	gameplay_hud.setup(_active_player)
+	gameplay_hud.setup_vitals(_active_player.vitals)
 	gameplay_hud.setup_cooking(_active_level.get_cooking_orchestrator())
 	gameplay_hud.setup_recipe_knowledge(_active_level.get_recipe_knowledge_orchestrator())
 	gameplay_hud.setup_knowledge(_active_level.get_knowledge_orchestrator())
@@ -114,6 +115,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	_active_player.inventory.consumable_used.connect(effect_orchestrator.apply_effects)
 	_active_player.inventory.consumable_used.connect(_active_player.play_consumption_animation)
 	effect_orchestrator.gameplay_channels_changed.connect(_on_effect_gameplay_channels_changed)
+	effect_orchestrator.gameplay_channels_changed.connect(_active_player.vitals.apply_effect_channels)
 	audio_director.set_snapshot(&"default")
 	_active_player.interactor.interaction_completed.connect(audio_director.play_ui_cue.bind(&"confirm"))
 

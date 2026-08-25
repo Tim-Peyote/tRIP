@@ -58,6 +58,7 @@ var _root_pressure: RootPressureOrchestrator
 var _biome_hazard: BiomeHazardOrchestrator
 var _inside_root_well: bool = false
 var _weather: WeatherOrchestrator
+var _vitals: PlayerVitalsComponent
 var _notice_tween: Tween
 var _notice_rest_y: float
 var _last_interaction_context: Dictionary = {}
@@ -105,6 +106,9 @@ func _ready() -> void:
 	inventory_label.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("9dbd78")))
 	%ToolLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("d49a68"), true))
 	%DistractionLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("a7aaa1"), true))
+	%VitalsPanel.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel(Color("c6d98a"), 0.72))
+	%HealthBar.add_theme_stylebox_override("fill", _make_vitals_fill(Color("d96759")))
+	%StaminaBar.add_theme_stylebox_override("fill", _make_vitals_fill(Color("d8bf66")))
 	for filter_button: Button in [%InventoryFilterAll, %InventoryFilterIngredients, %InventoryFilterConsumables, %InventoryFilterTools]:
 		filter_button.toggle_mode = true
 	for journal_tab: Button in [%JournalTabSpecies, %JournalTabHypotheses, %JournalTabRecipes]:
@@ -137,6 +141,15 @@ func setup(player: FirstPersonController) -> void:
 	%ToolLabel.text = player.toolbelt.get_display_name() + "  [Q]"
 	_on_distraction_count_changed(player.distraction_thrower.remaining)
 	_on_interaction_context_changed({})
+
+
+func setup_vitals(vitals: PlayerVitalsComponent) -> void:
+	_vitals = vitals
+	vitals.state_changed.connect(_on_vitals_state_changed)
+	vitals.condition_changed.connect(_on_vitals_condition_changed)
+	vitals.exhausted.connect(func() -> void: show_notice("ИСТОЩЕНИЕ · отдышись или прими подходящую пищу"))
+	vitals.damaged.connect(_on_vitals_damaged)
+	_on_vitals_state_changed(vitals.get_snapshot())
 
 
 func setup_weather(weather: WeatherOrchestrator) -> void:
@@ -307,7 +320,12 @@ func _on_item_added(item: ItemInstance, display_name: String) -> void:
 
 
 func _on_item_rejected(_definition_id: StringName, reason: String) -> void:
-	show_notice("Не помещается: %s" % reason)
+	var messages := {
+		"metabolic_limit": "Организм уже удерживает три разных состава. Дождись ослабления одного из них.",
+		"mass_limit": "Слишком тяжело для текущей нагрузки.",
+		"volume_limit": "В сумке не осталось свободного объёма.",
+	}
+	show_notice(String(messages.get(reason, "Не помещается: %s" % reason)))
 
 
 func _on_inventory_changed() -> void:
@@ -600,6 +618,46 @@ func _on_weather_wetness_changed(value: float) -> void:
 	%WeatherBar.visible = value > 0.04
 
 
+func _on_vitals_state_changed(snapshot: Dictionary) -> void:
+	var health := float(snapshot.get("health", 0.0))
+	var maximum_health := maxf(1.0, float(snapshot.get("maximum_health", 1.0)))
+	var stamina := float(snapshot.get("stamina", 0.0))
+	var maximum_stamina := maxf(1.0, float(snapshot.get("maximum_stamina", 1.0)))
+	%HealthBar.value = health / maximum_health * 100.0
+	%StaminaBar.value = stamina / maximum_stamina * 100.0
+	%HealthLabel.text = "ЗДОРОВЬЕ  %d / %d" % [ceili(health), ceili(maximum_health)]
+	%StaminaLabel.text = "ВЫНОСЛИВОСТЬ  %d / %d" % [ceili(stamina), ceili(maximum_stamina)]
+	var temperature := float(snapshot.get("core_temperature", 36.7))
+	var wet := float(snapshot.get("wetness", 0.0))
+	var spores := float(snapshot.get("spore_load", 0.0))
+	var toxicity_value := float(snapshot.get("toxicity", 0.0))
+	%PhysiologyLabel.text = "ТЕЛО %.1f°C  ·  ВЛАГА %d%%  ·  СПОРЫ %d%%  ·  ТОКСИНЫ %d%%" % [temperature, roundi(wet * 100.0), roundi(spores * 100.0), roundi(toxicity_value * 100.0)]
+	var slot_labels := PackedStringArray()
+	for slot: Dictionary in snapshot.get("food_slots", []):
+		var seconds := maxi(0, roundi(float(slot.get("remaining", 0.0))))
+		slot_labels.append("● %s  %d:%02d" % [String(slot.get("name", "СОСТАВ")).to_upper(), seconds / 60, seconds % 60])
+	while slot_labels.size() < PlayerVitalsComponent.MAX_FOOD_SLOTS:
+		slot_labels.append("○ ПУСТО")
+	%FoodSlotsLabel.text = "   ".join(slot_labels)
+	%VitalsPanel.visible = true
+
+
+func _on_vitals_condition_changed(_condition_id: StringName, title: String) -> void:
+	%ConditionLabel.text = title
+
+
+func _on_vitals_damaged(amount: float, source: StringName) -> void:
+	if amount >= 1.0:
+		show_notice("УРОН %d · %s" % [ceili(amount), String(source).to_upper()])
+
+
+func _make_vitals_fill(color: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(3)
+	return style
+
+
 func _update_inventory_label() -> void:
 	if _player == null:
 		inventory_label.text = ""
@@ -793,8 +851,9 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 	for specimen: ItemInstance in specimens:
 		freshness_total += specimen.freshness
 	var average_freshness := freshness_total / maxf(1.0, float(specimens.size()))
-	inventory_detail_body.text = "%s\n\nВ СУМКЕ ×%.0f   ·   %.2f КГ   ·   %.2f Л" % [
-		definition.description, _player.inventory.count(definition_id), unit_mass, unit_volume,
+	var metabolism := _consumable_profile_text(definition as ConsumableDefinition) if definition is ConsumableDefinition else ""
+	inventory_detail_body.text = "%s%s\n\nВ СУМКЕ ×%.0f   ·   %.2f КГ   ·   %.2f Л" % [
+		definition.description, metabolism, _player.inventory.count(definition_id), unit_mass, unit_volume,
 	]
 	inventory_quality_bar.value = best_quality
 	inventory_freshness_bar.value = average_freshness
@@ -810,6 +869,28 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 		inventory_specimen_list.select(0)
 	inventory_use_button.disabled = not definition is ConsumableDefinition
 	inventory_use_button.text = "Принять состав" if definition is ConsumableDefinition else "Нельзя применить напрямую"
+
+
+func _consumable_profile_text(definition: ConsumableDefinition) -> String:
+	if definition == null:
+		return ""
+	var minutes := ceili(definition.nutrition_duration_seconds / 60.0)
+	var lines: Array[String] = []
+	if definition.maximum_health_bonus != 0.0:
+		lines.append("ЗДОРОВЬЕ  %+d" % roundi(definition.maximum_health_bonus))
+	if definition.maximum_stamina_bonus != 0.0:
+		lines.append("ВЫНОСЛИВОСТЬ  %+d" % roundi(definition.maximum_stamina_bonus))
+	if definition.health_regeneration > 0.0:
+		lines.append("ВОССТАНОВЛЕНИЕ  +%.1f/с" % definition.health_regeneration)
+	if definition.warmth_bonus > 0.0 or definition.cold_resistance_bonus > 0.0:
+		lines.append("ТЕПЛОЗАЩИТА  %d%%" % roundi(maxf(definition.warmth_bonus, definition.cold_resistance_bonus) * 100.0))
+	if definition.spore_resistance_bonus != 0.0:
+		lines.append("ЗАЩИТА ОТ СПОР  %+d%%" % roundi(definition.spore_resistance_bonus * 100.0))
+	if definition.toxicity > 0.0:
+		lines.append("ТОКСИЧЕСКАЯ НАГРУЗКА  +%d%%" % roundi(definition.toxicity * 100.0))
+	if lines.is_empty():
+		return ""
+	return "\n\nЭФФЕКТ · %d МИН · %s\n%s" % [minutes, String(definition.nutrition_group).to_upper(), "   ·   ".join(lines)]
 
 
 func _use_selected_inventory_item() -> void:

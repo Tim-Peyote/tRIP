@@ -5,12 +5,18 @@ signal item_added(item: ItemInstance, display_name: String)
 signal item_rejected(definition_id: StringName, reason: String)
 signal item_removed(item: ItemInstance)
 signal consumable_used(effect_ids: Array[StringName], display_name: String)
+signal consumable_consumed(definition_id: StringName, quality: float)
 signal changed
 
 @export_range(0.1, 100.0, 0.1) var maximum_volume: float = 8.0
 @export_range(0.1, 100.0, 0.1, "suffix:kg") var maximum_mass: float = 12.0
 
 var items: Array[ItemInstance] = []
+var _consumption_guard: Callable
+
+
+func set_consumption_guard(guard: Callable) -> void:
+	_consumption_guard = guard
 
 
 func add_item(item: ItemInstance) -> bool:
@@ -72,10 +78,21 @@ func use_consumable(definition_id: StringName) -> bool:
 	var definition := ContentDB.get_definition(definition_id)
 	if not definition is ConsumableDefinition:
 		return false
+	var specimen: ItemInstance
+	for item: ItemInstance in items:
+		if item.definition_id == definition_id:
+			specimen = item
+			break
+	if specimen == null:
+		return false
+	if _consumption_guard.is_valid() and not bool(_consumption_guard.call(definition, specimen)):
+		item_rejected.emit(definition_id, "metabolic_limit")
+		return false
 	var removed := remove_one(definition_id)
 	if removed == null:
 		return false
 	var consumable := definition as ConsumableDefinition
+	consumable_consumed.emit(definition_id, removed.quality)
 	consumable_used.emit(consumable.effect_ids, consumable.display_name)
 	return true
 

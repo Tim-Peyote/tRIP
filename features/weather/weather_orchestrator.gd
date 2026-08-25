@@ -21,6 +21,16 @@ const WEATHER_WEIGHTS: Dictionary[int, Array] = {
 	BiomeContentPack.EcologyFamily.ROOT_CAVERN: [20.0, 18.0, 2.0, 58.0, 2.0],
 	BiomeContentPack.EcologyFamily.HEART_PLATEAU: [34.0, 16.0, 14.0, 28.0, 8.0],
 }
+const ECOLOGY_TEMPERATURES: Dictionary[int, float] = {
+	BiomeContentPack.EcologyFamily.ALTAI_TAIGA: 11.0,
+	BiomeContentPack.EcologyFamily.MYCELIAL_KARST: 8.0,
+	BiomeContentPack.EcologyFamily.CRIMSON_STEPPE: 19.0,
+	BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE: -13.0,
+	BiomeContentPack.EcologyFamily.ASHEN_TUNDRA: -5.0,
+	BiomeContentPack.EcologyFamily.MIRROR_WETLAND: 9.0,
+	BiomeContentPack.EcologyFamily.ROOT_CAVERN: 6.0,
+	BiomeContentPack.EcologyFamily.HEART_PLATEAU: 4.0,
+}
 
 var state: State = State.CLEAR
 var intensity: float = 0.0
@@ -122,7 +132,7 @@ func set_weather(next_state: State, strength: float = 1.0, immediate: bool = fal
 	_configure_particles()
 	_apply_environment(immediate)
 	if _player != null:
-		_player.set_weather_modifiers(_target_wetness(), wind.length())
+		_player.set_weather_modifiers(_target_wetness(), wind.length(), get_ambient_temperature())
 	state_changed.emit(state, get_state_title(), intensity)
 
 
@@ -152,10 +162,21 @@ func get_state_title() -> String:
 
 
 func get_debug_text() -> String:
-	return "%s · сила %d%% · земля %d%% · ветер %.1f м/с · %s" % [
-		get_state_title(), roundi(intensity * 100.0), roundi(wetness * 100.0), wind.length(),
+	return "%s · %d°C · сила %d%% · земля %d%% · ветер %.1f м/с · %s" % [
+		get_state_title(), roundi(get_ambient_temperature()), roundi(intensity * 100.0), roundi(wetness * 100.0), wind.length(),
 		"авто" if automatic else "ручной режим",
 	]
+
+
+func get_ambient_temperature() -> float:
+	var result := float(ECOLOGY_TEMPERATURES.get(_ecology_family, 10.0))
+	match state:
+		State.STORM: result -= 5.0 * intensity
+		State.DRIZZLE: result -= 2.5 * intensity
+		State.FOG: result -= 1.5 * intensity
+		State.SNOW: result -= 7.0 * intensity
+		_: result += 1.5 * (1.0 - intensity)
+	return result
 
 
 func _choose_next_weather() -> void:
@@ -197,7 +218,7 @@ func _update_surface_state(delta: float) -> void:
 		wetness = next
 		wetness_changed.emit(wetness)
 		if _player != null:
-			_player.set_weather_modifiers(wetness, wind.length())
+			_player.set_weather_modifiers(wetness, wind.length(), get_ambient_temperature())
 
 
 func _apply_to_reactive_objects() -> void:

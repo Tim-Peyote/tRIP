@@ -132,6 +132,85 @@ grow_horizontal = 2
 grow_vertical = 0
 show_percentage = false
 
+[node name="VitalsPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -208.0
+offset_right = 448.0
+offset_bottom = -78.0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="VitalsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Layout" type="VBoxContainer" parent="VitalsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Top" type="HBoxContainer" parent="VitalsPanel/Margin/Layout"]
+layout_mode = 2
+
+[node name="HealthLabel" type="Label" parent="VitalsPanel/Margin/Layout/Top"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.92, 0.72, 0.66, 1)
+theme_override_font_sizes/font_size = 12
+text = "ЗДОРОВЬЕ  35 / 35"
+
+[node name="ConditionLabel" type="Label" parent="VitalsPanel/Margin/Layout/Top"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.74, 0.82, 0.62, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "СТАБИЛЬНО"
+horizontal_alignment = 2
+
+[node name="HealthBar" type="ProgressBar" parent="VitalsPanel/Margin/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 7)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="StaminaLabel" type="Label" parent="VitalsPanel/Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.81, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "ВЫНОСЛИВОСТЬ  60 / 60"
+
+[node name="StaminaBar" type="ProgressBar" parent="VitalsPanel/Margin/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 7)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="PhysiologyLabel" type="Label" parent="VitalsPanel/Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.68, 0.61, 0.92)
+theme_override_font_sizes/font_size = 10
+text = "ТЕЛО 36.7°C  ·  ВЛАГА 0%  ·  СПОРЫ 0%  ·  ТОКСИНЫ 0%"
+
+[node name="FoodSlotsLabel" type="Label" parent="VitalsPanel/Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.8, 0.58, 0.9)
+theme_override_font_sizes/font_size = 10
+text = "○ ПУСТО   ○ ПУСТО   ○ ПУСТО"
+text_overrun_behavior = 3
+
 [node name="NoticeLabel" type="Label" parent="."]
 unique_name_in_owner = true
 visible = false

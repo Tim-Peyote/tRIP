@@ -13,4 +13,12 @@ volume = 0.28
 max_stack = 1
 effect_ids = Array[StringName]([&"effect.spore_quiet"])
 doses = 1
-
+nutrition_group = &"counteragent"
+nutrition_duration_seconds = 480.0
+maximum_health_bonus = 20.0
+maximum_stamina_bonus = 7.0
+health_regeneration = 0.65
+warmth_bonus = 0.55
+cold_resistance_bonus = 0.35
+spore_resistance_bonus = 0.72
+toxicity = 0.16

@@ -25,6 +25,8 @@ func setup(level: ShelterLevel, game_loop: GameLoopOrchestrator, value_slot_id: 
 	_loop = game_loop
 	slot_id = value_slot_id
 	level.player.inventory.changed.connect(func() -> void: request_autosave(&"inventory"))
+	level.player.vitals.food_slots_changed.connect(func(_slots: Array[Dictionary]) -> void: request_autosave(&"metabolism"))
+	level.player.vitals.damaged.connect(func(_amount: float, _source: StringName) -> void: request_autosave(&"health"))
 	level.knowledge_orchestrator.entry_changed.connect(func(_id: StringName, _level_value: int) -> void: request_autosave(&"knowledge"))
 	level.knowledge_orchestrator.clue_recorded.connect(func(_id: StringName, _clue: StringName, _count: int, _total: int) -> void: request_autosave(&"clue"))
 	level.recipe_knowledge_orchestrator.recipe_learned.connect(func(_id: StringName, _name: String) -> void: request_autosave(&"recipe_learned"))
@@ -76,6 +78,7 @@ func capture_save_data() -> Dictionary:
 		"cooking": _level.cooking_orchestrator.to_save_data(),
 		"recipe_knowledge": _level.recipe_knowledge_orchestrator.to_save_data(),
 		"toolbelt": player.toolbelt.to_save_data(),
+		"vitals": player.vitals.to_save_data(),
 		"game_loop": _loop.to_save_data(),
 		"road_laboratory": _level.get_road_laboratory().to_save_data(),
 		"world_progression": _level.get_world_progression().to_save_data(),
@@ -97,6 +100,7 @@ func apply_save_data(data: Dictionary) -> void:
 	_level.cooking_orchestrator.apply_save_data(data.get("cooking", {}) as Dictionary)
 	_level.recipe_knowledge_orchestrator.apply_save_data(data.get("recipe_knowledge", {}) as Dictionary)
 	_level.player.toolbelt.apply_save_data(data.get("toolbelt", {}) as Dictionary)
+	_level.player.vitals.apply_save_data(data.get("vitals", {}) as Dictionary)
 	_collected_spawn_ids.clear()
 	for raw_id: Variant in data.get("collected_spawn_ids", []):
 		_collected_spawn_ids[StringName(raw_id)] = true

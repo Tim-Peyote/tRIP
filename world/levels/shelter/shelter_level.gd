@@ -55,6 +55,7 @@ func _ready() -> void:
 	shelter_progression_visuals.setup(game_loop_orchestrator)
 	investigation_board.setup(game_loop_orchestrator)
 	spore_tide.setup(player)
+	spore_tide.exposure_changed.connect(player.vitals.set_spore_exposure)
 	root_well.setup(game_loop_orchestrator, player)
 	_on_route_unlock_changed(game_loop_orchestrator.route_unlocked)
 	_on_root_well_plan_changed(game_loop_orchestrator.root_well_plan, "")
@@ -85,6 +86,7 @@ func _ready() -> void:
 	expedition_clock.phase_changed.connect(forest_clearing.apply_phase)
 	stealth_orchestrator.setup(player, [forest_clearing.listener])
 	player.distraction_created.connect(_on_distraction_created)
+	player.vitals.incapacitated.connect(_on_player_incapacitated)
 	_setup_road_laboratory(terrain)
 	_setup_biome_hazard(terrain)
 	_setup_world_progression(terrain)
@@ -259,8 +261,23 @@ func _setup_biome_hazard(terrain: ExpeditionTerrain) -> void:
 	add_child(biome_hazard)
 	biome_hazard.setup(player, terrain, world_phase_orchestrator, road_laboratory)
 	biome_hazard.overwhelmed.connect(func(definition: BiomeHazardDefinition, text: String) -> void:
+		player.vitals.apply_damage(8.0, definition.id)
 		game_loop_orchestrator.narrative_notice_requested.emit(definition.display_name.to_upper(), text)
 	)
+
+
+func _on_player_incapacitated(source: StringName) -> void:
+	var terrain := $ExpeditionTerrain as ExpeditionTerrain
+	var safe_position := Vector3(0.0, 0.0, 10.5)
+	safe_position.y = terrain.get_height_at_global(safe_position) + 0.18
+	player.global_position = safe_position
+	player.velocity = Vector3.ZERO
+	player.vitals.recover_after_incapacitation()
+	game_loop_orchestrator.narrative_notice_requested.emit(
+		"ТЫ ПРИШЁЛ В СЕБЯ У ОЧАГА",
+		"Причина: %s. Последний пищевой эффект утрачен; тело ослаблено, токсическая и споровая нагрузка сохранились." % String(source)
+	)
+	session_persistence.request_autosave(&"incapacitation_recovery")
 
 
 func _setup_biome_population(terrain: ExpeditionTerrain) -> void:

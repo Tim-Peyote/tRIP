@@ -142,7 +142,7 @@ func _build_ui() -> void:
 	_panel.name = "WorldPhaseDeveloperPanel"
 	_panel.visible = false
 	_panel.position = Vector2(18, 44)
-	_panel.custom_minimum_size = Vector2(610, 560)
+	_panel.custom_minimum_size = Vector2(610, 530)
 	_panel.theme = TripUITheme.build()
 	_canvas.add_child(_panel)
 	var margin := MarginContainer.new()
@@ -164,7 +164,7 @@ func _build_ui() -> void:
 	_seed_label = Label.new()
 	column.add_child(_seed_label)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 285)
+	scroll.custom_minimum_size = Vector2(0, 245)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)
 	var tools := VBoxContainer.new()
@@ -222,6 +222,13 @@ func _build_ui() -> void:
 	_add_action_button(action_grid, "B · физический стенд", _teleport_to_physics_lab)
 	if _weather != null:
 		_add_action_button(action_grid, "W · следующая погода", _weather.developer_cycle)
+	if _player != null and _player.vitals != null:
+		_add_action_button(action_grid, "Тело · восстановить", _player.vitals.developer_restore)
+		_add_action_button(action_grid, "Тело · холод", _player.vitals.developer_set_condition.bind(&"cold"))
+		_add_action_button(action_grid, "Тело · замерзание", _player.vitals.developer_set_condition.bind(&"freezing"))
+		_add_action_button(action_grid, "Тело · отравление", _player.vitals.developer_set_condition.bind(&"toxic"))
+		_add_action_button(action_grid, "Тело · споры", _player.vitals.developer_set_condition.bind(&"spores"))
+		_add_action_button(action_grid, "Тело · истощение", _player.vitals.developer_set_condition.bind(&"exhausted"))
 	_add_action_button(action_grid, "Backspace · реальный мир", _orchestrator.clear_developer_override)
 	var help := Label.new()
 	help.text = "PgUp/PgDn — соседний мир · 1–8 — прямой выбор · F10 — закрыть"
@@ -395,5 +402,12 @@ func _update_status() -> void:
 	var player_state := "—" if _player == null else "x %.1f · y %.1f · z %.1f · %.1f м/с" % [_player.global_position.x, _player.global_position.y, _player.global_position.z, _player.get_planar_speed()]
 	var fauna_state := "—" if _population == null else "%d · %s" % [_population.get_active_population_count(), ", ".join(_population.get_active_species_ids())]
 	var weather_state := "—" if _weather == null else _weather.get_debug_text()
-	_status.text = "%s · %s\n%s\n%s\nФауна: %s\nПогода: %s" % [definition.display_name, contract, player_state, "Лаба: %s · явление: %s" % [laboratory_state, hazard_state], fauna_state, weather_state]
+	var body_state := "—"
+	if _player != null and _player.vitals != null:
+		var body := _player.vitals.get_snapshot()
+		body_state = "HP %.0f/%.0f · ST %.0f/%.0f · %.1f°C · вода %d%% · токсины %d%% · споры %d%%" % [
+			body["health"], body["maximum_health"], body["stamina"], body["maximum_stamina"], body["core_temperature"],
+			roundi(float(body["wetness"]) * 100.0), roundi(float(body["toxicity"]) * 100.0), roundi(float(body["spore_load"]) * 100.0),
+		]
+	_status.text = "%s · %s\n%s\nТело: %s\n%s\nФауна: %s\nПогода: %s" % [definition.display_name, contract, player_state, body_state, "Лаба: %s · явление: %s" % [laboratory_state, hazard_state], fauna_state, weather_state]
 	_seed_label.text = "Seed: %d · чанков: %d · время: %s" % [_seed, _terrain.get_loaded_chunk_count(), _clock.get_display_text() if _clock != null else "—"]
