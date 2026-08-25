@@ -156,6 +156,8 @@ locale/fallback="ru"
 [rendering]
 
 environment/defaults/default_clear_color=Color(0.011, 0.016, 0.014, 1)
+environment/volumetric_fog/volume_size=48
+environment/volumetric_fog/volume_depth=24
 
 [shader_globals]
 
@@ -164,6 +166,14 @@ trip_wind_vector={
 "value": Vector3(0.35, 0, 0.12)
 }
 trip_wind_strength={
+"type": "float",
+"value": 0.0
+}
+trip_cloud_coverage={
+"type": "float",
+"value": 0.28
+}
+trip_cloud_storm={
 "type": "float",
 "value": 0.0
 }

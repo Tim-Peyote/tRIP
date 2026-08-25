@@ -536,7 +536,10 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 
 
 func _add_authored_taiga_details(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
-	var families: Array[StringName] = [&"tall_pine", &"round_pine", &"forest_floor", &"tall_pine", &"rock", &"round_pine", &"forest_floor", &"fungi"]
+	# One authored hero accent per family is enough to break up the procedural
+	# silhouettes. Repeating imported scenes here duplicated hundreds of separate
+	# draw objects already represented by the tree/rock/groundcover MultiMeshes.
+	var families: Array[StringName] = [&"tall_pine", &"round_pine", &"forest_floor", &"rock", &"fungi"]
 	for family_index in families.size():
 		var family := families[family_index]
 		var point := Vector2.ZERO
@@ -963,7 +966,9 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 		multimesh.set_instance_color(placed, tint)
 		placed += 1
 	multimesh.instance_count = placed
-	_add_multimesh_instance(body, "Groundcover_%d" % ecology, multimesh)
+	# Hundreds of ankle-high plants do not contribute a readable silhouette, but
+	# rendering them into every directional shadow cascade is expensive.
+	_add_multimesh_instance(body, "Groundcover_%d" % ecology, multimesh, false)
 
 
 func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
@@ -1619,12 +1624,13 @@ func _new_multimesh(mesh: Mesh, count: int) -> MultiMesh:
 	return multimesh
 
 
-func _add_multimesh_instance(parent: Node3D, node_name: String, multimesh: MultiMesh) -> void:
+func _add_multimesh_instance(parent: Node3D, node_name: String, multimesh: MultiMesh, casts_shadow: bool = true) -> void:
 	if multimesh.instance_count == 0:
 		return
 	var instance := MultiMeshInstance3D.new()
 	instance.name = node_name
 	instance.multimesh = multimesh
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casts_shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	instance.visibility_range_end = chunk_size * float(active_radius + 1)
 	instance.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	parent.add_child(instance)
@@ -1729,8 +1735,8 @@ func _build_taiga_horizon_crown(rng: RandomNumberGenerator, pack: BiomeContentPa
 		var crown_scale := scale * rng.randf_range(0.88, 1.14)
 		var crown_basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * crown_scale)
 		crowns.set_instance_transform(index, Transform3D(crown_basis, position + Vector3.UP * 5.1 * scale))
-	_add_multimesh_instance(_horizon_root, "DistantCedarTrunks", trunks)
-	_add_multimesh_instance(_horizon_root, "DistantCedarCrowns", crowns)
+	_add_multimesh_instance(_horizon_root, "DistantCedarTrunks", trunks, false)
+	_add_multimesh_instance(_horizon_root, "DistantCedarCrowns", crowns, false)
 
 
 func _build_celestial_anchor(pack: BiomeContentPack) -> void:

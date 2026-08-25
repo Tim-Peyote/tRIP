@@ -11,6 +11,7 @@ signal atmosphere_baseline_changed(fog_density: float, volumetric_density: float
 var _environment: Environment
 var _tween: Tween
 var _sky_material: ProceduralSkyMaterial
+var _sky_shader_material: ShaderMaterial
 var _primary_light: DirectionalLight3D
 var _fill_light: DirectionalLight3D
 var _base_profile: BiomeVisualProfile
@@ -18,6 +19,7 @@ var _metamorphosis_active: bool = false
 var _world_override: BiomeVisualProfile
 var _active_profile: BiomeVisualProfile
 var _time_progress: float = 0.0
+var _last_applied_time_progress: float = -1.0
 
 
 func setup(world_environment: WorldEnvironment) -> void:
@@ -30,6 +32,9 @@ func setup(world_environment: WorldEnvironment) -> void:
 		if _environment.sky.sky_material is ProceduralSkyMaterial:
 			_sky_material = _environment.sky.sky_material.duplicate(true) as ProceduralSkyMaterial
 			_environment.sky.sky_material = _sky_material
+		elif _environment.sky.sky_material is ShaderMaterial:
+			_sky_shader_material = _environment.sky.sky_material.duplicate(true) as ShaderMaterial
+			_environment.sky.sky_material = _sky_shader_material
 	# The environment lives under Main/Presentation while the biome key light lives
 	# inside the active level. Resolve it from this controller's level first; the old
 	# sibling-only lookup silently left every biome on the shelter's dim default.
@@ -56,6 +61,12 @@ func setup_clock(clock: ExpeditionClock) -> void:
 
 func set_time_progress(progress: float) -> void:
 	_time_progress = clampf(progress, 0.0, 1.0)
+	# The clock ticks every frame, but sky radiance and shadow cascades do not
+	# need 60 rebuilds per second. Two updates per second remain visually smooth
+	# and remove a major GPU/CPU synchronization cost.
+	if absf(_time_progress - _last_applied_time_progress) < 0.00135:
+		return
+	_last_applied_time_progress = _time_progress
 	if _active_profile != null and _environment != null:
 		_set_values(_active_profile)
 
@@ -124,9 +135,17 @@ func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void
 		if _sky_material != null:
 			_tween.tween_property(_sky_material, "sky_top_color", state.sky_top_color, 1.2)
 			_tween.tween_property(_sky_material, "sky_horizon_color", state.sky_horizon_color, 1.2)
-			_tween.tween_property(_sky_material, "ground_bottom_color", profile.ground_bottom_color, 1.2)
-			_tween.tween_property(_sky_material, "ground_horizon_color", profile.ground_horizon_color, 1.2)
+			_tween.tween_property(_sky_material, "ground_bottom_color", state.ground_bottom_color, 1.2)
+			_tween.tween_property(_sky_material, "ground_horizon_color", state.ground_horizon_color, 1.2)
 			_tween.tween_property(_sky_material, "sky_energy_multiplier", state.sky_energy, 1.2)
+		if _sky_shader_material != null:
+			_tween.tween_property(_sky_shader_material, "shader_parameter/sky_top_color", state.sky_top_color, 1.2)
+			_tween.tween_property(_sky_shader_material, "shader_parameter/sky_horizon_color", state.sky_horizon_color, 1.2)
+			_tween.tween_property(_sky_shader_material, "shader_parameter/ground_bottom_color", state.ground_bottom_color, 1.2)
+			_tween.tween_property(_sky_shader_material, "shader_parameter/ground_horizon_color", state.ground_horizon_color, 1.2)
+			_tween.tween_property(_sky_shader_material, "shader_parameter/sky_energy", state.sky_energy, 1.2)
+			_tween.tween_property(_sky_shader_material, "shader_parameter/dusk_amount", state.dusk_amount, 1.2)
+			_tween.tween_property(_sky_shader_material, "shader_parameter/night_amount", state.night_amount, 1.2)
 	profile_changed.emit(profile.id)
 	atmosphere_baseline_changed.emit(profile.fog_density, profile.volumetric_density)
 
@@ -156,9 +175,17 @@ func _set_values(profile: BiomeVisualProfile) -> void:
 	if _sky_material != null:
 		_sky_material.sky_top_color = state.sky_top_color
 		_sky_material.sky_horizon_color = state.sky_horizon_color
-		_sky_material.ground_bottom_color = profile.ground_bottom_color
-		_sky_material.ground_horizon_color = profile.ground_horizon_color
+		_sky_material.ground_bottom_color = state.ground_bottom_color
+		_sky_material.ground_horizon_color = state.ground_horizon_color
 		_sky_material.sky_energy_multiplier = state.sky_energy
+	if _sky_shader_material != null:
+		_sky_shader_material.set_shader_parameter(&"sky_top_color", state.sky_top_color)
+		_sky_shader_material.set_shader_parameter(&"sky_horizon_color", state.sky_horizon_color)
+		_sky_shader_material.set_shader_parameter(&"ground_bottom_color", state.ground_bottom_color)
+		_sky_shader_material.set_shader_parameter(&"ground_horizon_color", state.ground_horizon_color)
+		_sky_shader_material.set_shader_parameter(&"sky_energy", state.sky_energy)
+		_sky_shader_material.set_shader_parameter(&"dusk_amount", state.dusk_amount)
+		_sky_shader_material.set_shader_parameter(&"night_amount", state.night_amount)
 
 
 func _time_state(profile: BiomeVisualProfile) -> Dictionary:
@@ -167,23 +194,35 @@ func _time_state(profile: BiomeVisualProfile) -> Dictionary:
 	var dusk_top := profile.sky_top_color.lerp(profile.dusk_horizon_color, 0.22).darkened(0.32)
 	var sky_top := profile.sky_top_color.lerp(dusk_top, dusk).lerp(profile.night_sky_top_color, night)
 	var sky_horizon := profile.sky_horizon_color.lerp(profile.dusk_horizon_color, dusk).lerp(profile.night_sky_horizon_color, night)
+	var ground_bottom := profile.ground_bottom_color.lerp(profile.night_sky_top_color.darkened(0.68), night)
+	var ground_horizon := profile.ground_horizon_color.lerp(profile.night_sky_horizon_color.darkened(0.52), night)
 	var ambient := profile.ambient_color.lerp(profile.dusk_horizon_color.darkened(0.58), dusk * 0.52).lerp(profile.night_ambient_color, night)
 	var light_color := profile.primary_light_color.lerp(profile.dusk_light_color, dusk).lerp(profile.night_light_color, night)
-	var dusk_rotation := Vector3(profile.primary_light_rotation.x * 0.72, profile.primary_light_rotation.y + 0.82, profile.primary_light_rotation.z)
-	var light_rotation := profile.primary_light_rotation.lerp(dusk_rotation, dusk).lerp(profile.night_light_rotation, night)
+	var daylight_progress := clampf(_time_progress / 0.72, 0.0, 1.0)
+	var solar_arc := sin(daylight_progress * PI)
+	var solar_rotation := Vector3(
+		-lerpf(0.16, 1.08, solar_arc),
+		profile.primary_light_rotation.y + daylight_progress * 2.35,
+		profile.primary_light_rotation.z * (1.0 - solar_arc)
+	)
+	var light_rotation := solar_rotation.lerp(profile.night_light_rotation, night)
 	return {
 		"background_color": profile.background_color.lerp(profile.night_sky_top_color, night * 0.82),
 		"sky_top_color": sky_top,
 		"sky_horizon_color": sky_horizon,
-		"sky_energy": lerpf(profile.sky_energy, profile.sky_energy * 0.72, dusk) * lerpf(1.0, 0.58, night),
+		"ground_bottom_color": ground_bottom,
+		"ground_horizon_color": ground_horizon,
+		"sky_energy": lerpf(profile.sky_energy, profile.sky_energy * 0.72, dusk) * lerpf(1.0, 0.7, night),
 		"ambient_color": ambient,
-		"ambient_energy": lerpf(profile.ambient_energy, profile.ambient_energy * 0.76, dusk) * lerpf(1.0, 0.68, night),
+		"ambient_energy": lerpf(profile.ambient_energy, profile.ambient_energy * 0.84, dusk) * lerpf(1.0, 0.96, night),
 		"exposure": lerpf(profile.tonemap_exposure, profile.night_exposure, night),
 		"light_color": light_color,
-		"light_energy": lerpf(profile.primary_light_energy, profile.primary_light_energy * 0.68, dusk) * lerpf(1.0, profile.night_light_energy_scale, night),
+		"light_energy": lerpf(profile.primary_light_energy * 0.72, profile.primary_light_energy, solar_arc) * lerpf(1.0, 0.68, dusk) * lerpf(1.0, profile.night_light_energy_scale, night),
 		"light_rotation": light_rotation,
+		"dusk_amount": dusk,
+		"night_amount": night,
 		"fill_color": ambient.lerp(sky_horizon, 0.38),
-		"fill_energy": lerpf(profile.ambient_energy * 0.24, profile.ambient_energy * 0.16, night),
+		"fill_energy": lerpf(profile.ambient_energy * 0.12, profile.ambient_energy * 0.08, night),
 		"fill_rotation": Vector3(-0.24, light_rotation.y + PI, 0.06),
 		"fog_color": profile.fog_color.lerp(profile.dusk_horizon_color.darkened(0.38), dusk * 0.72).lerp(profile.night_fog_color, night),
 		"fog_density": profile.fog_density * lerpf(1.0, 1.22, night),
@@ -195,9 +234,9 @@ func _time_state(profile: BiomeVisualProfile) -> Dictionary:
 func _configure_light_rig() -> void:
 	if is_instance_valid(_primary_light):
 		_primary_light.shadow_enabled = true
-		_primary_light.shadow_opacity = 0.86
-		_primary_light.light_angular_distance = 1.15
-		_primary_light.directional_shadow_max_distance = 150.0
+		_primary_light.shadow_opacity = 0.94
+		_primary_light.light_angular_distance = 0.55
+		_primary_light.directional_shadow_max_distance = 110.0
 		_primary_light.directional_shadow_blend_splits = true
 		_primary_light.directional_shadow_fade_start = 0.86
 		_primary_light.light_volumetric_fog_energy = 1.35
@@ -208,11 +247,11 @@ func _configure_light_rig() -> void:
 	_fill_light.light_volumetric_fog_energy = 0.18
 	add_child(_fill_light)
 	if _environment != null:
-		_environment.fog_aerial_perspective = 0.72
-		_environment.fog_sun_scatter = 0.32
-		_environment.fog_sky_affect = 0.62
-		_environment.volumetric_fog_anisotropy = 0.58
-		_environment.volumetric_fog_sky_affect = 0.72
+		_environment.fog_aerial_perspective = 0.42
+		_environment.fog_sun_scatter = 0.18
+		_environment.fog_sky_affect = 0.48
+		_environment.volumetric_fog_anisotropy = 0.45
+		_environment.volumetric_fog_sky_affect = 0.54
 		_environment.volumetric_fog_temporal_reprojection_enabled = true
 		_environment.volumetric_fog_temporal_reprojection_amount = 0.88
 

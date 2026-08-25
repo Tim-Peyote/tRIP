@@ -11,6 +11,7 @@ func _run() -> void:
 	_test_project_contract()
 	_test_content_resources()
 	_test_recorded_audio_library()
+	_test_visual_shader_contract()
 	_test_recipe_resolution()
 	_test_main_scene()
 	if _failures.is_empty():
@@ -68,6 +69,17 @@ func _test_recorded_audio_library() -> void:
 		_expect(audio_stream != null, "Recorded audio failed to import: %s" % path)
 		if audio_stream != null:
 			_expect(audio_stream.get_length() > 0.05, "Recorded audio is empty: %s" % path)
+
+
+func _test_visual_shader_contract() -> void:
+	var perception_shader := FileAccess.get_file_as_string("res://presentation/shaders/perception_screen.gdshader")
+	_expect(not perception_shader.is_empty(), "Perception screen shader is missing.")
+	_expect(not perception_shader.contains("scanline"), "Perception shader reintroduced moving scanlines.")
+	_expect(not perception_shader.contains("hazard_streak"), "Perception shader reintroduced the weather/hazard screen streak.")
+	_expect(not perception_shader.contains("FRAGCOORD"), "Perception shader reintroduced per-pixel static noise.")
+	var sky_shader := FileAccess.get_file_as_string("res://presentation/shaders/altai_sky.gdshader")
+	_expect(sky_shader.contains("shader_type sky"), "Altai sky shader is missing or invalid.")
+	_expect(not sky_shader.contains("TIME *"), "Sky shader updates radiance every frame through TIME.")
 
 
 func _test_recipe_resolution() -> void:

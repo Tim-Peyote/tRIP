@@ -55,8 +55,11 @@ func instantiate_variant(family: StringName, variant: int) -> Node3D:
 		node.free()
 	for node: Node in instance.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
-		mesh_instance.visibility_range_end = 82.0
+		var is_major_silhouette := family == &"tall_pine" or family == &"round_pine"
+		mesh_instance.visibility_range_end = 82.0 if is_major_silhouette else (60.0 if family == &"rock" else 46.0)
 		mesh_instance.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		if not is_major_silhouette and family != &"rock":
+			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return instance
 
 

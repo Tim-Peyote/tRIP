@@ -37,6 +37,8 @@ func _ready() -> void:
 
 func _capture(level: ShelterLevel, progress: float, path: String) -> Error:
 	level.expedition_clock.set_progress(progress)
-	for _frame: int in 3:
+	# Incremental sky radiance updates one cubemap face at a time. Let a complete
+	# low-cost cycle settle before visual QA so captures match sustained gameplay.
+	for _frame: int in 12:
 		await get_tree().process_frame
 	return get_viewport().get_texture().get_image().save_png(path)

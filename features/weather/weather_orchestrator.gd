@@ -45,6 +45,7 @@ var _lightning: DirectionalLight3D
 var _rain_audio: AudioStreamPlayer
 var _wind_audio: AudioStreamPlayer
 var _thunder_audio: AudioStreamPlayer3D
+var _environment_tween: Tween
 var _rng := RandomNumberGenerator.new()
 var _state_time: float = 0.0
 var _next_change: float = 105.0
@@ -67,11 +68,16 @@ func setup(world_environment: WorldEnvironment, player: FirstPersonController) -
 	_build_audio()
 	RenderingServer.global_shader_parameter_set(&"trip_wind_vector", Vector3(0.35, 0.0, 0.12))
 	RenderingServer.global_shader_parameter_set(&"trip_wind_strength", 0.0)
+	RenderingServer.global_shader_parameter_set(&"trip_cloud_coverage", 0.28)
+	RenderingServer.global_shader_parameter_set(&"trip_cloud_storm", 0.0)
 	set_weather(State.CLEAR, 0.0, true)
 
 
 func _exit_tree() -> void:
 	RenderingServer.global_shader_parameter_set(&"trip_wind_strength", 0.0)
+	if _environment_tween != null:
+		_environment_tween.kill()
+		_environment_tween = null
 	for player: AudioStreamPlayer in [_rain_audio, _wind_audio]:
 		if player != null:
 			player.stop()
@@ -135,6 +141,7 @@ func set_weather(next_state: State, strength: float = 1.0, immediate: bool = fal
 	_state_time = 0.0
 	_next_change = _rng.randf_range(90.0, 170.0)
 	_configure_particles()
+	_apply_cloud_state()
 	_apply_environment(immediate)
 	if _player != null:
 		_player.set_weather_modifiers(_target_wetness(), wind.length(), get_ambient_temperature())
@@ -287,36 +294,42 @@ func _apply_environment(immediate: bool) -> void:
 		return
 	var fog_target := _base_fog_density
 	var volumetric_target := _base_volumetric_density
+	# Clear weather uses the cheap depth fog. The full froxel volume is reserved
+	# for conditions where shafts and suspended moisture are actually visible.
+	var volumetric_enabled := state != State.CLEAR and intensity > 0.05
+	_environment.volumetric_fog_enabled = volumetric_enabled
+	if not volumetric_enabled:
+		volumetric_target = 0.0
 	var brightness_target := 1.0
 	var saturation_target := 1.04
-	var aerial_target := 0.72
-	var scatter_target := 0.32
-	var anisotropy_target := 0.58
+	var aerial_target := 0.42
+	var scatter_target := 0.18
+	var anisotropy_target := 0.45
 	match state:
 		State.FOG:
-			fog_target = maxf(fog_target, lerpf(0.025, 0.065, intensity))
-			volumetric_target = maxf(volumetric_target, lerpf(0.025, 0.075, intensity))
+			fog_target = maxf(fog_target, lerpf(0.014, 0.034, intensity))
+			volumetric_target = maxf(volumetric_target, lerpf(0.012, 0.038, intensity))
 			brightness_target = lerpf(1.0, 0.9, intensity)
 			saturation_target = lerpf(1.04, 0.76, intensity)
 			aerial_target = 0.9
 			anisotropy_target = 0.42
 		State.DRIZZLE:
-			fog_target = maxf(fog_target, 0.018 * intensity)
-			volumetric_target = maxf(volumetric_target, 0.02 * intensity)
+			fog_target = maxf(fog_target, 0.009 * intensity)
+			volumetric_target = maxf(volumetric_target, 0.01 * intensity)
 			brightness_target = lerpf(1.0, 0.88, intensity)
 			saturation_target = lerpf(1.04, 0.84, intensity)
 			scatter_target = 0.2
 		State.STORM:
-			fog_target = maxf(fog_target, 0.027)
-			volumetric_target = maxf(volumetric_target, 0.035)
+			fog_target = maxf(fog_target, 0.014)
+			volumetric_target = maxf(volumetric_target, 0.018)
 			brightness_target = lerpf(0.88, 0.7, intensity)
 			saturation_target = lerpf(0.86, 0.64, intensity)
 			aerial_target = 0.84
 			scatter_target = 0.08
 			anisotropy_target = 0.7
 		State.SNOW:
-			fog_target = maxf(fog_target, 0.02)
-			volumetric_target = maxf(volumetric_target, 0.028)
+			fog_target = maxf(fog_target, 0.011)
+			volumetric_target = maxf(volumetric_target, 0.014)
 			brightness_target = lerpf(1.0, 1.04, intensity)
 			saturation_target = lerpf(1.0, 0.82, intensity)
 			aerial_target = 0.86
@@ -329,14 +342,38 @@ func _apply_environment(immediate: bool) -> void:
 		_environment.fog_sun_scatter = scatter_target
 		_environment.volumetric_fog_anisotropy = anisotropy_target
 	else:
-		var tween := create_tween().set_parallel(true)
-		tween.tween_property(_environment, "fog_density", fog_target, 2.8)
-		tween.tween_property(_environment, "volumetric_fog_density", volumetric_target, 2.8)
-		tween.tween_property(_environment, "adjustment_brightness", brightness_target, 2.8)
-		tween.tween_property(_environment, "adjustment_saturation", saturation_target, 2.8)
-		tween.tween_property(_environment, "fog_aerial_perspective", aerial_target, 2.8)
-		tween.tween_property(_environment, "fog_sun_scatter", scatter_target, 2.8)
-		tween.tween_property(_environment, "volumetric_fog_anisotropy", anisotropy_target, 2.8)
+		if _environment_tween != null:
+			_environment_tween.kill()
+		_environment_tween = create_tween().set_parallel(true)
+		_environment_tween.tween_property(_environment, "fog_density", fog_target, 2.8)
+		_environment_tween.tween_property(_environment, "volumetric_fog_density", volumetric_target, 2.8)
+		_environment_tween.tween_property(_environment, "adjustment_brightness", brightness_target, 2.8)
+		_environment_tween.tween_property(_environment, "adjustment_saturation", saturation_target, 2.8)
+		_environment_tween.tween_property(_environment, "fog_aerial_perspective", aerial_target, 2.8)
+		_environment_tween.tween_property(_environment, "fog_sun_scatter", scatter_target, 2.8)
+		_environment_tween.tween_property(_environment, "volumetric_fog_anisotropy", anisotropy_target, 2.8)
+
+
+func _apply_cloud_state() -> void:
+	var coverage := 0.28
+	var storm_amount := 0.0
+	match state:
+		State.DRIZZLE:
+			coverage = lerpf(0.48, 0.72, intensity)
+			storm_amount = intensity * 0.28
+		State.STORM:
+			coverage = lerpf(0.76, 0.96, intensity)
+			storm_amount = intensity
+		State.FOG:
+			coverage = lerpf(0.52, 0.78, intensity)
+			storm_amount = intensity * 0.36
+		State.SNOW:
+			coverage = lerpf(0.58, 0.86, intensity)
+			storm_amount = intensity * 0.5
+		_:
+			coverage = lerpf(0.18, 0.34, intensity)
+	RenderingServer.global_shader_parameter_set(&"trip_cloud_coverage", coverage)
+	RenderingServer.global_shader_parameter_set(&"trip_cloud_storm", storm_amount)
 
 
 func _build_lightning() -> void:
