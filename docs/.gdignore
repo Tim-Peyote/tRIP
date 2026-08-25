@@ -1,0 +1,2 @@
+# Design and production documentation is repository-only.
+# Godot must not import or package this directory into player builds.
