@@ -596,69 +596,93 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0.018, 0.024, 0.021, 0.58)
+color = Color(0.018, 0.024, 0.021, 0.46)
 
 [node name="InventoryPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchor_left = 0.04
-anchor_top = 0.045
-anchor_right = 0.96
-anchor_bottom = 0.955
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -620.0
+offset_top = -344.0
+offset_right = 620.0
+offset_bottom = 344.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
 
 [node name="Margin" type="MarginContainer" parent="InventoryPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 36
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 22
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 18
 
 [node name="Layout" type="VBoxContainer" parent="InventoryPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="InventoryPanel/Margin/Layout"]
+[node name="Header" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleStack" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Header"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Title" type="Label" parent="InventoryPanel/Margin/Layout/Header/TitleStack"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.86, 0.61, 1)
-theme_override_font_sizes/font_size = 25
-text = "СУМКА"
+theme_override_font_sizes/font_size = 23
+text = "ПОЛЕВАЯ СУМКА"
 
-[node name="Subtitle" type="Label" parent="InventoryPanel/Margin/Layout"]
-visible = false
+[node name="Subtitle" type="Label" parent="InventoryPanel/Margin/Layout/Header/TitleStack"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.69, 0.63, 1)
-theme_override_font_sizes/font_size = 13
-text = "ПОЛЕВОЙ КОМПЛЕКТ · ТЕКУЩАЯ ВЫЛАЗКА"
+theme_override_font_sizes/font_size = 11
+text = "ЭКСПЕДИЦИЯ · ОБРАЗЦЫ И СНАРЯЖЕНИЕ"
+
+[node name="HeaderSpacer" type="Control" parent="InventoryPanel/Margin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventoryItemCount" type="Label" parent="InventoryPanel/Margin/Layout/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 12
+text = "0 ВИДОВ · 0 ПРЕДМЕТОВ"
+vertical_alignment = 1
 
 [node name="FilterBar" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 16
 
 [node name="InventoryFilterAll" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(92, 34)
+custom_minimum_size = Vector2(64, 32)
 layout_mode = 2
 text = "ВСЁ"
 
 [node name="InventoryFilterIngredients" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(106, 34)
+custom_minimum_size = Vector2(82, 32)
 layout_mode = 2
 text = "СЫРЬЁ"
 
 [node name="InventoryFilterConsumables" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 34)
+custom_minimum_size = Vector2(92, 32)
 layout_mode = 2
 text = "СОСТАВЫ"
 
 [node name="InventoryFilterTools" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(128, 34)
+custom_minimum_size = Vector2(112, 32)
 layout_mode = 2
 text = "СНАРЯЖЕНИЕ"
 
@@ -674,15 +698,8 @@ vertical_alignment = 1
 
 [node name="InventorySort" type="OptionButton" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 34)
+custom_minimum_size = Vector2(142, 32)
 layout_mode = 2
-
-[node name="InventoryItemCount" type="Label" parent="InventoryPanel/Margin/Layout"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
-theme_override_font_sizes/font_size = 13
-text = "0 ПРЕДМЕТОВ"
 
 [node name="InventoryCapacityLabel" type="Label" parent="InventoryPanel/Margin/Layout"]
 unique_name_in_owner = true
@@ -694,18 +711,42 @@ text = "НАГРУЗКА  0 / 12 кг     ·     ОБЪЁМ  0 / 8 л"
 
 [node name="CapacityBars" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 18
 
-[node name="InventoryMassBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/CapacityBars"]
+[node name="MassCapacity" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/CapacityBars"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="InventoryMassCaption" type="Label" parent="InventoryPanel/Margin/Layout/CapacityBars/MassCapacity"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.61, 0.68, 0.57, 1)
+theme_override_font_sizes/font_size = 11
+text = "ВЕС  0 / 12 КГ"
+
+[node name="InventoryMassBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/CapacityBars/MassCapacity"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 size_flags_horizontal = 3
 show_percentage = false
 
-[node name="InventoryVolumeBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/CapacityBars"]
+[node name="VolumeCapacity" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/CapacityBars"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="InventoryVolumeCaption" type="Label" parent="InventoryPanel/Margin/Layout/CapacityBars/VolumeCapacity"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.61, 0.68, 0.57, 1)
+theme_override_font_sizes/font_size = 11
+text = "ОБЪЁМ  0 / 8 Л"
+
+[node name="InventoryVolumeBar" type="ProgressBar" parent="InventoryPanel/Margin/Layout/CapacityBars/VolumeCapacity"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 size_flags_horizontal = 3
 show_percentage = false
@@ -713,11 +754,12 @@ show_percentage = false
 [node name="Body" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 28
+theme_override_constants/separation = 22
 
 [node name="ListScroll" type="ScrollContainer" parent="InventoryPanel/Margin/Layout/Body"]
-custom_minimum_size = Vector2(640, 0)
+custom_minimum_size = Vector2(670, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
@@ -725,22 +767,22 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 22
-columns = 4
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 16
+columns = 5
 
 [node name="Detail" type="PanelContainer" parent="InventoryPanel/Margin/Layout/Body"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(330, 0)
+custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 1
 
 [node name="DetailMargin" type="MarginContainer" parent="InventoryPanel/Margin/Layout/Body/Detail"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
 
 [node name="DetailLayout" type="VBoxContainer" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin"]
 layout_mode = 2
@@ -766,7 +808,7 @@ text = "КАТЕГОРИЯ"
 
 [node name="InventoryDetailIcon" type="TextureRect" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 94)
+custom_minimum_size = Vector2(0, 82)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
@@ -776,7 +818,7 @@ texture_filter = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.76, 0.83, 0.66, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 21
 text = "Образец"
 
 [node name="DetailRule" type="HSeparator" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
@@ -817,7 +859,7 @@ show_percentage = false
 [node name="SpecimenTitle" type="Label" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 11
 text = "ОБРАЗЦЫ В СУМКЕ"
 
 [node name="InventorySpecimenList" type="ItemList" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent"]

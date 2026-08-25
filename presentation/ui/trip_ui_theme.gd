@@ -67,14 +67,41 @@ static func make_key_chip() -> StyleBoxFlat:
 
 
 static func make_inventory_panel() -> StyleBoxFlat:
-	var style := _box(Color(0.055, 0.067, 0.059, 0.88), Color(0.76, 0.84, 0.61, 0.16), 1, 14, 26)
-	style.border_width_top = 1
-	style.border_width_left = 0
+	var style := _box(Color(0.045, 0.057, 0.049, 0.96), Color(0.72, 0.8, 0.59, 0.18), 1, 16, 24)
+	style.border_width_top = 2
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.shadow_color = Color(0, 0, 0, 0.62)
+	style.shadow_size = 24
+	style.shadow_offset = Vector2(0, 10)
+	return style
+
+
+static func make_inventory_tab(state: StringName, accent: Color = MOSS) -> StyleBoxFlat:
+	var fill := Color(0.06, 0.075, 0.064, 0.0)
+	var border := Color.TRANSPARENT
+	var bottom := 0
+	match state:
+		&"hover":
+			fill = Color(0.15, 0.18, 0.15, 0.48)
+		&"selected", &"pressed", &"focus":
+			fill = Color(accent.r, accent.g, accent.b, 0.1)
+			border = accent
+			bottom = 2
+	var style := _box(fill, border, 0, 5, 10)
+	style.border_width_bottom = bottom
+	style.content_margin_top = 7
+	style.content_margin_bottom = 8
+	return style
+
+
+static func make_inventory_detail_panel(accent: Color = MOSS) -> StyleBoxFlat:
+	var style := _box(Color(0.075, 0.091, 0.078, 0.72), Color(accent.r, accent.g, accent.b, 0.16), 1, 12, 16)
+	style.border_width_left = 2
+	style.border_width_top = 0
 	style.border_width_right = 0
 	style.border_width_bottom = 0
-	style.shadow_color = Color(0, 0, 0, 0.3)
-	style.shadow_size = 10
-	style.shadow_offset = Vector2(0, 4)
 	return style
 
 

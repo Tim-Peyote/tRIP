@@ -24,6 +24,8 @@ signal audio_cue_requested(cue_id: StringName)
 @onready var inventory_mass_bar: ProgressBar = %InventoryMassBar
 @onready var inventory_volume_bar: ProgressBar = %InventoryVolumeBar
 @onready var inventory_capacity_label: Label = %InventoryCapacityLabel
+@onready var inventory_mass_caption: Label = %InventoryMassCaption
+@onready var inventory_volume_caption: Label = %InventoryVolumeCaption
 @onready var inventory_use_button: Button = %InventoryUseButton
 @onready var inventory_drop_button: Button = %InventoryDropButton
 @onready var inventory_sort: OptionButton = %InventorySort
@@ -68,6 +70,7 @@ var _selected_inventory_id: StringName
 var _selected_inventory_instance_id: StringName
 var _inventory_filter: StringName = &"all"
 var _inventory_sort_mode: StringName = &"name"
+var _inventory_has_visible_entries: bool = false
 var _journal_mode: StringName = &"species"
 var _journal_entries: Array[Dictionary] = []
 var _selected_journal_id: StringName
@@ -104,7 +107,7 @@ func _ready() -> void:
 	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
 	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
 	inventory_panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_panel())
-	inventory_detail_panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color(0.62, 0.69, 0.52), 0.72))
+	inventory_detail_panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_detail_panel(Color(0.62, 0.69, 0.52)))
 	%JournalPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
 	%PausePanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
 	pause_settings_panel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
@@ -120,6 +123,12 @@ func _ready() -> void:
 	%StaminaBar.add_theme_stylebox_override("fill", _make_vitals_fill(Color("d8bf66")))
 	for filter_button: Button in [%InventoryFilterAll, %InventoryFilterIngredients, %InventoryFilterConsumables, %InventoryFilterTools]:
 		filter_button.toggle_mode = true
+		filter_button.add_theme_font_size_override("font_size", 13)
+		filter_button.add_theme_stylebox_override("normal", TripUITheme.make_inventory_tab(&"normal"))
+		filter_button.add_theme_stylebox_override("hover", TripUITheme.make_inventory_tab(&"hover"))
+		filter_button.add_theme_stylebox_override("focus", TripUITheme.make_inventory_tab(&"focus"))
+		filter_button.add_theme_stylebox_override("pressed", TripUITheme.make_inventory_tab(&"selected"))
+		filter_button.add_theme_stylebox_override("hover_pressed", TripUITheme.make_inventory_tab(&"selected"))
 	for journal_tab: Button in [%JournalTabSpecies, %JournalTabHypotheses, %JournalTabRecipes]:
 		journal_tab.toggle_mode = true
 	get_viewport().size_changed.connect(_update_inventory_responsive_layout)
@@ -780,11 +789,8 @@ func _update_inventory_panel() -> void:
 		meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card.add_child(meta_label)
 		inventory_list.add_child(card)
-	inventory_item_count.text = "ПРЕДМЕТОВ %d · ЕДИНИЦ %.0f     НАГРУЗКА %.1f/%.1f КГ     ОБЪЁМ %.1f/%.1f Л" % [
-		visible_entries.size(), total_units,
-		_player.inventory.current_mass(), _player.inventory.maximum_mass,
-		_player.inventory.current_volume(), _player.inventory.maximum_volume,
-	]
+	_inventory_has_visible_entries = not visible_entries.is_empty()
+	inventory_item_count.text = "%d ВИДОВ  ·  %.0f ПРЕДМЕТОВ" % [visible_entries.size(), total_units]
 	if inventory_list.get_child_count() == 0:
 		inventory_list.add_child(_make_inventory_empty_state())
 		if catalog.is_empty():
@@ -803,17 +809,21 @@ func _update_inventory_panel() -> void:
 		_player.inventory.current_mass(), _player.inventory.maximum_mass,
 		_player.inventory.current_volume(), _player.inventory.maximum_volume,
 	]
+	inventory_mass_caption.text = "ВЕС  %.1f / %.1f КГ" % [_player.inventory.current_mass(), _player.inventory.maximum_mass]
+	inventory_volume_caption.text = "ОБЪЁМ  %.1f / %.1f Л" % [_player.inventory.current_volume(), _player.inventory.maximum_volume]
+	_update_inventory_responsive_layout()
 
 
 func _make_inventory_empty_state() -> Control:
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0.0, 294.0)
+	var panel := MarginContainer.new()
+	panel.custom_minimum_size = Vector2(500.0, 210.0)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color("788875"), 0.34))
+	panel.add_theme_constant_override("margin_left", 24)
+	panel.add_theme_constant_override("margin_top", 18)
 	var center := CenterContainer.new()
 	panel.add_child(center)
 	var content := VBoxContainer.new()
-	content.custom_minimum_size = Vector2(390.0, 0.0)
+	content.custom_minimum_size = Vector2(380.0, 0.0)
 	content.alignment = BoxContainer.ALIGNMENT_CENTER
 	content.add_theme_constant_override("separation", 10)
 	center.add_child(content)
@@ -821,16 +831,20 @@ func _make_inventory_empty_state() -> Control:
 	sigil.text = "⌁"
 	sigil.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sigil.add_theme_color_override("font_color", Color("b8c68c"))
-	sigil.add_theme_font_size_override("font_size", 46)
+	sigil.add_theme_font_size_override("font_size", 34)
 	content.add_child(sigil)
 	var title := Label.new()
-	title.text = "СУМКА ЖДЁТ ПЕРВЫЙ ОБРАЗЕЦ"
+	title.text = "СУМКА ПОКА ПУСТА" if _player.inventory.items.is_empty() else "В ЭТОМ РАЗДЕЛЕ ПУСТО"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", TripUITheme.PAPER)
 	title.add_theme_font_size_override("font_size", 18)
 	content.add_child(title)
 	var body := Label.new()
-	body.text = "Исследуй влажные низины, корни и тайники.\nНайденное сырьё сохранит качество и свежесть."
+	body.text = (
+		"Исследуй низины, корни и тайники. Первый найденный образец появится здесь."
+		if _player.inventory.items.is_empty()
+		else "Смени категорию или продолжай искать подходящие предметы в мире."
+	)
 	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.add_theme_color_override("font_color", TripUITheme.MUTED)
@@ -840,27 +854,50 @@ func _make_inventory_empty_state() -> Control:
 
 
 func _update_inventory_responsive_layout() -> void:
-	var viewport_width := get_viewport_rect().size.x
+	var viewport_size := get_viewport_rect().size
+	var window_size := Vector2(DisplayServer.window_get_size())
+	var physical_scale := maxf(1.0, minf(window_size.x / maxf(viewport_size.x, 1.0), window_size.y / maxf(viewport_size.y, 1.0)))
+	# canvas_items keeps a 1280×720 logical UI at every resolution. Cap the
+	# satchel in physical pixels as well, otherwise 1440p/4K turns it into an
+	# enormous wall of black despite sensible logical anchors.
+	var target_width := minf(viewport_size.x - 40.0, minf(window_size.x - 48.0, 1840.0) / physical_scale)
+	var target_height := minf(viewport_size.y - 32.0, minf(window_size.y - 48.0, 1080.0) / physical_scale)
+	var half_width := maxf(300.0, target_width * 0.5)
+	var half_height := maxf(220.0, target_height * 0.5)
+	inventory_panel.anchor_left = 0.5
+	inventory_panel.anchor_top = 0.5
+	inventory_panel.anchor_right = 0.5
+	inventory_panel.anchor_bottom = 0.5
+	inventory_panel.offset_left = -half_width
+	inventory_panel.offset_right = half_width
+	inventory_panel.offset_top = -half_height
+	inventory_panel.offset_bottom = half_height
+	var available_width := half_width * 2.0
 	var list_scroll := $InventoryPanel/Margin/Layout/Body/ListScroll as ScrollContainer
 	var body := $InventoryPanel/Margin/Layout/Body as HBoxContainer
-	inventory_sort.visible = viewport_width >= 920.0
-	if viewport_width >= 1180.0:
-		inventory_list.columns = 4
-		list_scroll.custom_minimum_size.x = 620.0
-		inventory_detail_panel.custom_minimum_size.x = 330.0
-		body.add_theme_constant_override("separation", 28)
+	inventory_sort.visible = available_width >= 880.0 and _inventory_has_visible_entries
+	if not _inventory_has_visible_entries:
+		inventory_list.columns = 1
+		list_scroll.custom_minimum_size.x = 0.0
+		body.add_theme_constant_override("separation", 0)
+		inventory_detail_panel.visible = false
+	elif available_width >= 1160.0:
+		inventory_list.columns = 5
+		list_scroll.custom_minimum_size.x = 690.0
+		inventory_detail_panel.custom_minimum_size.x = 320.0
+		body.add_theme_constant_override("separation", 22)
 		inventory_detail_panel.visible = true
-	elif viewport_width >= 920.0:
+	elif available_width >= 880.0:
 		inventory_list.columns = 3
-		list_scroll.custom_minimum_size.x = 430.0
+		list_scroll.custom_minimum_size.x = 450.0
 		inventory_detail_panel.custom_minimum_size.x = 286.0
-		body.add_theme_constant_override("separation", 20)
+		body.add_theme_constant_override("separation", 18)
 		inventory_detail_panel.visible = true
-	elif viewport_width >= 760.0:
+	elif available_width >= 720.0:
 		inventory_list.columns = 2
-		list_scroll.custom_minimum_size.x = 292.0
+		list_scroll.custom_minimum_size.x = 306.0
 		inventory_detail_panel.custom_minimum_size.x = 250.0
-		body.add_theme_constant_override("separation", 16)
+		body.add_theme_constant_override("separation", 14)
 		inventory_detail_panel.visible = true
 	else:
 		inventory_list.columns = 3
@@ -881,7 +918,7 @@ func _update_hud_responsive_layout() -> void:
 	%DistractionLabel.offset_right = -safe_x
 	%VitalsPanel.offset_left = safe_x
 	%VitalsPanel.offset_right = safe_x + clampf(viewport_size.x * 0.27, 300.0, 350.0)
-	var inventory_margin := clampf(viewport_size.x * 0.028, 18.0, 42.0)
+	var inventory_margin := clampf(viewport_size.x * 0.022, 20.0, 30.0)
 	var inventory_margin_node := $InventoryPanel/Margin as MarginContainer
 	for side: StringName in [&"margin_left", &"margin_right"]:
 		inventory_margin_node.add_theme_constant_override(side, roundi(inventory_margin))
