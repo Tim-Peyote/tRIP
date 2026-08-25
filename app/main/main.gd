@@ -164,7 +164,7 @@ func _on_setting_changed(section: StringName, key: StringName, value: Variant) -
 	if section == &"accessibility" and key == &"visual_intensity":
 		presentation_director.set_visual_intensity(float(value))
 	elif section == &"video" and key == &"fov" and _active_player != null:
-		_active_player.camera.fov = float(value)
+		_active_player.set_camera_fov(float(value))
 
 
 func _on_effect_gameplay_channels_changed(channels: Dictionary[StringName, float]) -> void:

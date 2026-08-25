@@ -144,6 +144,7 @@ func setup(player: FirstPersonController) -> void:
 	player.journal_requested.connect(_toggle_journal)
 	player.tool_state_changed.connect(_on_tool_state_changed)
 	player.distraction_count_changed.connect(_on_distraction_count_changed)
+	player.camera_mode_changed.connect(_on_camera_mode_changed)
 	inspection_view.closed.connect(_on_inspection_closed)
 	visible = true
 	set_paused(false)
@@ -152,6 +153,10 @@ func setup(player: FirstPersonController) -> void:
 	%ToolLabel.text = player.toolbelt.get_display_name() + "  [Q]"
 	_on_distraction_count_changed(player.distraction_thrower.remaining)
 	_on_interaction_context_changed({})
+
+
+func _on_camera_mode_changed(is_third_person: bool) -> void:
+	show_notice("КАМЕРА · %s · [V] переключить" % ("ТРЕТЬЕ ЛИЦО" if is_third_person else "ПЕРВОЕ ЛИЦО"))
 
 
 func setup_vitals(vitals: PlayerVitalsComponent) -> void:

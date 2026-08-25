@@ -9,6 +9,7 @@ signal distraction_created(projectile: DistractionProjectile)
 signal distraction_count_changed(remaining: int)
 signal landed(impact_speed: float)
 signal jumped
+signal camera_mode_changed(is_third_person: bool)
 
 @export_category("Look")
 @export_range(0.01, 1.0, 0.01) var mouse_sensitivity: float = 0.12
@@ -36,6 +37,8 @@ signal jumped
 
 @onready var camera_rig: Node3D = %CameraRig
 @onready var camera: Camera3D = %Camera3D
+@onready var third_person_spring_arm: SpringArm3D = %ThirdPersonSpringArm
+@onready var third_person_camera: Camera3D = %ThirdPersonCamera
 @onready var viewmodel: Node3D = %ViewModel
 @onready var collision_shape: CollisionShape3D = %CollisionShape3D
 @onready var crouch_clearance: RayCast3D = %CrouchClearance
@@ -79,6 +82,9 @@ var _gameplay_enabled: bool = true
 var _physical_key_state: Dictionary[Key, bool] = {}
 var _raw_jump_just_pressed: bool = false
 var _physical_jump_was_down: bool = false
+var _is_third_person: bool = false
+var _interface_hides_viewmodel: bool = false
+var _camera_transition: Tween
 
 const STANDING_CAMERA_HEIGHT: float = 1.58
 const CROUCHED_CAMERA_HEIGHT: float = 1.05
@@ -91,8 +97,11 @@ func _ready() -> void:
 	set_physics_process(true)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.fov = float(SettingsService.get_value(&"video", &"fov", field_of_view))
+	third_person_camera.fov = camera.fov
 	_look_pitch = camera_rig.rotation.x
 	interactor.actor = self
+	interactor.top_level = true
+	interactor.camera_provider = get_active_camera
 	interactor.physical_hold_changed.connect(_on_physical_hold_changed)
 	toolbelt.setup_viewmodels({
 		&"tool.field_knife": knife_viewmodel,
@@ -109,6 +118,7 @@ func _ready() -> void:
 	floor_constant_speed = false
 	safe_margin = 0.035
 	_previously_grounded = is_on_floor()
+	_apply_camera_mode(false, false)
 
 
 func _input(event: InputEvent) -> void:
@@ -121,6 +131,10 @@ func _input(event: InputEvent) -> void:
 	if key.echo:
 		return
 	var physical := key.physical_keycode if key.physical_keycode != KEY_NONE else key.keycode
+	if physical == KEY_V and key.pressed and not key.echo and _accepts_gameplay_input():
+		toggle_camera_mode()
+		get_viewport().set_input_as_handled()
+		return
 	if physical not in [KEY_W, KEY_A, KEY_S, KEY_D, KEY_SPACE]:
 		return
 	var was_pressed := bool(_physical_key_state.get(physical, false))
@@ -137,11 +151,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"quick_use"):
 		inventory.use_first_consumable()
 		get_viewport().set_input_as_handled()
+	# InputMap fallback covers platforms/windows that do not deliver a physical
+	# keycode to _input(). Events handled by the raw V branch never reach here,
+	# so this cannot double-toggle.
+	if event.is_action_pressed(&"toggle_view"):
+		toggle_camera_mode()
+		get_viewport().set_input_as_handled()
 	if event.is_action_pressed(&"quick_tool"):
 		toolbelt.cycle_active_tool()
 		get_viewport().set_input_as_handled()
 	if event.is_action_pressed(&"throw_distraction"):
-		distraction_thrower.throw(camera.global_position + -camera.global_basis.z * 0.35, -camera.global_basis.z)
+		var active_camera := get_active_camera()
+		distraction_thrower.throw(active_camera.global_position + -active_camera.global_basis.z * 0.35, -active_camera.global_basis.z)
 		get_viewport().set_input_as_handled()
 	if event.is_action_pressed(&"jump"):
 		_jump_buffer_remaining = jump_buffer_time
@@ -234,8 +255,9 @@ func drop_inventory_item(instance_id: StringName) -> bool:
 	var dropped := DroppedInventoryItem.new()
 	dropped.configure(removed)
 	world_parent.add_child(dropped)
-	var forward := -camera.global_basis.z
-	dropped.global_position = camera.global_position + forward * 0.9 - Vector3.UP * 0.34
+	var active_camera := get_active_camera()
+	var forward := -active_camera.global_basis.z
+	dropped.global_position = global_position + Vector3.UP * 1.15 + forward * 0.9
 	dropped.linear_velocity = forward * 1.15 + Vector3.UP * 0.22
 	dropped.angular_velocity = Vector3(0.6, 1.2, -0.4)
 	return true
@@ -254,7 +276,72 @@ func set_gameplay_enabled(value: bool) -> void:
 
 
 func set_viewmodel_interface_hidden(hidden: bool) -> void:
-	viewmodel.visible = not hidden
+	_interface_hides_viewmodel = hidden
+	_refresh_camera_representation()
+
+
+func toggle_camera_mode() -> void:
+	set_third_person_enabled(not _is_third_person)
+
+
+func set_third_person_enabled(value: bool, animate: bool = true) -> void:
+	if _is_third_person == value:
+		return
+	_is_third_person = value
+	_apply_camera_mode(value, animate)
+	camera_mode_changed.emit(value)
+
+
+func is_third_person_enabled() -> bool:
+	return _is_third_person
+
+
+func get_active_camera() -> Camera3D:
+	return third_person_camera if _is_third_person else camera
+
+
+func set_camera_fov(value: float) -> void:
+	var clamped := clampf(value, 50.0, 110.0)
+	camera.fov = clamped
+	third_person_camera.fov = clamped
+
+
+func _apply_camera_mode(third_person: bool, animate: bool) -> void:
+	if _camera_transition != null and _camera_transition.is_valid():
+		_camera_transition.kill()
+	if third_person:
+		third_person_spring_arm.spring_length = 0.35 if animate else 3.4
+		third_person_camera.current = true
+		camera.current = false
+		if animate:
+			# Suspend focus during the short camera blend; otherwise the rendered
+			# shoulder crosshair and interaction ray would diverge for a few frames.
+			interactor.set_focus_suspended(true)
+			_camera_transition = create_tween()
+			_camera_transition.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			_camera_transition.tween_property(third_person_spring_arm, "spring_length", 3.4, 0.28)
+			_camera_transition.tween_callback(_finish_camera_transition)
+		else:
+			_finish_camera_transition()
+	else:
+		camera.current = true
+		third_person_camera.current = false
+		third_person_spring_arm.spring_length = 3.4
+		_finish_camera_transition()
+	_refresh_camera_representation()
+
+
+func _finish_camera_transition() -> void:
+	if interactor == null:
+		return
+	interactor.global_transform = get_active_camera().global_transform
+	interactor.set_focus_suspended(false)
+
+
+func _refresh_camera_representation() -> void:
+	viewmodel.visible = not _interface_hides_viewmodel and not _is_third_person
+	if avatar_animator != null:
+		avatar_animator.set_third_person_visible(_is_third_person)
 
 
 func get_stealth_exposure() -> float:

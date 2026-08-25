@@ -11,6 +11,8 @@ signal physical_hold_changed(active: bool)
 signal interaction_completed
 
 var actor: Node
+var camera_provider: Callable
+var _focus_suspended: bool = false
 var focused: InteractableComponent
 var _active: InteractableComponent
 var _hold_elapsed: float = 0.0
@@ -35,7 +37,12 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_update_focus()
+	if camera_provider.is_valid():
+		var active_camera := camera_provider.call() as Camera3D
+		if active_camera != null:
+			global_transform = active_camera.global_transform
+	if not _focus_suspended:
+		_update_focus()
 	_update_interaction(delta)
 
 
@@ -247,6 +254,18 @@ func is_rotating_held_body() -> bool:
 
 func is_holding_body() -> bool:
 	return grabbed_body != null
+
+
+func set_focus_suspended(value: bool) -> void:
+	if _focus_suspended == value:
+		return
+	_focus_suspended = value
+	if value and grabbed_body == null:
+		_cancel_active()
+		focused = null
+		_focused_body = null
+		focus_changed.emit(null)
+		_emit_context()
 
 
 func try_grab_body(body: RigidBody3D) -> bool:

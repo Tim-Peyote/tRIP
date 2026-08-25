@@ -28,6 +28,31 @@ func _run() -> void:
 	var first_person_arms := _player.get_node("CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms")
 	var arm_skeleton := first_person_arms.find_child("Skeleton3D", true, false) as Skeleton3D
 	_expect(arm_skeleton != null and arm_skeleton.get_bone_count() >= 40, "Rigged CC0 first-person arms were not installed.")
+	_expect(InputMap.has_action(&"toggle_view") and _action_has_physical_key(&"toggle_view", KEY_V), "Camera view toggle is not bound to physical V.")
+	_emit_physical_key(KEY_V, true)
+	await get_tree().process_frame
+	_emit_physical_key(KEY_V, false)
+	await get_tree().create_timer(0.5).timeout
+	await get_tree().process_frame
+	_expect(_player.is_third_person_enabled(), "Physical V did not enable third-person view.")
+	_expect(_player.third_person_camera.current and not _player.camera.current, "Third-person camera did not become the active renderer.")
+	_expect(not _player.viewmodel.visible, "First-person arms remained visible in third-person view.")
+	_expect(_player.avatar_animator.is_third_person_visible(), "Full player body remained shadow-only in third-person view.")
+	_expect(_player.third_person_spring_arm.collision_mask == 1 and _player.third_person_spring_arm.spring_length > 0.3, "Third-person camera lacks an authored collision spring arm.")
+	_expect(_player.interactor.global_position.distance_to(_player.third_person_camera.global_position) < 0.02, "Interaction ray did not follow the rendered third-person camera.")
+	_add_static_box("CameraOccluder", Vector3(3.0, 3.2, 0.2), Vector3(0.42, 1.55, 1.45))
+	await _physics_frames(5)
+	_expect(_player.third_person_camera.global_position.distance_to(_player.third_person_spring_arm.global_position) < 1.6, "Spring arm let the third-person camera pass through a wall.")
+	(get_node("CameraOccluder") as StaticBody3D).queue_free()
+	await get_tree().physics_frame
+	_player.set_camera_fov(83.0)
+	_expect(is_equal_approx(_player.camera.fov, 83.0) and is_equal_approx(_player.third_person_camera.fov, 83.0), "FOV setting did not update both camera modes.")
+	_emit_physical_key(KEY_V, true)
+	await get_tree().process_frame
+	_emit_physical_key(KEY_V, false)
+	await get_tree().process_frame
+	_expect(not _player.is_third_person_enabled() and _player.camera.current, "Second V press did not restore first-person view.")
+	_expect(_player.viewmodel.visible and not _player.avatar_animator.is_third_person_visible(), "First-person body/arms representation was not restored.")
 	var legacy_grip := _player.get_node("CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel/GripHand") as MeshInstance3D
 	var knife_attachment := _player.knife_viewmodel as BoneAttachment3D
 	_expect(not legacy_grip.visible, "Legacy primitive grip hand is still visible.")
@@ -201,6 +226,13 @@ func _emit_physical_key(keycode: Key, pressed: bool) -> void:
 	event.physical_keycode = keycode
 	event.pressed = pressed
 	Input.parse_input_event(event)
+
+
+func _action_has_physical_key(action: StringName, keycode: Key) -> bool:
+	for event: InputEvent in InputMap.action_get_events(action):
+		if event is InputEventKey and (event as InputEventKey).physical_keycode == keycode:
+			return true
+	return false
 
 
 func _expect(condition: bool, message: String) -> void:

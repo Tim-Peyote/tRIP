@@ -10,13 +10,14 @@ func _ready() -> void:
 
 func _run() -> void:
 	InputBootstrap.ensure_defaults()
-	for action: StringName in [&"move_forward", &"move_back", &"move_left", &"move_right", &"interact", &"inventory"]:
+	for action: StringName in [&"move_forward", &"move_back", &"move_left", &"move_right", &"interact", &"inventory", &"toggle_view"]:
 		var has_keyboard_binding := false
 		for event: InputEvent in InputMap.action_get_events(action):
 			if event is InputEventKey and event.device < 0:
 				has_keyboard_binding = true
 		_expect(has_keyboard_binding, "Gameplay action has no normal-keyboard binding: %s" % action)
 	_expect(_action_has_physical_key(&"inventory", KEY_I), "Inventory is not bound to the expected I key.")
+	_expect(_action_has_physical_key(&"toggle_view", KEY_V), "Camera view is not bound to the expected V key.")
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
 	await get_tree().process_frame

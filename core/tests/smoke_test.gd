@@ -26,7 +26,7 @@ func _run() -> void:
 func _test_project_contract() -> void:
 	_expect(ProjectSettings.get_setting("application/config/name") == "TRip", "Project name is not TRip.")
 	_expect(ProjectSettings.get_setting("application/run/main_scene") == "res://app/main/main.tscn", "Main scene path changed.")
-	for action: StringName in [&"interact", &"inspect", &"move_forward", &"jump", &"inventory", &"journal", &"map", &"pause", &"look_left", &"look_right", &"look_up", &"look_down"]:
+	for action: StringName in [&"interact", &"inspect", &"move_forward", &"jump", &"inventory", &"journal", &"map", &"pause", &"toggle_view", &"look_left", &"look_right", &"look_up", &"look_down"]:
 		_expect(InputMap.has_action(action), "Missing input action '%s'." % action)
 	for bus_name: StringName in [&"Master", &"Music", &"UI", &"PlayerFoley", &"World", &"Ambience", &"Creatures", &"Interactions", &"Voice", &"Perception"]:
 		_expect(AudioServer.get_bus_index(bus_name) >= 0, "Missing audio bus '%s'." % bus_name)

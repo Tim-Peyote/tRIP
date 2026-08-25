@@ -8,6 +8,7 @@ var _controller: FirstPersonController
 var _animation_player: AnimationPlayer
 var _current_animation: StringName
 var _jump_locked: bool = false
+var _third_person_visible: bool = false
 
 const AVATAR_MATERIAL = preload("res://features/player/player_avatar_material.tres")
 
@@ -32,6 +33,21 @@ func _ready() -> void:
 	if _animation_player != null:
 		_animation_player.animation_finished.connect(_on_animation_finished)
 		_play(&"idle", 1.0)
+
+
+func set_third_person_visible(value: bool) -> void:
+	_third_person_visible = value
+	for node: Node in find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		mesh.cast_shadow = (
+			GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			if value
+			else GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+		)
+
+
+func is_third_person_visible() -> bool:
+	return _third_person_visible
 
 
 func _process(_delta: float) -> void:

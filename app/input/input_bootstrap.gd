@@ -19,6 +19,7 @@ const KEY_BINDINGS: Dictionary = {
 	&"quick_tool": KEY_Q,
 	&"throw_distraction": KEY_G,
 	&"road_laboratory": KEY_L,
+	&"toggle_view": KEY_V,
 }
 
 const JOY_MOTION_BINDINGS: Dictionary = {
@@ -46,6 +47,7 @@ const JOY_BUTTON_BINDINGS: Dictionary = {
 	&"quick_tool": JOY_BUTTON_DPAD_RIGHT,
 	&"throw_distraction": JOY_BUTTON_DPAD_LEFT,
 	&"road_laboratory": JOY_BUTTON_DPAD_UP,
+	&"toggle_view": JOY_BUTTON_BACK,
 }
 
 
