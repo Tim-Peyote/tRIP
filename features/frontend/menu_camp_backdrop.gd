@@ -95,15 +95,26 @@ func _build_environment() -> void:
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.17, 0.23, 0.38)
-	environment.ambient_light_energy = 1.05
-	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.ambient_light_energy = 1.25
+	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+	environment.tonemap_exposure = 1.24
+	environment.tonemap_white = 6.0
 	environment.glow_enabled = true
-	environment.glow_intensity = 0.75
-	environment.glow_bloom = 0.12
+	environment.glow_normalized = true
+	environment.glow_intensity = 0.55
+	environment.glow_strength = 0.72
+	environment.glow_bloom = 0.0
+	environment.glow_hdr_threshold = 1.1
+	environment.ssao_enabled = true
+	environment.ssao_radius = 1.1
+	environment.ssao_intensity = 1.05
+	environment.ssao_power = 1.2
 	environment.fog_enabled = true
 	environment.fog_light_color = Color(0.08, 0.12, 0.16)
-	environment.fog_density = 0.018
+	environment.fog_density = 0.01
 	environment.fog_light_energy = 0.65
+	environment.fog_aerial_perspective = 0.38
+	environment.fog_sky_affect = 0.42
 	environment_node.environment = environment
 	add_child(environment_node)
 	_camera = Camera3D.new()
@@ -116,6 +127,9 @@ func _build_environment() -> void:
 	moon.light_color = Color(0.38, 0.48, 0.82)
 	moon.light_energy = 1.4
 	moon.shadow_enabled = true
+	moon.shadow_opacity = 0.92
+	moon.directional_shadow_max_distance = 42.0
+	moon.directional_shadow_blend_splits = true
 	add_child(moon)
 	var moon_disc := _mesh_node(_low_poly_sphere(2.15, 4.3), Color(0.82, 0.12, 0.58), true)
 	moon_disc.position = Vector3(-2.8, 8.5, -17.5)

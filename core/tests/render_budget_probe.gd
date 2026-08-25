@@ -27,13 +27,20 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var fps_sum := 0.0
 	var min_fps := INF
+	var min_fps_sample := -1
+	var min_fps_pending_chunks := 0
+	var min_fps_nodes := 0
 	var max_draw_calls := 0.0
 	var max_primitives := 0.0
 	for _sample: int in SAMPLE_FRAMES:
 		await get_tree().process_frame
 		var fps := Performance.get_monitor(Performance.TIME_FPS)
 		fps_sum += fps
-		min_fps = minf(min_fps, fps)
+		if fps < min_fps:
+			min_fps = fps
+			min_fps_sample = _sample
+			min_fps_pending_chunks = terrain.get_pending_chunk_count()
+			min_fps_nodes = int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
 		max_draw_calls = maxf(max_draw_calls, Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
 		max_primitives = maxf(max_primitives, Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
 	print("TRip render probe: avg_fps=%.1f min_fps=%.1f max_draw_calls=%d max_primitives=%d nodes=%d" % [
@@ -49,4 +56,5 @@ func _ready() -> void:
 		level.find_children("*", "CollisionShape3D", true, false).size(),
 		terrain.get_loaded_chunk_count(),
 	])
+	print("TRip worst frame: sample=%d pending_chunks=%d nodes=%d" % [min_fps_sample, min_fps_pending_chunks, min_fps_nodes])
 	get_tree().quit(0)

@@ -18,6 +18,7 @@ const DEFAULTS: Dictionary = {
 		"resolution_width": 1280,
 		"resolution_height": 720,
 		"fov": 75.0,
+		"graphics_quality": "balanced",
 	},
 	"accessibility": {
 		"visual_intensity": 1.0,

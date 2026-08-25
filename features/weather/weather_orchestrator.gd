@@ -53,6 +53,9 @@ var _lightning_time: float = 8.0
 var _reactive_tick: float = 0.0
 var _base_fog_density: float = 0.012
 var _base_volumetric_density: float = 0.012
+var _base_contrast: float = 1.0
+var _base_saturation: float = 1.0
+var _base_glow_intensity: float = 0.52
 var _ecology_family: int = BiomeContentPack.EcologyFamily.ALTAI_TAIGA
 
 
@@ -62,6 +65,9 @@ func setup(world_environment: WorldEnvironment, player: FirstPersonController) -
 	if _environment != null:
 		_base_fog_density = _environment.fog_density
 		_base_volumetric_density = _environment.volumetric_fog_density
+		_base_contrast = _environment.adjustment_contrast
+		_base_saturation = _environment.adjustment_saturation
+		_base_glow_intensity = _environment.glow_intensity
 	_rng.seed = 98317
 	_build_precipitation()
 	_build_lightning()
@@ -166,6 +172,13 @@ func developer_resume_automatic() -> void:
 func set_atmosphere_baseline(fog_density: float, volumetric_density: float) -> void:
 	_base_fog_density = fog_density
 	_base_volumetric_density = volumetric_density
+	_apply_environment(false)
+
+
+func set_postprocess_baseline(contrast: float, saturation: float, glow_intensity: float) -> void:
+	_base_contrast = contrast
+	_base_saturation = saturation
+	_base_glow_intensity = glow_intensity
 	_apply_environment(false)
 
 
@@ -301,7 +314,9 @@ func _apply_environment(immediate: bool) -> void:
 	if not volumetric_enabled:
 		volumetric_target = 0.0
 	var brightness_target := 1.0
-	var saturation_target := 1.04
+	var contrast_target := _base_contrast
+	var saturation_target := _base_saturation
+	var glow_target := _base_glow_intensity
 	var aerial_target := 0.42
 	var scatter_target := 0.18
 	var anisotropy_target := 0.45
@@ -310,20 +325,23 @@ func _apply_environment(immediate: bool) -> void:
 			fog_target = maxf(fog_target, lerpf(0.014, 0.034, intensity))
 			volumetric_target = maxf(volumetric_target, lerpf(0.012, 0.038, intensity))
 			brightness_target = lerpf(1.0, 0.9, intensity)
-			saturation_target = lerpf(1.04, 0.76, intensity)
+			saturation_target = lerpf(_base_saturation, _base_saturation * 0.78, intensity)
+			contrast_target = lerpf(_base_contrast, _base_contrast * 0.92, intensity)
 			aerial_target = 0.9
 			anisotropy_target = 0.42
 		State.DRIZZLE:
 			fog_target = maxf(fog_target, 0.009 * intensity)
 			volumetric_target = maxf(volumetric_target, 0.01 * intensity)
 			brightness_target = lerpf(1.0, 0.88, intensity)
-			saturation_target = lerpf(1.04, 0.84, intensity)
+			saturation_target = lerpf(_base_saturation, _base_saturation * 0.86, intensity)
 			scatter_target = 0.2
 		State.STORM:
 			fog_target = maxf(fog_target, 0.014)
 			volumetric_target = maxf(volumetric_target, 0.018)
 			brightness_target = lerpf(0.88, 0.7, intensity)
-			saturation_target = lerpf(0.86, 0.64, intensity)
+			saturation_target = lerpf(_base_saturation * 0.88, _base_saturation * 0.68, intensity)
+			contrast_target = lerpf(_base_contrast, _base_contrast * 0.9, intensity)
+			glow_target = lerpf(_base_glow_intensity, _base_glow_intensity * 1.22, intensity)
 			aerial_target = 0.84
 			scatter_target = 0.08
 			anisotropy_target = 0.7
@@ -331,13 +349,15 @@ func _apply_environment(immediate: bool) -> void:
 			fog_target = maxf(fog_target, 0.011)
 			volumetric_target = maxf(volumetric_target, 0.014)
 			brightness_target = lerpf(1.0, 1.04, intensity)
-			saturation_target = lerpf(1.0, 0.82, intensity)
+			saturation_target = lerpf(_base_saturation, _base_saturation * 0.84, intensity)
 			aerial_target = 0.86
 	if immediate:
 		_environment.fog_density = fog_target
 		_environment.volumetric_fog_density = volumetric_target
 		_environment.adjustment_brightness = brightness_target
+		_environment.adjustment_contrast = contrast_target
 		_environment.adjustment_saturation = saturation_target
+		_environment.glow_intensity = glow_target
 		_environment.fog_aerial_perspective = aerial_target
 		_environment.fog_sun_scatter = scatter_target
 		_environment.volumetric_fog_anisotropy = anisotropy_target
@@ -348,7 +368,9 @@ func _apply_environment(immediate: bool) -> void:
 		_environment_tween.tween_property(_environment, "fog_density", fog_target, 2.8)
 		_environment_tween.tween_property(_environment, "volumetric_fog_density", volumetric_target, 2.8)
 		_environment_tween.tween_property(_environment, "adjustment_brightness", brightness_target, 2.8)
+		_environment_tween.tween_property(_environment, "adjustment_contrast", contrast_target, 2.8)
 		_environment_tween.tween_property(_environment, "adjustment_saturation", saturation_target, 2.8)
+		_environment_tween.tween_property(_environment, "glow_intensity", glow_target, 2.8)
 		_environment_tween.tween_property(_environment, "fog_aerial_perspective", aerial_target, 2.8)
 		_environment_tween.tween_property(_environment, "fog_sun_scatter", scatter_target, 2.8)
 		_environment_tween.tween_property(_environment, "volumetric_fog_anisotropy", anisotropy_target, 2.8)

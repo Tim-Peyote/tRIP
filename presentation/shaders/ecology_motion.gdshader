@@ -8,8 +8,12 @@ uniform float height_response : hint_range(0.1, 4.0) = 1.0;
 uniform float emission_strength : hint_range(0.0, 1.0) = 0.0;
 global uniform vec3 trip_wind_vector;
 global uniform float trip_wind_strength;
+global uniform float trip_cloud_coverage;
+global uniform float trip_cloud_storm;
+global uniform float trip_night;
 
 varying float motion_light;
+varying vec3 ecology_world_position;
 
 void vertex() {
 	vec3 world_origin = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -24,6 +28,7 @@ void vertex() {
 	vec2 bend_direction = normalize(mix(authored_direction, weather_direction, clamp(trip_wind_strength, 0.0, 1.0)));
 	VERTEX.xz += bend_direction * displacement;
 	motion_light = broad_wave * 0.5 + 0.5;
+	ecology_world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 void fragment() {
@@ -31,7 +36,14 @@ void fragment() {
 	// two dark forest colors crushed the crowns almost to black and erased every
 	// lit plane. A weighted tint keeps biome identity while preserving value range.
 	vec3 tint = mix(base_color.rgb, COLOR.rgb, 0.68);
-	ALBEDO = tint * mix(0.9, 1.08, motion_light);
-	ROUGHNESS = 0.86;
-	EMISSION = tint * emission_strength;
+	vec2 wind_direction = normalize(trip_wind_vector.xz + vec2(0.001));
+	float cloud_wave = sin(dot(ecology_world_position.xz, vec2(0.037, 0.029)) + TIME * mix(0.08, 0.34, trip_wind_strength) + dot(wind_direction, vec2(2.7, 1.9)));
+	float cloud_mask = smoothstep(mix(0.72, -0.18, trip_cloud_coverage), 0.84, cloud_wave);
+	float underside = mix(0.82, 1.08, clamp(NORMAL.y * 0.5 + 0.5, 0.0, 1.0));
+	float weather_light = mix(1.0, mix(0.86, 0.74, trip_cloud_storm), cloud_mask);
+	ALBEDO = tint * mix(0.94, 1.06, motion_light) * underside * weather_light;
+	ROUGHNESS = mix(0.82, 0.9, trip_cloud_storm);
+	AO = mix(0.82, 0.94, clamp(NORMAL.y * 0.5 + 0.5, 0.0, 1.0));
+	BACKLIGHT = tint * 0.12 * (1.0 - trip_cloud_storm * 0.65);
+	EMISSION = tint * (emission_strength + trip_night * 0.045);
 }

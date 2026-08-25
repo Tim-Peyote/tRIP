@@ -26,6 +26,7 @@ func _ready() -> void:
 	gameplay_hud.main_menu_requested.connect(_return_to_main_menu)
 	gameplay_hud.audio_cue_requested.connect(audio_director.play_ui_cue)
 	presentation_director.set_visual_intensity(SettingsService.get_value("accessibility", "visual_intensity", 1.0))
+	_apply_graphics_quality(StringName(SettingsService.get_value(&"video", &"graphics_quality", "balanced")))
 	SettingsService.setting_changed.connect(_on_setting_changed)
 	ContentDB.rebuild()
 	effect_orchestrator.setup(presentation_director)
@@ -87,6 +88,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	_active_level = SHELTER_SCENE.instantiate() as ShelterLevel
 	world_root.add_child(_active_level)
 	_active_level.setup_visual_environment(world_environment)
+	_active_level.biome_visual_controller.set_quality_preset(StringName(SettingsService.get_value(&"video", &"graphics_quality", "balanced")))
 	_active_player = _active_level.get_player()
 	world_metamorphosis_director.setup(_active_level.world_phase_orchestrator)
 	gameplay_hud.setup(_active_player)
@@ -165,6 +167,15 @@ func _on_setting_changed(section: StringName, key: StringName, value: Variant) -
 		presentation_director.set_visual_intensity(float(value))
 	elif section == &"video" and key == &"fov" and _active_player != null:
 		_active_player.set_camera_fov(float(value))
+	elif section == &"video" and key == &"graphics_quality":
+		_apply_graphics_quality(StringName(value))
+
+
+func _apply_graphics_quality(preset_id: StringName) -> void:
+	var normalized := preset_id if preset_id in [&"performance", &"balanced", &"cinematic"] else &"balanced"
+	get_viewport().mesh_lod_threshold = {&"performance": 1.7, &"balanced": 1.0, &"cinematic": 0.72}[normalized]
+	if _active_level != null:
+		_active_level.biome_visual_controller.set_quality_preset(normalized)
 
 
 func _on_effect_gameplay_channels_changed(channels: Dictionary[StringName, float]) -> void:

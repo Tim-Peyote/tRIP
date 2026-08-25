@@ -9,6 +9,7 @@ signal closed
 @onready var fov_slider: HSlider = %FovSlider
 @onready var window_mode_option: OptionButton = %WindowModeOption
 @onready var resolution_option: OptionButton = %ResolutionOption
+@onready var graphics_quality_option: OptionButton = %GraphicsQualityOption
 
 const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(1024, 576),
@@ -32,6 +33,7 @@ func _ready() -> void:
 	fov_slider.value_changed.connect(_on_fov_changed)
 	window_mode_option.item_selected.connect(_on_window_mode_selected)
 	resolution_option.item_selected.connect(_on_resolution_selected)
+	graphics_quality_option.item_selected.connect(_on_graphics_quality_selected)
 	%ResetButton.pressed.connect(_reset_settings)
 	%CloseButton.pressed.connect(func() -> void: closed.emit())
 
@@ -56,6 +58,14 @@ func _build_display_options() -> void:
 		window_mode_option.add_item(entry["title"])
 		window_mode_option.set_item_metadata(window_mode_option.item_count - 1, entry["id"])
 	resolution_option.clear()
+	graphics_quality_option.clear()
+	for entry: Dictionary in [
+		{"title": "Производительность", "id": &"performance"},
+		{"title": "Сбалансировано", "id": &"balanced"},
+		{"title": "Кинематографично", "id": &"cinematic"},
+	]:
+		graphics_quality_option.add_item(entry["title"])
+		graphics_quality_option.set_item_metadata(graphics_quality_option.item_count - 1, entry["id"])
 	var saved_resolution := SettingsService.get_resolution()
 	var options := RESOLUTIONS.duplicate()
 	if saved_resolution not in options:
@@ -79,6 +89,11 @@ func _sync_display_controls() -> void:
 			resolution_option.select(index)
 			break
 	resolution_option.disabled = mode != &"windowed"
+	var quality := StringName(SettingsService.get_value(&"video", &"graphics_quality", "balanced"))
+	for index: int in graphics_quality_option.item_count:
+		if StringName(graphics_quality_option.get_item_metadata(index)) == quality:
+			graphics_quality_option.select(index)
+			break
 	%ResolutionHint.text = "Размер окна применяется сразу" if mode == &"windowed" else "Используется нативный размер текущего экрана"
 
 
@@ -89,6 +104,10 @@ func _on_window_mode_selected(index: int) -> void:
 
 func _on_resolution_selected(index: int) -> void:
 	SettingsService.set_resolution(resolution_option.get_item_metadata(index) as Vector2i)
+
+
+func _on_graphics_quality_selected(index: int) -> void:
+	SettingsService.set_value(&"video", &"graphics_quality", graphics_quality_option.get_item_metadata(index))
 
 
 func _on_visual_intensity_changed(value: float) -> void:

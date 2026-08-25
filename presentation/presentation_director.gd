@@ -12,7 +12,6 @@ func _process(delta: float) -> void:
 	_current.perception = move_toward(_current.perception, _target.perception, delta * 1.5)
 	_current.toxicity = move_toward(_current.toxicity, _target.toxicity, delta * 1.2)
 	_current.danger = move_toward(_current.danger, _target.danger, delta * 2.5)
-	_current.night = move_toward(_current.night, _target.night, delta * 0.25)
 	_apply_global_parameters()
 
 
@@ -31,5 +30,5 @@ func _apply_global_parameters() -> void:
 	RenderingServer.global_shader_parameter_set(&"trip_perception", _current.perception)
 	RenderingServer.global_shader_parameter_set(&"trip_toxicity", _current.toxicity)
 	RenderingServer.global_shader_parameter_set(&"trip_danger", _current.danger)
-	RenderingServer.global_shader_parameter_set(&"trip_night", _current.night)
-
+	# Day/night belongs to BiomeVisualController. Keeping a second writer here
+	# reset the global to zero every frame and silently disabled moonlit materials.

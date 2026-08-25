@@ -39,13 +39,19 @@ void sky() {
 	// A stationary layered cloud field: weather changes coverage, but avoiding
 	// TIME keeps the radiance cubemap from being regenerated every frame.
 	vec2 spherical = vec2(atan(EYEDIR.z, EYEDIR.x) / 6.2831853 + 0.5, asin(clamp(EYEDIR.y, -1.0, 1.0)) / 3.1415926 + 0.5);
-	float cloud_field = cloud_noise(spherical * vec2(9.0, 5.4) + vec2(4.1, -2.7));
+	float cloud_field = cloud_noise(spherical * vec2(30.0, 15.0) + vec2(4.1, -2.7));
+	float cloud_detail = cloud_noise(spherical * vec2(61.0, 30.0) + vec2(-8.7, 5.1));
+	cloud_field = mix(cloud_field, cloud_detail, 0.22);
 	float cloud_threshold = mix(0.72, 0.36, clamp(trip_cloud_coverage, 0.0, 1.0));
-	float clouds = smoothstep(cloud_threshold, cloud_threshold + 0.15, cloud_field) * smoothstep(0.03, 0.26, elevation);
-	vec3 cloud_light = mix(vec3(0.72, 0.78, 0.76), vec3(0.16, 0.19, 0.22), clamp(trip_cloud_storm, 0.0, 1.0));
+	float clouds = smoothstep(cloud_threshold, cloud_threshold + 0.1, cloud_field) * smoothstep(0.03, 0.26, elevation);
+	float cloud_core = smoothstep(cloud_threshold + 0.09, cloud_threshold + 0.27, cloud_field);
+	vec3 fair_cloud = mix(sky_horizon_color.rgb, vec3(0.78, 0.82, 0.8), 0.58);
+	vec3 cloud_light = mix(fair_cloud, vec3(0.16, 0.19, 0.22), clamp(trip_cloud_storm, 0.0, 1.0));
 	cloud_light = mix(cloud_light, vec3(0.56, 0.31, 0.2), dusk_amount * 0.48);
 	cloud_light = mix(cloud_light, vec3(0.08, 0.11, 0.18), night_amount * 0.82);
-	color = mix(color, cloud_light, clouds * mix(0.7, 0.93, trip_cloud_storm));
+	vec3 cloud_base = cloud_light * mix(0.72, 0.48, trip_cloud_storm);
+	vec3 cloud_color = mix(cloud_light, cloud_base, cloud_core * 0.72);
+	color = mix(color, cloud_color, clouds * mix(0.46, 0.82, trip_cloud_storm));
 
 	// Stable procedural star field, visible only above the horizon at night.
 	// The grid intentionally matches the low radiance cubemap budget. Sub-pixel
@@ -60,12 +66,15 @@ void sky() {
 	float star_temperature = hash21(star_cell + 19.7);
 	float star_glow = smoothstep(0.72, 1.0, star);
 	color += mix(vec3(0.56, 0.72, 1.0), vec3(1.0, 0.86, 0.66), star_temperature) * (star * 3.8 + star_glow * 1.4);
+	float galactic_band = exp(-pow(abs(dot(normalize(EYEDIR), normalize(vec3(0.18, 0.72, -0.67)))), 2.0) * 32.0);
+	float galactic_texture = cloud_noise(spherical * vec2(14.0, 7.0) + vec2(2.4, 9.3));
+	color += vec3(0.11, 0.15, 0.28) * galactic_band * galactic_texture * night_amount * smoothstep(0.02, 0.32, elevation) * (1.0 - clouds);
 
 	if (LIGHT0_ENABLED) {
-		float sun_disc = pow(max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0), mix(1150.0, 520.0, dusk_amount));
-		float sun_halo = pow(max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0), 24.0);
+		float sun_disc = pow(max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0), mix(1650.0, 720.0, dusk_amount));
+		float sun_halo = pow(max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0), 72.0);
 		vec3 celestial = LIGHT0_COLOR * LIGHT0_ENERGY;
-		color += celestial * (sun_disc * 4.2 + sun_halo * 0.14) * (1.0 - clouds * 0.82);
+		color += celestial * (sun_disc * 2.6 + sun_halo * 0.035) * (1.0 - clouds * 0.82);
 	}
 
 	COLOR = color * sky_energy;

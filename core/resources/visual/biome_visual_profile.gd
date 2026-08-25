@@ -12,9 +12,24 @@ extends Resource
 @export_range(0.0, 4.0, 0.05) var ambient_energy: float = 0.55
 @export_range(0.0, 1.0, 0.05) var ambient_sky_contribution: float = 0.35
 @export_range(0.25, 3.0, 0.05) var tonemap_exposure: float = 1.1
+@export_category("Image character")
+@export_range(0.8, 1.3, 0.01) var post_contrast: float = 1.04
+@export_range(0.65, 1.35, 0.01) var post_saturation: float = 1.0
+@export_range(0.0, 2.0, 0.05) var glow_intensity: float = 0.52
+@export_range(0.0, 2.0, 0.05) var glow_strength: float = 0.72
+@export_range(0.35, 3.0, 0.05, "suffix:m") var ssao_radius: float = 1.25
+@export_range(0.0, 3.0, 0.05) var ssao_intensity: float = 1.0
+@export_range(0.25, 3.0, 0.05) var ssao_power: float = 1.18
+
+@export_category("Sun and shadows")
 @export var primary_light_color: Color = Color(0.72, 0.82, 0.68)
 @export_range(0.0, 4.0, 0.05) var primary_light_energy: float = 0.85
 @export var primary_light_rotation: Vector3 = Vector3(-0.72, -0.48, 0.0)
+@export_range(0.1, 5.0, 0.05, "suffix:deg") var sun_angular_distance: float = 0.42
+@export_range(0.0, 1.0, 0.01) var shadow_opacity: float = 0.92
+@export_range(35.0, 180.0, 1.0, "suffix:m") var shadow_distance: float = 96.0
+
+@export_category("Atmosphere")
 @export var fog_color: Color = Color(0.06, 0.1, 0.07)
 @export_range(0.0, 0.1, 0.001) var fog_density: float = 0.012
 @export_range(0.0, 4.0, 0.05) var fog_light_energy: float = 0.55
@@ -22,6 +37,7 @@ extends Resource
 @export var volumetric_albedo: Color = Color(0.4, 0.52, 0.42)
 @export var volumetric_emission: Color = Color(0.01, 0.025, 0.012)
 @export_range(8.0, 128.0, 1.0, "suffix:m") var volumetric_length: float = 48.0
+@export_range(0.0, 2.0, 0.05) var golden_hour_volume: float = 0.55
 
 @export_category("Time of day")
 @export var dusk_horizon_color: Color = Color(0.72, 0.28, 0.09)

@@ -1987,12 +1987,37 @@ uniform vec3 phase_high : source_color = vec3(0.82, 0.025, 0.7);
 varying float pulse;
 varying vec3 terrain_position;
 varying float terrain_slope;
+varying float terrain_macro;
+varying float terrain_detail;
+varying float terrain_cloud_shadow;
 float hash21(vec2 point) {
 	return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453);
 }
+float value_noise(vec2 point) {
+	vec2 cell = floor(point);
+	vec2 local = fract(point);
+	local = local * local * (3.0 - 2.0 * local);
+	return mix(
+		mix(hash21(cell), hash21(cell + vec2(1.0, 0.0)), local.x),
+		mix(hash21(cell + vec2(0.0, 1.0)), hash21(cell + vec2(1.0)), local.x),
+		local.y
+	);
+}
+global uniform vec3 trip_wind_vector;
+global uniform float trip_wind_strength;
+global uniform float trip_cloud_coverage;
+global uniform float trip_cloud_storm;
+global uniform float trip_night;
 void vertex() {
 	terrain_position = VERTEX;
 	terrain_slope = 1.0 - abs(NORMAL.y);
+	terrain_macro = value_noise(VERTEX.xz * 0.075);
+	terrain_detail = value_noise(VERTEX.xz * 0.46 + vec2(17.2, -8.4));
+	vec2 wind_direction = normalize(trip_wind_vector.xz + vec2(0.001));
+	vec2 cloud_uv = VERTEX.xz * 0.018 + wind_direction * TIME * mix(0.008, 0.035, trip_wind_strength);
+	float cloud_field = value_noise(cloud_uv) * 0.68 + value_noise(cloud_uv * 2.07 + 13.7) * 0.32;
+	float cloud_threshold = mix(0.78, 0.38, trip_cloud_coverage);
+	terrain_cloud_shadow = smoothstep(cloud_threshold, cloud_threshold + 0.2, cloud_field);
 	float wave_a = sin(VERTEX.x * 0.075 + TIME * 0.65);
 	float wave_b = cos(VERTEX.z * 0.061 - TIME * 0.48);
 	pulse = wave_a * wave_b;
@@ -2001,24 +2026,30 @@ void vertex() {
 void fragment() {
 	vec3 mundane = COLOR.rgb;
 	float broad = 0.5 + 0.5 * sin((terrain_position.x + terrain_position.z) * 0.055 + pulse * 1.4);
-	float macro_cells = hash21(floor(terrain_position.xz * 0.115));
-	float cells = hash21(floor(terrain_position.xz * 0.72));
+	float macro_cells = terrain_macro;
+	float cells = terrain_detail;
+	float micro_detail = sin(dot(terrain_position.xz, vec2(0.82, 0.37))) * sin(dot(terrain_position.xz, vec2(-0.31, 1.17)));
 	float height_band = 0.5 + 0.5 * sin(terrain_position.y * 0.47 + macro_cells * 2.8);
-	float grain = mix(0.88, 1.1, cells) * mix(0.92, 1.08, macro_cells);
+	float grain = mix(0.84, 1.16, cells) * mix(0.9, 1.1, macro_cells);
 	float slope_mask = smoothstep(0.1, 0.46, terrain_slope);
 	vec3 altered_palette = mix(phase_low, phase_high, broad * 0.48 + height_band * 0.32 + cells * 0.2);
 	vec3 altered = mix(mundane, altered_palette, 0.58);
 	vec3 ground = mix(mundane, altered, metamorphosis);
 	ground *= grain;
+	ground *= mix(0.94, 1.06, micro_detail * 0.5 + 0.5);
 	ground = mix(ground, ground * 0.48 + phase_low * 0.13, slope_mask * 0.68);
 	ground *= mix(0.82, 1.08, height_band * (1.0 - slope_mask * 0.45));
+	float cloud_shadow = terrain_cloud_shadow;
+	ground *= mix(1.0, mix(0.82, 0.7, trip_cloud_storm), cloud_shadow);
 	float wet_mask = weather_wetness * mix(0.62, 1.0, cells) * (1.0 - slope_mask * 0.72);
 	ALBEDO = mix(ground, ground * vec3(0.5, 0.58, 0.54), wet_mask * 0.7);
 	ROUGHNESS = clamp(mix(0.96, 0.78, metamorphosis) - cells * 0.07 + slope_mask * 0.08 - wet_mask * 0.54, 0.22, 1.0);
 	SPECULAR = mix(0.22, 0.68, wet_mask);
+	AO = mix(0.94, 0.78, slope_mask * 0.72 + cloud_shadow * 0.12);
 	// Only the consciousness pulse emits. The former constant ground emission
 	// cancelled contact shadows and was the main source of the flat colour wash.
-	EMISSION = altered_palette * metamorphosis * (0.025 + max(pulse, 0.0) * 0.075) * (1.0 - slope_mask * 0.72);
+	vec3 indirect_fill = ground * mix(0.065, 0.11, trip_night) * (1.0 - cloud_shadow * 0.22);
+	EMISSION = indirect_fill + altered_palette * metamorphosis * (0.025 + max(pulse, 0.0) * 0.075) * (1.0 - slope_mask * 0.72);
 }
 """
 	var material := ShaderMaterial.new()

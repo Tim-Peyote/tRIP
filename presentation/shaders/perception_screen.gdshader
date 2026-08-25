@@ -21,14 +21,12 @@ void fragment() {
 	vec2 uv = SCREEN_UV;
 	vec2 centered = uv - vec2(0.5);
 	float radius = length(centered);
-	float angle = atan(centered.y, centered.x);
-	float family = 2.0 + mod(trip_world_family, 4.0);
-	float spiral = sin(angle * family + radius * 34.0 - TIME * 3.2);
-	// Image displacement is reserved for the authored world metamorphosis.
-	// Physiological states use stable grading and never create screen ripple.
-	uv += normalize(centered + vec2(0.0001)) * spiral * metamorph * 0.026;
-	uv.x += sin(uv.y * 34.0 + TIME * 4.0) * metamorph * 0.008;
-	vec2 chroma = vec2(0.0022 * strength, 0.0);
+	// Metamorphosis bends the visual field as a single optical pulse. Repeating
+	// sine bands looked like a debug overlay and hid the world at the exact moment
+	// its transformation should be visible.
+	float lens = (1.0 - smoothstep(0.08, 0.72, radius)) * pow(metamorph, 2.0);
+	uv += centered * lens * 0.038;
+	vec2 chroma = vec2(0.0022 * strength + 0.0035 * metamorph, 0.0);
 	vec3 color;
 	color.r = texture(screen_texture, uv + chroma).r;
 	color.g = texture(screen_texture, uv).g;
@@ -45,12 +43,10 @@ void fragment() {
 	float heartbeat = pow(max(sin(TIME * 5.4), 0.0), 8.0) * danger;
 	color += vec3(0.28, -0.035, -0.045) * (0.08 + heartbeat * 0.13) * danger;
 	color *= 1.0 - smoothstep(0.2, 0.74, radius) * danger * (0.22 + heartbeat * 0.18);
-	float transition_ring = smoothstep(0.08, 0.0, abs(radius - (0.68 - metamorph * 0.56)));
-	float cellular = smoothstep(0.66, 0.9, sin((uv.x + uv.y) * 72.0 + spiral * 3.0) * 0.5 + 0.5) * metamorph;
-	color = mix(color, color * 0.36 + trip_world_color.rgb * (0.42 + transition_ring * 0.72), metamorph * 0.62);
-	color += trip_world_color.rgb * cellular * 0.11;
-	color += vec3(1.0) * pow(metamorph, 8.0) * 0.2;
-	color *= 1.0 - smoothstep(0.18, 0.76, radius) * metamorph * 0.58;
+	float transition_ring = smoothstep(0.055, 0.0, abs(radius - (0.7 - metamorph * 0.58)));
+	color = mix(color, color * 0.78 + trip_world_color.rgb * (0.16 + transition_ring * 0.24), metamorph * 0.24);
+	color += vec3(1.0) * pow(metamorph, 10.0) * 0.12;
+	color *= 1.0 - smoothstep(0.2, 0.78, radius) * metamorph * 0.18;
 	color = mix(color, color * 0.82 + trip_hazard_color.rgb * 0.08, hazard * smoothstep(0.42, 0.9, radius) * 0.3);
-	COLOR = vec4(color, max(max(max(max(strength * 0.38, quiet * 0.48), danger * 0.28), metamorph), hazard * 0.24));
+	COLOR = vec4(color, max(max(max(max(strength * 0.38, quiet * 0.48), danger * 0.28), metamorph * 0.72), hazard * 0.24));
 }
