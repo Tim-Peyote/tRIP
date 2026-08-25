@@ -38,6 +38,11 @@ func _run() -> void:
 	_expect(_player.third_person_camera.current and not _player.camera.current, "Third-person camera did not become the active renderer.")
 	_expect(not _player.viewmodel.visible, "First-person arms remained visible in third-person view.")
 	_expect(_player.avatar_animator.is_third_person_visible(), "Full player body remained shadow-only in third-person view.")
+	# This imported rig is authored facing +Z; its visible forward, rather than
+	# the conventional Godot -Z node forward, must follow controller travel.
+	var avatar_forward := _player.avatar_animator.global_basis.z.normalized()
+	var controller_forward := -_player.global_basis.z.normalized()
+	_expect(avatar_forward.dot(controller_forward) > 0.99, "Third-person avatar faces backward relative to the controller movement direction.")
 	_expect(_player.third_person_spring_arm.collision_mask == 1 and _player.third_person_spring_arm.spring_length > 0.3, "Third-person camera lacks an authored collision spring arm.")
 	_expect(_player.interactor.global_position.distance_to(_player.third_person_camera.global_position) < 0.02, "Interaction ray did not follow the rendered third-person camera.")
 	_add_static_box("CameraOccluder", Vector3(3.0, 3.2, 0.2), Vector3(0.42, 1.55, 1.45))
@@ -94,6 +99,27 @@ func _run() -> void:
 	Input.action_release(&"move_forward")
 	await _physics_frames(24)
 	_expect(_player.get_planar_speed() < 0.12, "Ground deceleration left the player sliding.")
+
+	# Locomotion clips must survive several animation lengths. Imported FBX
+	# clips defaulted to one-shot playback and used to freeze while movement
+	# continued after the first cycle.
+	_player.set_third_person_enabled(true, false)
+	Input.action_press(&"move_forward")
+	await _physics_frames(240)
+	var avatar_animation_player := _player.avatar_animator.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	var walk_animation := avatar_animation_player.get_animation(&"Human Armature|Walk")
+	var run_animation := avatar_animation_player.get_animation(&"Human Armature|Run")
+	_expect(_player.get_planar_speed() > 1.0, "Player stopped during the sustained third-person locomotion test.")
+	_expect(_player.avatar_animator.get_current_state() == &"walk", "Third-person walk state was lost during sustained movement.")
+	_expect(avatar_animation_player.is_playing(), "Third-person walk animation stopped while the character was still moving.")
+	_expect(walk_animation != null and walk_animation.loop_mode == Animation.LOOP_LINEAR, "Third-person walk clip is not configured as a locomotion loop.")
+	_expect(run_animation != null and run_animation.loop_mode == Animation.LOOP_LINEAR, "Third-person run clip is not configured as a locomotion loop.")
+	var travel_direction := Vector3(_player.velocity.x, 0.0, _player.velocity.z).normalized()
+	var visible_forward := _player.avatar_animator.global_basis.z.normalized()
+	_expect(visible_forward.dot(travel_direction) > 0.98, "Third-person body did not turn toward sustained travel direction.")
+	Input.action_release(&"move_forward")
+	await _physics_frames(24)
+	_player.set_third_person_enabled(false, false)
 
 	# Sprint is forward-gated; holding sprint while reversing must not produce a backward sprint.
 	Input.action_press(&"move_forward")
