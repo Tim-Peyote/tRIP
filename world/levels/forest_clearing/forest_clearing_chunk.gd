@@ -6,6 +6,14 @@ extends Node3D
 @onready var listener: ListenerCreature = %Listener
 
 
+func _ready() -> void:
+	# The global biome controller owns the sun and its cascaded shadow map. This
+	# legacy local directional light produced a second shadow direction and washed
+	# out every material in the opening clearing.
+	forest_light.visible = false
+	forest_light.shadow_enabled = false
+
+
 func apply_phase(phase: int) -> void:
 	match phase:
 		ExpeditionClock.Phase.DAY:

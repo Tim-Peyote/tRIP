@@ -26,13 +26,13 @@ func _ready() -> void:
 	main.gameplay_hud.notice_label.visible = false
 	for _frame: int in 30:
 		await get_tree().process_frame
-	var error := await _capture(level, 0.08, DAY_PATH)
+	var error := await _capture(level, 0.35, DAY_PATH)
 	if error == OK:
 		error = await _capture(level, 0.65, DUSK_PATH)
 	if error == OK:
 		error = await _capture(level, 0.9, NIGHT_PATH)
 	if error == OK:
-		error = await _capture(level, 0.04, DAWN_PATH)
+		error = await _capture(level, 0.08, DAWN_PATH)
 	if error == OK:
 		print("Time-of-day captures saved.")
 	get_tree().quit(error)

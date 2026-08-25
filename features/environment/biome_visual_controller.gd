@@ -27,6 +27,11 @@ var _weather_intensity: float = 0.0
 var _quality_id: StringName = &"balanced"
 var _shadow_distance_scale: float = 1.0
 var _allow_volumetrics: bool = true
+var _reflection_probe: ReflectionProbe
+var _reflection_target: Node3D
+var _reflection_elapsed: float = 0.0
+var _last_reflection_position := Vector3(999999.0, 999999.0, 999999.0)
+var _last_reflection_time: float = -1.0
 
 
 func setup(world_environment: WorldEnvironment) -> void:
@@ -49,8 +54,50 @@ func setup(world_environment: WorldEnvironment) -> void:
 	if _primary_light == null and get_tree().current_scene != null:
 		_primary_light = get_tree().current_scene.find_child("MoonLight", true, false) as DirectionalLight3D
 	_configure_light_rig()
+	# AgX keeps saturated biome skies from clipping to white while retaining the
+	# warm/cold hue separation that defines the authored day cycle.
+	_environment.tonemap_mode = Environment.TONE_MAPPER_AGX
+	_environment.tonemap_agx_contrast = 1.12
+	_environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+	_environment.ssr_fade_in = 0.22
+	_environment.ssr_fade_out = 1.6
+	_environment.ssr_depth_tolerance = 0.28
 	_base_profile = shelter_profile
 	apply_profile(shelter_profile, true)
+	set_process(true)
+
+
+func setup_reflection_target(target: Node3D) -> void:
+	_reflection_target = target
+	if _reflection_probe == null:
+		_reflection_probe = ReflectionProbe.new()
+		_reflection_probe.name = "TravelingEnvironmentProbe"
+		_reflection_probe.size = Vector3(52.0, 22.0, 52.0)
+		_reflection_probe.origin_offset = Vector3(0.0, 3.0, 0.0)
+		_reflection_probe.max_distance = 78.0
+		_reflection_probe.blend_distance = 7.0
+		_reflection_probe.intensity = 0.78
+		_reflection_probe.ambient_mode = ReflectionProbe.AMBIENT_ENVIRONMENT
+		_reflection_probe.box_projection = false
+		_reflection_probe.enable_shadows = false
+		_reflection_probe.update_mode = ReflectionProbe.UPDATE_ONCE
+		_reflection_probe.mesh_lod_threshold = 1.7
+		add_child(_reflection_probe)
+	_reflection_probe.visible = _quality_id != &"performance"
+	_reflection_probe.enable_shadows = _quality_id == &"cinematic"
+	_update_reflection_probe(true)
+
+
+func _process(delta: float) -> void:
+	if not is_instance_valid(_reflection_target) or not is_instance_valid(_reflection_probe) or not _reflection_probe.visible:
+		return
+	_reflection_elapsed += delta
+	if _reflection_elapsed < 1.25:
+		return
+	var moved := _reflection_target.global_position.distance_squared_to(_last_reflection_position) >= 24.0 * 24.0
+	var sky_changed := absf(_time_progress - _last_reflection_time) >= 0.08
+	if moved or sky_changed:
+		_update_reflection_probe(true)
 
 
 func show_shelter(_actor: Node = null) -> void:
@@ -80,10 +127,13 @@ func set_time_progress(progress: float) -> void:
 
 
 func set_weather_state(state: int, _title: String, intensity: float) -> void:
+	var changed := state != _weather_state or absf(intensity - _weather_intensity) > 0.18
 	_weather_state = state
 	_weather_intensity = clampf(intensity, 0.0, 1.0)
 	if _active_profile != null and _environment != null:
 		_apply_volumetric_policy(_active_profile, _time_state(_active_profile))
+	if changed:
+		_update_reflection_probe(true)
 
 
 func set_quality_preset(preset_id: StringName) -> void:
@@ -95,6 +145,9 @@ func set_quality_preset(preset_id: StringName) -> void:
 			_environment.glow_enabled = false
 			_environment.ssao_enabled = false
 			_environment.ssil_enabled = false
+			_environment.ssr_enabled = false
+			if is_instance_valid(_reflection_probe):
+				_reflection_probe.visible = false
 			get_viewport().mesh_lod_threshold = 1.7
 		&"cinematic":
 			_shadow_distance_scale = 1.12
@@ -104,6 +157,12 @@ func set_quality_preset(preset_id: StringName) -> void:
 			_environment.ssil_enabled = true
 			_environment.ssil_radius = 3.0
 			_environment.ssil_intensity = 0.62
+			_environment.ssr_enabled = true
+			_environment.ssr_max_steps = 64
+			if is_instance_valid(_reflection_probe):
+				_reflection_probe.visible = true
+				_reflection_probe.enable_shadows = true
+				_reflection_probe.mesh_lod_threshold = 1.25
 			get_viewport().mesh_lod_threshold = 0.72
 		_:
 			_shadow_distance_scale = 1.0
@@ -111,11 +170,18 @@ func set_quality_preset(preset_id: StringName) -> void:
 			_environment.glow_enabled = true
 			_environment.ssao_enabled = true
 			_environment.ssil_enabled = false
+			_environment.ssr_enabled = true
+			_environment.ssr_max_steps = 32
+			if is_instance_valid(_reflection_probe):
+				_reflection_probe.visible = true
+				_reflection_probe.enable_shadows = false
+				_reflection_probe.mesh_lod_threshold = 1.7
 			get_viewport().mesh_lod_threshold = 1.0
 	if _active_profile != null:
 		var state := _time_state(_active_profile)
 		_set_values(_active_profile, true)
 		_apply_volumetric_policy(_active_profile, state)
+	_update_reflection_probe(true)
 
 
 func show_forest(_actor: Node = null) -> void:
@@ -201,6 +267,7 @@ func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void
 	profile_changed.emit(profile.id)
 	atmosphere_baseline_changed.emit(profile.fog_density, profile.volumetric_density)
 	postprocess_baseline_changed.emit(profile.post_contrast, profile.post_saturation, profile.glow_intensity)
+	_update_reflection_probe(true)
 
 
 func _set_values(profile: BiomeVisualProfile, preserve_weather_modifiers: bool = false) -> void:
@@ -301,7 +368,7 @@ func _time_state(profile: BiomeVisualProfile) -> Dictionary:
 		# A shadowless opposite key approximates bounced sky light. Keeping it at a
 		# restrained floor prevents saturated altered worlds from losing every
 		# foreground form whenever the sun sits behind the camera.
-		"fill_energy": lerpf(maxf(profile.ambient_energy * 0.4, 0.25), maxf(profile.ambient_energy * 0.28, 0.15), night),
+		"fill_energy": lerpf(maxf(profile.ambient_energy * 0.62, 0.38), maxf(profile.ambient_energy * 0.36, 0.2), night),
 		"fill_rotation": Vector3(-0.24, light_rotation.y + PI, 0.06),
 		"fog_color": profile.fog_color.lerp(profile.dusk_horizon_color.darkened(0.38), dusk * 0.72).lerp(profile.night_fog_color, night),
 		"fog_density": profile.fog_density * lerpf(1.0, 1.22, night),
@@ -325,6 +392,7 @@ func _configure_light_rig() -> void:
 	if is_instance_valid(_primary_light):
 		_primary_light.shadow_enabled = true
 		_primary_light.shadow_opacity = 0.94
+		_primary_light.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 		_primary_light.light_angular_distance = 0.55
 		_primary_light.directional_shadow_max_distance = 110.0
 		_primary_light.directional_shadow_blend_splits = true
@@ -344,6 +412,20 @@ func _configure_light_rig() -> void:
 		_environment.volumetric_fog_sky_affect = 0.54
 		_environment.volumetric_fog_temporal_reprojection_enabled = true
 		_environment.volumetric_fog_temporal_reprojection_amount = 0.88
+
+
+func _update_reflection_probe(force_refresh: bool = false) -> void:
+	if not is_instance_valid(_reflection_target) or not is_instance_valid(_reflection_probe):
+		return
+	_reflection_elapsed = 0.0
+	_last_reflection_position = _reflection_target.global_position
+	_last_reflection_time = _time_progress
+	var next_position := _reflection_target.global_position + Vector3.UP * 2.8
+	# UPDATE_ONCE recaptures when its transform changes. The tiny nudge also
+	# refreshes the cubemap after a sky/phase change without using UPDATE_ALWAYS.
+	if force_refresh and _reflection_probe.global_position.is_equal_approx(next_position):
+		next_position.x += 0.002
+	_reflection_probe.global_position = next_position
 
 
 func get_primary_light() -> DirectionalLight3D:

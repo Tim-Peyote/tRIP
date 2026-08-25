@@ -860,9 +860,7 @@ func _add_reed_mirror_island(root: Node3D, center: Vector2, rng: RandomNumberGen
 	water_mesh.bottom_radius = 4.65 * scale
 	water_mesh.height = 0.045
 	water_mesh.radial_segments = 18
-	var water := _standard_material(pack.accent_color.darkened(0.32), true)
-	water.metallic = 0.78
-	water.roughness = 0.12
+	var water := _water_material(pack.accent_color.darkened(0.32))
 	_add_composition_mesh(root, water_mesh, center, 0.04, Vector3.ONE, Vector3.ZERO, water)
 	var reed_material := _standard_material(Color(0.055, 0.31, 0.19))
 	for index: int in 13:
@@ -1508,9 +1506,7 @@ func _add_reflection_pool_core(root: Node3D, center: Vector2, rng: RandomNumberG
 	pool_mesh.bottom_radius = 3.85
 	pool_mesh.height = 0.055
 	pool_mesh.radial_segments = 18
-	var water_material := _standard_material(pack.accent_color.darkened(0.28), true)
-	water_material.metallic = 0.82
-	water_material.roughness = 0.08
+	var water_material := _water_material(pack.accent_color.darkened(0.28))
 	pool_mesh.material = water_material
 	pool.mesh = pool_mesh
 	pool.position = Vector3(center.x, ground + 0.08, center.y)
@@ -1710,9 +1706,7 @@ func _add_water_feature(body: Node3D, coordinate: Vector2i, rng: RandomNumberGen
 	mesh.bottom_radius = mesh.top_radius * 1.08
 	mesh.height = 0.055
 	mesh.radial_segments = 18
-	var material := _standard_material(pack.accent_color.darkened(0.28), true)
-	material.metallic = 0.72
-	material.roughness = 0.18
+	var material := _water_material(pack.accent_color.darkened(0.28))
 	mesh.material = material
 	pool.mesh = mesh
 	pool.position = Vector3(center.x, _height_at(center.x, center.y) + 0.05, center.y)
@@ -2322,6 +2316,35 @@ func _standard_material(color: Color, emission: bool = false) -> StandardMateria
 	return material
 
 
+func _water_material(color: Color) -> ShaderMaterial:
+	var shader := Shader.new()
+	shader.code = """
+shader_type spatial;
+render_mode cull_disabled, depth_draw_opaque;
+uniform vec3 water_color : source_color = vec3(0.08, 0.32, 0.38);
+varying vec3 local_position;
+void vertex() {
+	local_position = VERTEX;
+	VERTEX.y += sin(VERTEX.x * 1.7 + TIME * 0.72) * 0.018;
+	VERTEX.y += cos(VERTEX.z * 2.15 - TIME * 0.54) * 0.012;
+	float wave_x = cos(local_position.x * 1.7 + TIME * 0.72) * 0.18;
+	float wave_z = -sin(local_position.z * 2.15 - TIME * 0.54) * 0.14;
+	NORMAL = normalize(mix(NORMAL, vec3(-wave_x, 1.0, -wave_z), 0.42));
+}
+void fragment() {
+	float fresnel = pow(1.0 - clamp(dot(normalize(NORMAL), normalize(VIEW)), 0.0, 1.0), 4.0);
+	ALBEDO = mix(water_color * 0.42, water_color * 1.28 + vec3(0.035, 0.065, 0.075), fresnel);
+	METALLIC = 0.0;
+	ROUGHNESS = mix(0.16, 0.045, fresnel);
+	SPECULAR = 0.92;
+}
+"""
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter(&"water_color", Vector3(color.r, color.g, color.b))
+	return material
+
+
 func _ecology_motion_material(color: Color, pack: BiomeContentPack, height_response: float, emission_strength: float) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = ECOLOGY_MOTION_SHADER
@@ -2366,6 +2389,7 @@ varying float terrain_slope;
 varying float terrain_macro;
 varying float terrain_detail;
 varying float terrain_cloud_shadow;
+varying vec3 terrain_detail_normal;
 float hash21(vec2 point) {
 	return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453);
 }
@@ -2389,6 +2413,11 @@ void vertex() {
 	terrain_slope = 1.0 - abs(NORMAL.y);
 	terrain_macro = value_noise(VERTEX.xz * 0.075);
 	terrain_detail = value_noise(VERTEX.xz * 0.46 + vec2(17.2, -8.4));
+	vec2 detail_uv = VERTEX.xz * 0.44;
+	float detail_step = 0.085;
+	float normal_x = value_noise(detail_uv + vec2(detail_step, 0.0)) - value_noise(detail_uv - vec2(detail_step, 0.0));
+	float normal_z = value_noise(detail_uv + vec2(0.0, detail_step)) - value_noise(detail_uv - vec2(0.0, detail_step));
+	terrain_detail_normal = mat3(MODELVIEW_MATRIX) * normalize(vec3(-normal_x * 2.1, 1.0, -normal_z * 2.1));
 	vec2 wind_direction = normalize(trip_wind_vector.xz + vec2(0.001));
 	vec2 cloud_uv = VERTEX.xz * 0.018 + wind_direction * TIME * mix(0.008, 0.035, trip_wind_strength);
 	float cloud_field = value_noise(cloud_uv) * 0.68 + value_noise(cloud_uv * 2.07 + 13.7) * 0.32;
@@ -2433,12 +2462,15 @@ void fragment() {
 	// the missing luminance with the biome's own highland tint, preserving hue and
 	// leaving true night substantially darker than daytime.
 	float ground_luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
-	float readability_floor = mix(0.085, 0.038, trip_night);
+	float readability_floor = mix(0.125, 0.048, trip_night);
 	ground += mix(surface_high, vec3(1.0), 0.62) * max(readability_floor - ground_luma, 0.0) * 0.92;
 	float cloud_shadow = terrain_cloud_shadow;
 	ground *= mix(1.0, mix(0.82, 0.7, trip_cloud_storm), cloud_shadow);
 	float wet_mask = weather_wetness * mix(0.62, 1.0, cells) * (1.0 - slope_mask * 0.72);
 	float snow_mask = weather_snow * smoothstep(0.34, 0.82, macro_cells + (1.0 - slope_mask) * 0.46);
+	// Procedural micro-normal detail lets sunlight travel over soil and rock
+	// instead of reading as a uniformly coloured low-poly sheet. Snow softens it.
+	NORMAL = normalize(mix(NORMAL, terrain_detail_normal, mix(0.34, 0.12, snow_mask)));
 	vec3 weathered_ground = mix(ground, ground * vec3(0.5, 0.58, 0.54), wet_mask * 0.7);
 	ALBEDO = mix(weathered_ground, vec3(0.68, 0.79, 0.84) * mix(0.82, 1.08, cells), snow_mask * 0.88);
 	ROUGHNESS = clamp(mix(0.96, 0.78, metamorphosis) - cells * 0.07 + slope_mask * 0.08 - wet_mask * 0.54, 0.22, 1.0);
@@ -2446,8 +2478,7 @@ void fragment() {
 	AO = mix(0.94, 0.78, slope_mask * 0.72 + cloud_shadow * 0.12);
 	// Only the consciousness pulse emits. The former constant ground emission
 	// cancelled contact shadows and was the main source of the flat colour wash.
-	vec3 indirect_fill = ground * mix(0.13, 0.17, trip_night) * (1.0 - cloud_shadow * 0.22);
-	EMISSION = indirect_fill + altered_palette * metamorphosis * altered_trace * (0.018 + max(pulse, 0.0) * 0.065) * (1.0 - slope_mask * 0.72);
+	EMISSION = altered_palette * metamorphosis * altered_trace * (0.018 + max(pulse, 0.0) * 0.065) * (1.0 - slope_mask * 0.72);
 }
 """
 	var material := ShaderMaterial.new()
