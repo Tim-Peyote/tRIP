@@ -152,6 +152,7 @@ rotation = Vector3(-0.08, 0, 0)
 unique_name_in_owner = true
 current = true
 near = 0.05
+far = 1250.0
 
 [node name="ThirdPersonSpringArm" type="SpringArm3D" parent="CameraRig"]
 unique_name_in_owner = true
@@ -163,6 +164,7 @@ collision_mask = 1
 [node name="ThirdPersonCamera" type="Camera3D" parent="CameraRig/ThirdPersonSpringArm"]
 unique_name_in_owner = true
 near = 0.08
+far = 1250.0
 current = false
 
 [node name="InteractionOrchestrator" type="RayCast3D" parent="CameraRig/Camera3D"]

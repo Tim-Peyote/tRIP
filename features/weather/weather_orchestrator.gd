@@ -42,6 +42,7 @@ var _player: FirstPersonController
 var _terrain: ExpeditionTerrain
 var _environment: Environment
 var _precipitation: GPUParticles3D
+var _precipitation_depth: GPUParticles3D
 var _lightning: DirectionalLight3D
 var _rain_audio: AudioStreamPlayer
 var _wind_audio: AudioStreamPlayer
@@ -70,6 +71,7 @@ var _local_context: Dictionary = {
 var _context_tick: float = 0.0
 var _wind_target := Vector3(0.35, 0.0, 0.12)
 var _wind_shift_time: float = 0.0
+var _last_local_intensity: float = -1.0
 
 
 func setup(world_environment: WorldEnvironment, player: FirstPersonController, terrain: ExpeditionTerrain = null) -> void:
@@ -237,8 +239,8 @@ func get_state_title() -> String:
 
 
 func get_debug_text() -> String:
-	return "%s · %s · %d°C · сила %d%% · земля %d%% · ветер %.1f м/с · %s" % [
-		get_state_title(), String(_local_context.get("zone_id", &"dense_forest")), roundi(get_ambient_temperature()), roundi(intensity * 100.0), roundi(wetness * 100.0), wind.length(),
+	return "%s · %s · %d°C · локально %d%% · земля %d%% · ветер %.1f м/с · %s" % [
+		get_state_title(), String(_local_context.get("zone_id", &"dense_forest")), roundi(get_ambient_temperature()), roundi(get_local_intensity() * 100.0), roundi(wetness * 100.0), wind.length(),
 		"авто" if automatic else "ручной режим",
 	]
 
@@ -278,16 +280,36 @@ func _choose_next_weather() -> void:
 
 
 func _target_wetness() -> float:
+	var local_strength := get_local_intensity()
 	match state:
-		State.DRIZZLE: return 0.58 * intensity
-		State.STORM: return 1.0
-		State.FOG: return 0.28 * intensity
-		State.SNOW: return 0.38 * intensity
+		State.DRIZZLE: return 0.58 * local_strength
+		State.STORM: return local_strength
+		State.FOG: return 0.28 * local_strength
+		State.SNOW: return 0.38 * local_strength
 		_: return 0.0
 
 
 func get_local_context() -> Dictionary:
 	return _local_context.duplicate()
+
+
+func get_local_intensity() -> float:
+	if not is_instance_valid(_terrain):
+		return intensity
+	var exposure := float(_local_context.get("exposure", 0.5))
+	var shelter := float(_local_context.get("forest_shelter", 0.0))
+	var moisture := float(_local_context.get("moisture", 0.45))
+	var modifier := 1.0
+	match state:
+		State.DRIZZLE:
+			modifier = lerpf(0.88, 1.14, moisture) * (1.0 - shelter * 0.3)
+		State.STORM:
+			modifier = lerpf(0.76, 1.22, exposure) * (1.0 - shelter * 0.24)
+		State.FOG:
+			modifier = lerpf(0.78, 1.26, moisture) * lerpf(1.08, 0.9, exposure)
+		State.SNOW:
+			modifier = lerpf(0.72, 1.25, exposure) * (1.0 - shelter * 0.34)
+	return clampf(intensity * modifier, 0.0, 1.0)
 
 
 func _sample_local_context(immediate: bool) -> void:
@@ -299,9 +321,13 @@ func _sample_local_context(immediate: bool) -> void:
 	if state == State.SNOW and not bool(_local_context.get("can_snow", false)) and automatic:
 		set_weather(State.DRIZZLE if float(_local_context.get("moisture", 0.0)) >= 0.42 else State.FOG, intensity, immediate)
 		return
-	if zone_changed:
+	var local_strength := get_local_intensity()
+	var strength_changed := absf(local_strength - _last_local_intensity) >= 0.08
+	_last_local_intensity = local_strength
+	if zone_changed or strength_changed:
 		_configure_particles()
 		_apply_environment(immediate)
+	if zone_changed:
 		state_changed.emit(state, get_state_title(), intensity)
 
 
@@ -314,7 +340,7 @@ func _update_wind(delta: float) -> void:
 		var next_angle := current_angle + _rng.randf_range(-maximum_turn, maximum_turn)
 		var exposure := float(_local_context.get("exposure", 0.5))
 		var shelter := float(_local_context.get("forest_shelter", 0.0))
-		var weather_speed := lerpf(0.35, 8.5, intensity)
+		var weather_speed := lerpf(0.35, 8.5, get_local_intensity())
 		if state == State.CLEAR:
 			weather_speed *= 0.42
 		elif state == State.FOG:
@@ -324,14 +350,15 @@ func _update_wind(delta: float) -> void:
 		var local_speed := weather_speed * lerpf(0.62, 1.28, exposure) * (1.0 - shelter * 0.52)
 		_wind_target = Vector3(cos(next_angle), 0.0, sin(next_angle)) * local_speed
 	wind = wind.move_toward(_wind_target, delta * (2.8 if state == State.STORM else 0.72))
-	var process := _precipitation.process_material as ParticleProcessMaterial if is_instance_valid(_precipitation) else null
-	if process != null:
-		process.direction = Vector3(wind.x * (0.12 if state == State.SNOW else 0.065), -0.4 if state == State.SNOW else -1.0, wind.z * (0.12 if state == State.SNOW else 0.065)).normalized()
+	for layer: GPUParticles3D in [_precipitation, _precipitation_depth]:
+		var process := layer.process_material as ParticleProcessMaterial if is_instance_valid(layer) else null
+		if process != null:
+			process.direction = Vector3(wind.x * (0.12 if state == State.SNOW else 0.065), -0.4 if state == State.SNOW else -1.0, wind.z * (0.12 if state == State.SNOW else 0.065)).normalized()
 
 
 func _update_surface_state(delta: float) -> void:
 	var target := _target_wetness()
-	var rate := (0.055 + intensity * 0.08) if target > wetness else 0.012
+	var rate := (0.055 + get_local_intensity() * 0.08) if target > wetness else 0.012
 	var next := move_toward(wetness, target, rate * delta)
 	if not is_equal_approx(next, wetness):
 		wetness = next
@@ -347,7 +374,7 @@ func _apply_to_reactive_objects() -> void:
 		if node is PhysicalPropertyComponent:
 			var properties := node as PhysicalPropertyComponent
 			if _target_wetness() > 0.0:
-				properties.apply_precipitation(0.018 * intensity)
+				properties.apply_precipitation(0.018 * get_local_intensity())
 			else:
 				properties.dry(0.006)
 
@@ -355,63 +382,75 @@ func _apply_to_reactive_objects() -> void:
 func _build_precipitation() -> void:
 	_precipitation = GPUParticles3D.new()
 	_precipitation.name = "LocalPrecipitation"
-	_precipitation.amount = 900
 	_precipitation.lifetime = 1.5
 	_precipitation.visibility_aabb = AABB(Vector3(-18, -14, -18), Vector3(36, 28, 36))
 	_precipitation.position = Vector3(0, 9, 0)
 	add_child(_precipitation)
+	_precipitation_depth = GPUParticles3D.new()
+	_precipitation_depth.name = "WeatherDepthLayer"
+	_precipitation_depth.lifetime = 2.25
+	_precipitation_depth.visibility_aabb = AABB(Vector3(-31, -18, -31), Vector3(62, 36, 62))
+	_precipitation_depth.position = Vector3(0, 11, 0)
+	add_child(_precipitation_depth)
 
 
 func _configure_particles() -> void:
-	if _precipitation == null:
+	if _precipitation == null or _precipitation_depth == null:
 		return
 	var snow_is_local := state != State.SNOW or bool(_local_context.get("can_snow", false))
-	_precipitation.emitting = state in [State.DRIZZLE, State.STORM, State.SNOW] and intensity > 0.02 and snow_is_local
-	var shelter := float(_local_context.get("forest_shelter", 0.0))
-	var precipitation_scale := 1.0 - shelter * 0.34
-	_precipitation.amount = roundi(lerpf(220.0, 1050.0, intensity) * precipitation_scale)
+	var local_strength := get_local_intensity()
+	var should_emit := state in [State.DRIZZLE, State.STORM, State.SNOW] and local_strength > 0.02 and snow_is_local
+	_precipitation.emitting = should_emit
+	_precipitation_depth.emitting = should_emit
 	var initial_direction := Vector3(_rng.randf_range(-1.0, 1.0), 0.0, _rng.randf_range(-0.8, 0.8)).normalized()
 	if initial_direction.length_squared() < 0.1:
 		initial_direction = Vector3(0.9, 0.0, 0.25)
-	_wind_target = initial_direction * lerpf(0.4, 8.5, intensity)
+	_wind_target = initial_direction * lerpf(0.4, 8.5, local_strength)
 	if state == State.FOG:
 		_wind_target *= 0.15
 	if wind.length_squared() < 0.01:
 		wind = _wind_target
+	_configure_particle_layer(_precipitation, false, local_strength)
+	_configure_particle_layer(_precipitation_depth, true, local_strength)
+
+
+func _configure_particle_layer(layer: GPUParticles3D, depth_layer: bool, local_strength: float) -> void:
+	layer.amount = roundi(lerpf(120.0, 480.0, local_strength) if depth_layer else lerpf(240.0, 1050.0, local_strength))
 	var process := ParticleProcessMaterial.new()
 	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	process.emission_box_extents = Vector3(13, 1.5, 13)
+	process.emission_box_extents = Vector3(24.0, 2.5, 24.0) if depth_layer else Vector3(13.0, 1.5, 13.0)
 	process.direction = Vector3(wind.x * 0.065, -1.0, wind.z * 0.065).normalized() if state != State.SNOW else Vector3(wind.x * 0.12, -0.4, wind.z * 0.12).normalized()
 	process.spread = 11.0 if state != State.SNOW else 42.0
 	process.gravity = Vector3(0, -10.5, 0) if state != State.SNOW else Vector3(0, -0.8, 0)
-	process.initial_velocity_min = 7.0 if state != State.SNOW else 0.6
-	process.initial_velocity_max = 12.0 if state != State.SNOW else 1.5
-	process.scale_min = 0.68
-	process.scale_max = 1.22
-	_precipitation.process_material = process
+	process.initial_velocity_min = (8.5 if depth_layer else 7.0) if state != State.SNOW else (0.42 if depth_layer else 0.6)
+	process.initial_velocity_max = (13.5 if depth_layer else 12.0) if state != State.SNOW else (1.15 if depth_layer else 1.5)
+	process.scale_min = 0.42 if depth_layer else 0.68
+	process.scale_max = 0.82 if depth_layer else 1.22
+	layer.process_material = process
 	# Real spatial droplets replace the old camera-facing half-metre quads. Those
 	# quads read as graphic stripes glued to the screen during wind and storms.
 	var droplet := SphereMesh.new()
-	droplet.radius = 0.01 if state != State.SNOW else 0.036
-	droplet.height = 0.11 if state != State.SNOW else 0.036
+	droplet.radius = (0.006 if depth_layer else 0.01) if state != State.SNOW else (0.022 if depth_layer else 0.036)
+	droplet.height = (0.065 if depth_layer else 0.11) if state != State.SNOW else (0.022 if depth_layer else 0.036)
 	droplet.radial_segments = 5
 	droplet.rings = 2
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = Color(0.52, 0.66, 0.72, 0.34) if state != State.SNOW else Color(0.88, 0.94, 1.0, 0.82)
+	material.albedo_color = Color(0.52, 0.66, 0.72, 0.2 if depth_layer else 0.34) if state != State.SNOW else Color(0.88, 0.94, 1.0, 0.48 if depth_layer else 0.82)
 	droplet.material = material
-	_precipitation.draw_pass_1 = droplet
+	layer.draw_pass_1 = droplet
 
 
 func _apply_environment(immediate: bool) -> void:
 	if _environment == null:
 		return
+	var local_strength := get_local_intensity()
 	var fog_target := _base_fog_density
 	var volumetric_target := _base_volumetric_density
 	# Clear weather uses the cheap depth fog. The full froxel volume is reserved
 	# for conditions where shafts and suspended moisture are actually visible.
-	var volumetric_enabled := state != State.CLEAR and intensity > 0.05
+	var volumetric_enabled := state != State.CLEAR and local_strength > 0.05
 	_environment.volumetric_fog_enabled = volumetric_enabled
 	if not volumetric_enabled:
 		volumetric_target = 0.0
@@ -424,34 +463,34 @@ func _apply_environment(immediate: bool) -> void:
 	var anisotropy_target := 0.45
 	match state:
 		State.FOG:
-			fog_target = maxf(fog_target, lerpf(0.014, 0.034, intensity))
-			volumetric_target = maxf(volumetric_target, lerpf(0.012, 0.038, intensity))
-			brightness_target = lerpf(1.0, 0.9, intensity)
-			saturation_target = lerpf(_base_saturation, _base_saturation * 0.78, intensity)
-			contrast_target = lerpf(_base_contrast, _base_contrast * 0.92, intensity)
+			fog_target = maxf(fog_target, lerpf(0.014, 0.034, local_strength))
+			volumetric_target = maxf(volumetric_target, lerpf(0.012, 0.038, local_strength))
+			brightness_target = lerpf(1.0, 0.9, local_strength)
+			saturation_target = lerpf(_base_saturation, _base_saturation * 0.78, local_strength)
+			contrast_target = lerpf(_base_contrast, _base_contrast * 0.92, local_strength)
 			aerial_target = 0.9
 			anisotropy_target = 0.42
 		State.DRIZZLE:
-			fog_target = maxf(fog_target, 0.009 * intensity)
-			volumetric_target = maxf(volumetric_target, 0.01 * intensity)
-			brightness_target = lerpf(1.0, 0.88, intensity)
-			saturation_target = lerpf(_base_saturation, _base_saturation * 0.86, intensity)
+			fog_target = maxf(fog_target, 0.009 * local_strength)
+			volumetric_target = maxf(volumetric_target, 0.01 * local_strength)
+			brightness_target = lerpf(1.0, 0.88, local_strength)
+			saturation_target = lerpf(_base_saturation, _base_saturation * 0.86, local_strength)
 			scatter_target = 0.2
 		State.STORM:
 			fog_target = maxf(fog_target, 0.014)
 			volumetric_target = maxf(volumetric_target, 0.018)
-			brightness_target = lerpf(0.88, 0.7, intensity)
-			saturation_target = lerpf(_base_saturation * 0.88, _base_saturation * 0.68, intensity)
-			contrast_target = lerpf(_base_contrast, _base_contrast * 0.9, intensity)
-			glow_target = lerpf(_base_glow_intensity, _base_glow_intensity * 1.22, intensity)
+			brightness_target = lerpf(0.88, 0.7, local_strength)
+			saturation_target = lerpf(_base_saturation * 0.88, _base_saturation * 0.68, local_strength)
+			contrast_target = lerpf(_base_contrast, _base_contrast * 0.9, local_strength)
+			glow_target = lerpf(_base_glow_intensity, _base_glow_intensity * 1.22, local_strength)
 			aerial_target = 0.84
 			scatter_target = 0.08
 			anisotropy_target = 0.7
 		State.SNOW:
 			fog_target = maxf(fog_target, 0.011)
 			volumetric_target = maxf(volumetric_target, 0.014)
-			brightness_target = lerpf(1.0, 1.04, intensity)
-			saturation_target = lerpf(_base_saturation, _base_saturation * 0.84, intensity)
+			brightness_target = lerpf(1.0, 1.04, local_strength)
+			saturation_target = lerpf(_base_saturation, _base_saturation * 0.84, local_strength)
 			aerial_target = 0.86
 	var local_zone := int(_local_context.get("zone", ExpeditionTerrain.LandscapeZone.DENSE_FOREST))
 	var local_altitude := float(_local_context.get("altitude", 0.0))
@@ -614,7 +653,8 @@ func _make_weather_layer(layer_name: String, audio_stream: AudioStream, initial_
 func _update_audio(delta: float) -> void:
 	if _rain_audio == null or _wind_audio == null:
 		return
-	var rain_amount := intensity if state in [State.DRIZZLE, State.STORM] else 0.0
+	var local_strength := get_local_intensity()
+	var rain_amount := local_strength if state in [State.DRIZZLE, State.STORM] else 0.0
 	var wind_amount := clampf(wind.length() / 8.5, 0.0, 1.0)
 	var rain_target := lerpf(-28.0, -9.0, rain_amount) if rain_amount > 0.01 else -80.0
 	var wind_target := lerpf(-26.0, -12.0, wind_amount) if wind_amount > 0.01 else -80.0
@@ -624,7 +664,7 @@ func _update_audio(delta: float) -> void:
 	_wind_audio.volume_db = move_toward(_wind_audio.volume_db, wind_target, delta * 8.0)
 	if rain_amount <= 0.01 and _rain_audio.volume_db <= -55.0:
 		_rain_audio.stop()
-	var wants_strong_wind := (state == State.STORM or state == State.SNOW) and intensity > 0.6
+	var wants_strong_wind := (state == State.STORM or state == State.SNOW) and local_strength > 0.6
 	var desired_wind := WIND_STRONG if wants_strong_wind else WIND_SOFT
 	if _wind_audio.stream != desired_wind:
 		_wind_audio.stop()

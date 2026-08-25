@@ -251,7 +251,6 @@ func _process(delta: float) -> void:
 		var expedition_visible := _target.global_position.z >= MIN_EXPEDITION_Z
 		if is_instance_valid(_horizon_root):
 			_horizon_root.visible = expedition_visible
-			_horizon_root.global_position = Vector3(_target.global_position.x, _target.global_position.y - 9.0, _target.global_position.z)
 		if is_instance_valid(_atmosphere):
 			_atmosphere.visible = expedition_visible
 			_atmosphere.global_position = _target.global_position + Vector3(0.0, 4.0, 0.0)
@@ -556,7 +555,10 @@ func _height_at(x: float, z: float) -> float:
 				height = floorf(height * 0.48) / 0.48 + _detail_noise.get_noise_2d(x, z) * 0.35
 			BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
 				height += absf(_noise.get_noise_2d(x * 0.55, z * 0.55)) * 5.5
-				height = floorf(height * 0.34) / 0.34
+				# Preserve broad glacial facets without quantising the whole landscape
+				# into stacked slabs that expose ugly vertical plates at chunk LODs.
+				var faceted_height := floorf(height * 0.34) / 0.34
+				height = lerpf(height, faceted_height, 0.18)
 			BiomeContentPack.EcologyFamily.ASHEN_TUNDRA:
 				height = lerpf(height, _noise.get_noise_2d(x * 0.35, z * 0.35) * 5.5, 0.58)
 			BiomeContentPack.EcologyFamily.MIRROR_WETLAND:
@@ -626,7 +628,7 @@ func _boundary_height_offset(point: Vector2, pack: BiomeContentPack) -> float:
 			silhouette *= 0.82 + absf(sin(point.x * 0.071 - point.y * 0.047)) * 0.48
 		BiomeContentPack.BoundaryFamily.FRACTURED_PLATEAU:
 			silhouette *= 1.16 if broken_ridge >= 0.48 else 0.74
-	return pow(rise, 1.35) * boundary_height * silhouette
+	return pow(rise, 1.62) * boundary_height * silhouette
 
 
 func _terrain_color(point: Vector2, height: float, slope: float) -> Color:
@@ -1881,6 +1883,10 @@ func _rebuild_presentation_layers() -> void:
 	_horizon_root.name = "BiomeHorizon"
 	add_child(_horizon_root)
 	var pack := _get_content_pack()
+	# The horizon is an HLOD representation of the authored finite border. It must
+	# stay at the map centre: a camera-centred ridge makes every mountain follow
+	# the player and destroys the sense of a coherent place.
+	_horizon_root.position = Vector3(0.0, 0.0, (pack.region_south + pack.region_length * 0.5) if pack != null else 340.0)
 	var ecology := pack.ecology_family if pack != null else BiomeContentPack.EcologyFamily.ALTAI_TAIGA
 	if not is_instance_valid(_biome_ambience):
 		_biome_ambience = BIOME_AMBIENCE.new() as AudioStreamPlayer
@@ -1916,9 +1922,11 @@ func _build_layered_ridge_horizon(rng: RandomNumberGenerator, pack: BiomeContent
 	elif ecology == BiomeContentPack.EcologyFamily.ROOT_CAVERN:
 		relief_multiplier = 0.82
 	for layer: int in 3:
-		var radius := 76.0 + float(layer) * 24.0
-		var base_height := (15.0 - float(layer) * 2.2) * relief_multiplier
-		var amplitude := (9.0 - float(layer) * 1.5) * relief_multiplier
+		var boundary_scale := 1.025 + float(layer) * 0.09
+		var authored_boundary_height := pack.boundary_height if pack != null else 48.0
+		var base_height := authored_boundary_height * (0.24 - float(layer) * 0.025) * relief_multiplier
+		var amplitude := (7.0 - float(layer) * 1.1) * relief_multiplier
+		var peak_height := authored_boundary_height * (0.72 - float(layer) * 0.1) * relief_multiplier
 		var phase_a := rng.randf_range(0.0, TAU)
 		var phase_b := rng.randf_range(0.0, TAU)
 		var surface := SurfaceTool.new()
@@ -1926,18 +1934,24 @@ func _build_layered_ridge_horizon(rng: RandomNumberGenerator, pack: BiomeContent
 		var material := _standard_material(low.lerp(high, 0.15 + float(layer) * 0.16).darkened(0.32 + float(layer) * 0.1))
 		material.cull_mode = BaseMaterial3D.CULL_DISABLED
 		surface.set_material(material)
-		var segments := 72
+		var segments := 96
 		for index: int in segments:
 			var angle_a := TAU * float(index) / float(segments)
 			var angle_b := TAU * float(index + 1) / float(segments)
-			var radius_a := radius + sin(angle_a * 5.0 + phase_a) * 3.8 + sin(angle_a * 11.0 + phase_b) * 1.4
-			var radius_b := radius + sin(angle_b * 5.0 + phase_a) * 3.8 + sin(angle_b * 11.0 + phase_b) * 1.4
-			var top_a := base_height + sin(angle_a * 3.0 + phase_a) * amplitude + sin(angle_a * 8.0 + phase_b) * amplitude * 0.34
-			var top_b := base_height + sin(angle_b * 3.0 + phase_a) * amplitude + sin(angle_b * 8.0 + phase_b) * amplitude * 0.34
-			var bottom_a := Vector3(cos(angle_a) * radius_a, -13.0, sin(angle_a) * radius_a)
-			var bottom_b := Vector3(cos(angle_b) * radius_b, -13.0, sin(angle_b) * radius_b)
-			var ridge_a := Vector3(cos(angle_a) * radius_a, top_a, sin(angle_a) * radius_a)
-			var ridge_b := Vector3(cos(angle_b) * radius_b, top_b, sin(angle_b) * radius_b)
+			var point_a := _horizon_boundary_point(angle_a, boundary_scale, pack)
+			var point_b := _horizon_boundary_point(angle_b, boundary_scale, pack)
+			var radial_a := Vector2(point_a.x, point_a.z).normalized()
+			var radial_b := Vector2(point_b.x, point_b.z).normalized()
+			point_a += Vector3(radial_a.x, 0.0, radial_a.y) * (sin(angle_a * 5.0 + phase_a) * 5.2 + sin(angle_a * 11.0 + phase_b) * 1.8)
+			point_b += Vector3(radial_b.x, 0.0, radial_b.y) * (sin(angle_b * 5.0 + phase_a) * 5.2 + sin(angle_b * 11.0 + phase_b) * 1.8)
+			var peak_a := pow(absf(sin(angle_a * (13.0 + float(layer) * 2.0) + phase_b)), 2.5) * peak_height
+			var peak_b := pow(absf(sin(angle_b * (13.0 + float(layer) * 2.0) + phase_b)), 2.5) * peak_height
+			var top_a := base_height + peak_a + sin(angle_a * 3.0 + phase_a) * amplitude + sin(angle_a * 8.0 + phase_b) * amplitude * 0.34
+			var top_b := base_height + peak_b + sin(angle_b * 3.0 + phase_a) * amplitude + sin(angle_b * 8.0 + phase_b) * amplitude * 0.34
+			var bottom_a := Vector3(point_a.x, -38.0, point_a.z)
+			var bottom_b := Vector3(point_b.x, -38.0, point_b.z)
+			var ridge_a := Vector3(point_a.x, top_a, point_a.z)
+			var ridge_b := Vector3(point_b.x, top_b, point_b.z)
 			surface.add_vertex(bottom_a)
 			surface.add_vertex(bottom_b)
 			surface.add_vertex(ridge_a)
@@ -1948,7 +1962,23 @@ func _build_layered_ridge_horizon(rng: RandomNumberGenerator, pack: BiomeContent
 		var ridge := MeshInstance3D.new()
 		ridge.name = "DistantRidgeLayer_%02d" % layer
 		ridge.mesh = surface.commit()
+		ridge.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_horizon_root.add_child(ridge)
+
+
+func _horizon_boundary_point(angle: float, scale_factor: float, pack: BiomeContentPack) -> Vector3:
+	var half_width := pack.region_half_width if pack != null else 410.0
+	var half_length := (pack.region_length * 0.5) if pack != null else 460.0
+	# Same rounded-superellipse family used by the playable region, reduced to a
+	# single cheap ring for distant landscape rendering.
+	var exponent := 2.0 / 2.4
+	var cosine := cos(angle)
+	var sine := sin(angle)
+	return Vector3(
+		sign(cosine) * pow(absf(cosine), exponent) * half_width * scale_factor,
+		0.0,
+		sign(sine) * pow(absf(sine), exponent) * half_length * scale_factor
+	)
 
 
 func _build_taiga_horizon_crown(rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
@@ -2001,7 +2031,7 @@ func _build_celestial_anchor(pack: BiomeContentPack) -> void:
 	sphere.material = material
 	anchor.mesh = sphere
 	anchor.scale = Vector3.ONE * scale
-	anchor.position = Vector3(-66.0, 42.0, -82.0)
+	anchor.position = Vector3(-pack.region_half_width * 0.58, 54.0, -pack.region_length * 0.38)
 	_horizon_root.add_child(anchor)
 
 
@@ -2012,13 +2042,13 @@ func _build_fungal_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack) -
 	_set_mesh_material(cap_mesh, _standard_material(pack.accent_color.darkened(0.42), true))
 	for index in 13:
 		var angle := TAU * float(index) / 13.0 + rng.randf_range(-0.12, 0.12)
-		var radius := rng.randf_range(68.0, 96.0)
 		var scale := rng.randf_range(2.8, 5.4)
+		var boundary_point := _horizon_boundary_point(angle, rng.randf_range(1.08, 1.14), pack)
 		var stem := MeshInstance3D.new()
 		stem.name = "DistantFungalStem_%02d" % index
 		stem.mesh = stem_mesh
 		stem.scale = Vector3(scale, scale, scale)
-		stem.position = Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
+		stem.position = boundary_point
 		_horizon_root.add_child(stem)
 		var cap := MeshInstance3D.new()
 		cap.name = "DistantFungalCap_%02d" % index
@@ -2035,8 +2065,6 @@ func _build_signature_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack
 	var scale_low := 3.5
 	var scale_high := 6.5
 	var base_y := 3.0
-	var radius_low := 82.0
-	var radius_high := 112.0
 	match pack.ecology_family:
 		BiomeContentPack.EcologyFamily.CRIMSON_STEPPE:
 			mesh = BIOME_MESH_LIBRARY.create_antler_crown()
@@ -2045,8 +2073,8 @@ func _build_signature_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack
 			base_y = 5.0
 		BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
 			mesh = BIOME_MESH_LIBRARY.create_crystal_cluster()
-			scale_low = 2.4
-			scale_high = 4.2
+			scale_low = 1.25
+			scale_high = 2.35
 			base_y = 0.0
 		BiomeContentPack.EcologyFamily.ASHEN_TUNDRA:
 			mesh = BIOME_MESH_LIBRARY.create_ash_column()
@@ -2060,42 +2088,37 @@ func _build_signature_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack
 			scale_low = 3.5
 			scale_high = 6.2
 			base_y = 7.0
-			radius_low = 108.0
-			radius_high = 145.0
 		BiomeContentPack.EcologyFamily.ROOT_CAVERN:
 			mesh = BIOME_MESH_LIBRARY.create_root_loop()
 			scale_low = 4.0
 			scale_high = 6.8
 			base_y = 10.0
-			radius_low = 98.0
-			radius_high = 132.0
 		BiomeContentPack.EcologyFamily.HEART_PLATEAU:
 			mesh = BIOME_MESH_LIBRARY.create_heart_loop()
 			count = 11
 			scale_low = 3.0
 			scale_high = 5.2
 			base_y = 9.0
-			radius_low = 112.0
-			radius_high = 152.0
 		_:
 			mesh = BIOME_MESH_LIBRARY.create_floating_strata()
 			count = 14
 			scale_low = 3.5
 			scale_high = 6.2
 			base_y = 10.0
-			radius_low = 96.0
-			radius_high = 132.0
-	_set_mesh_material(mesh, _standard_material(pack.accent_color.darkened(0.48), pack.ecology_family != BiomeContentPack.EcologyFamily.ASHEN_TUNDRA))
+	var silhouette_color := pack.accent_color.darkened(0.48)
+	if pack.ecology_family == BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
+		silhouette_color = pack.accent_color.darkened(0.16)
+	_set_mesh_material(mesh, _standard_material(silhouette_color, pack.ecology_family != BiomeContentPack.EcologyFamily.ASHEN_TUNDRA))
 	for index in count:
 		var silhouette := MeshInstance3D.new()
 		silhouette.name = "SignatureHorizon_%02d" % index
 		silhouette.mesh = mesh
 		var angle := TAU * float(index) / float(count) + rng.randf_range(-0.1, 0.1)
-		var radius := rng.randf_range(radius_low, radius_high)
 		var scale := rng.randf_range(scale_low, scale_high)
 		silhouette.scale = Vector3(scale * rng.randf_range(0.8, 1.25), scale, scale * rng.randf_range(0.75, 1.2))
-		silhouette.position = Vector3(cos(angle) * radius, base_y + rng.randf_range(-2.0, 3.0), sin(angle) * radius)
+		silhouette.position = _horizon_boundary_point(angle, rng.randf_range(1.08, 1.14), pack) + Vector3.UP * (base_y + rng.randf_range(-2.0, 3.0))
 		silhouette.rotation.y = rng.randf_range(0.0, TAU)
+		silhouette.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_horizon_root.add_child(silhouette)
 
 

@@ -80,8 +80,15 @@ func _validate_landscape_rules() -> void:
 	add_child(target)
 	target.global_position = Vector3(95, 0, 95)
 	terrain.setup(target)
+	var horizon := terrain.get_node("BiomeHorizon") as Node3D
+	var expected_horizon_position := Vector3(0.0, 0.0, region_center_z)
+	_expect(horizon.position.is_equal_approx(expected_horizon_position), "Finite-region horizon is not anchored to the authored map centre.")
 	for _frame in 40:
 		await get_tree().process_frame
+	var anchored_horizon_position := horizon.global_position
+	target.global_position += Vector3(1.0, 0.0, 1.0)
+	terrain.call("_process", 1.0 / 60.0)
+	_expect(horizon.global_position.is_equal_approx(anchored_horizon_position), "Distant mountains still move with the player camera.")
 	_expect(terrain.get_loaded_chunk_count() >= 4, "Streaming terrain did not page chunks around a moving player.")
 	var maximum_visual_chunks := int(pow(float(terrain.visual_radius * 2 + 1), 2.0))
 	_expect(terrain.get_loaded_chunk_count() <= maximum_visual_chunks, "Streaming terrain exceeded its bounded visual working set.")

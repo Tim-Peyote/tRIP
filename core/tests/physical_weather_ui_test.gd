@@ -72,8 +72,11 @@ func _test_weather() -> void:
 	_expect(weather.wind.length() > 1.0, "Storm has no systemic wind.")
 	_expect(weather.wetness > 0.0, "Storm did not begin wetting the world.")
 	var precipitation := weather.get_node("LocalPrecipitation") as GPUParticles3D
+	var depth_precipitation := weather.get_node("WeatherDepthLayer") as GPUParticles3D
 	_expect(precipitation != null and precipitation.emitting, "Storm precipitation is not visible.")
+	_expect(depth_precipitation != null and depth_precipitation.emitting, "Storm has no distant spatial precipitation layer.")
 	_expect(precipitation.draw_pass_1 is SphereMesh, "Storm still renders precipitation as screen-facing stripe quads.")
+	_expect(depth_precipitation.draw_pass_1 is SphereMesh and depth_precipitation.amount < precipitation.amount, "Distant weather depth is not a bounded low-cost particle layer.")
 	_expect(world_environment.environment.adjustment_brightness < 0.9, "Storm does not lower the global atmosphere exposure.")
 	_expect(world_environment.environment.fog_aerial_perspective > 0.7, "Storm has no aerial perspective depth.")
 	var terrain := ExpeditionTerrain.new()
@@ -84,6 +87,8 @@ func _test_weather() -> void:
 	weather.call("_sample_local_context", true)
 	var valley_context := weather.get_local_context()
 	_expect(not bool(valley_context.get("can_snow", true)), "Low taiga valley incorrectly allows local snowfall.")
+	weather.set_weather(WeatherOrchestrator.State.STORM, 0.8, true)
+	var sheltered_storm_strength := weather.get_local_intensity()
 	terrain.set_weather_wetness(weather.wetness)
 	var terrain_material := terrain.get("_terrain_material") as ShaderMaterial
 	_expect(float(terrain_material.get_shader_parameter(&"weather_wetness")) > 0.0, "Systemic rain wetness does not reach the terrain material.")
@@ -98,6 +103,9 @@ func _test_weather() -> void:
 	_expect(weather.state != WeatherOrchestrator.State.SNOW, "Snow continued falling in a low taiga valley instead of resolving into rain or fog.")
 	player.global_position = Vector3(360.0, terrain.get_height_at_global(Vector3(360.0, 0.0, 340.0)), 340.0)
 	weather.call("_sample_local_context", true)
+	weather.set_weather(WeatherOrchestrator.State.STORM, 0.8, true)
+	var exposed_storm_strength := weather.get_local_intensity()
+	_expect(exposed_storm_strength > sheltered_storm_strength, "The exposed highland does not intensify the same storm front relative to the sheltered valley.")
 	weather.set_weather(WeatherOrchestrator.State.SNOW, 0.8, true)
 	_expect(weather.state == WeatherOrchestrator.State.SNOW, "Exposed taiga highland rejected locally valid snowfall.")
 	_expect(float(terrain_material.get_shader_parameter(&"weather_snow")) > 0.5, "Local snowfall does not accumulate visually on exposed terrain.")

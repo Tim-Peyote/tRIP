@@ -12,7 +12,8 @@ func _ready() -> void:
 	for _frame: int in 5:
 		await get_tree().physics_frame
 	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
-	level.get_weather().developer_set(WeatherOrchestrator.State.STORM)
+	level.get_weather().automatic = false
+	level.get_weather().set_weather(WeatherOrchestrator.State.STORM, 0.9, true)
 	var player := level.player
 	var body := level.physical_showcase.get_node("Полевой_ящик") as RigidBody3D
 	var target := body.global_position
@@ -30,7 +31,7 @@ func _ready() -> void:
 		"action": "Удерживать · взять  |  ПКМ · вращать  |  F · бросить",
 		"physical": true,
 	})
-	for _frame: int in 18:
+	for _frame: int in 36:
 		await get_tree().process_frame
 	main.gameplay_hud.focus_card.show()
 	print("Focus card visible: %s, rect: %s" % [main.gameplay_hud.focus_card.is_visible_in_tree(), main.gameplay_hud.focus_card.get_global_rect()])
