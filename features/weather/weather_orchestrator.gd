@@ -65,10 +65,13 @@ func setup(world_environment: WorldEnvironment, player: FirstPersonController) -
 	_build_precipitation()
 	_build_lightning()
 	_build_audio()
+	RenderingServer.global_shader_parameter_set(&"trip_wind_vector", Vector3(0.35, 0.0, 0.12))
+	RenderingServer.global_shader_parameter_set(&"trip_wind_strength", 0.0)
 	set_weather(State.CLEAR, 0.0, true)
 
 
 func _exit_tree() -> void:
+	RenderingServer.global_shader_parameter_set(&"trip_wind_strength", 0.0)
 	for player: AudioStreamPlayer in [_rain_audio, _wind_audio]:
 		if player != null:
 			player.stop()
@@ -112,6 +115,8 @@ func _process(delta: float) -> void:
 	if _player == null:
 		return
 	global_position = _player.global_position
+	RenderingServer.global_shader_parameter_set(&"trip_wind_vector", wind.normalized() if wind.length_squared() > 0.01 else Vector3(0.35, 0.0, 0.12))
+	RenderingServer.global_shader_parameter_set(&"trip_wind_strength", clampf(wind.length() / 8.5, 0.0, 1.0))
 	_state_time += delta
 	_reactive_tick += delta
 	_update_surface_state(delta)
@@ -247,30 +252,34 @@ func _configure_particles() -> void:
 	if _precipitation == null:
 		return
 	_precipitation.emitting = state in [State.DRIZZLE, State.STORM, State.SNOW] and intensity > 0.02
-	_precipitation.amount = roundi(lerpf(280.0, 1500.0, intensity))
-	var process := ParticleProcessMaterial.new()
-	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	process.emission_box_extents = Vector3(13, 1.5, 13)
-	process.direction = Vector3(0.12, -1.0, 0.04) if state != State.SNOW else Vector3(0.08, -0.4, 0.03)
-	process.spread = 8.0 if state != State.SNOW else 35.0
-	process.gravity = Vector3(0, -10.5, 0) if state != State.SNOW else Vector3(0, -0.8, 0)
-	process.initial_velocity_min = 7.0 if state != State.SNOW else 0.6
-	process.initial_velocity_max = 12.0 if state != State.SNOW else 1.5
-	process.scale_min = 0.55
-	process.scale_max = 1.35
-	_precipitation.process_material = process
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.018, 0.55) if state != State.SNOW else Vector2(0.065, 0.065)
-	var material := StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	material.albedo_color = Color(0.58, 0.72, 0.78, 0.52) if state != State.SNOW else Color(0.9, 0.95, 1.0, 0.78)
-	quad.material = material
-	_precipitation.draw_pass_1 = quad
+	_precipitation.amount = roundi(lerpf(220.0, 1050.0, intensity))
 	wind = Vector3(_rng.randf_range(-1.0, 1.0), 0, _rng.randf_range(-0.6, 0.6)).normalized() * lerpf(0.4, 8.5, intensity)
 	if state == State.FOG:
 		wind *= 0.15
+	var process := ParticleProcessMaterial.new()
+	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	process.emission_box_extents = Vector3(13, 1.5, 13)
+	process.direction = Vector3(wind.x * 0.065, -1.0, wind.z * 0.065).normalized() if state != State.SNOW else Vector3(wind.x * 0.12, -0.4, wind.z * 0.12).normalized()
+	process.spread = 11.0 if state != State.SNOW else 42.0
+	process.gravity = Vector3(0, -10.5, 0) if state != State.SNOW else Vector3(0, -0.8, 0)
+	process.initial_velocity_min = 7.0 if state != State.SNOW else 0.6
+	process.initial_velocity_max = 12.0 if state != State.SNOW else 1.5
+	process.scale_min = 0.68
+	process.scale_max = 1.22
+	_precipitation.process_material = process
+	# Real spatial droplets replace the old camera-facing half-metre quads. Those
+	# quads read as graphic stripes glued to the screen during wind and storms.
+	var droplet := SphereMesh.new()
+	droplet.radius = 0.012 if state != State.SNOW else 0.042
+	droplet.height = 0.085 if state != State.SNOW else 0.072
+	droplet.radial_segments = 5
+	droplet.rings = 2
+	var material := StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(0.52, 0.66, 0.72, 0.34) if state != State.SNOW else Color(0.88, 0.94, 1.0, 0.82)
+	droplet.material = material
+	_precipitation.draw_pass_1 = droplet
 
 
 func _apply_environment(immediate: bool) -> void:
@@ -278,26 +287,56 @@ func _apply_environment(immediate: bool) -> void:
 		return
 	var fog_target := _base_fog_density
 	var volumetric_target := _base_volumetric_density
+	var brightness_target := 1.0
+	var saturation_target := 1.04
+	var aerial_target := 0.72
+	var scatter_target := 0.32
+	var anisotropy_target := 0.58
 	match state:
 		State.FOG:
 			fog_target = maxf(fog_target, lerpf(0.025, 0.065, intensity))
 			volumetric_target = maxf(volumetric_target, lerpf(0.025, 0.075, intensity))
+			brightness_target = lerpf(1.0, 0.9, intensity)
+			saturation_target = lerpf(1.04, 0.76, intensity)
+			aerial_target = 0.9
+			anisotropy_target = 0.42
 		State.DRIZZLE:
 			fog_target = maxf(fog_target, 0.018 * intensity)
 			volumetric_target = maxf(volumetric_target, 0.02 * intensity)
+			brightness_target = lerpf(1.0, 0.88, intensity)
+			saturation_target = lerpf(1.04, 0.84, intensity)
+			scatter_target = 0.2
 		State.STORM:
 			fog_target = maxf(fog_target, 0.027)
 			volumetric_target = maxf(volumetric_target, 0.035)
+			brightness_target = lerpf(0.88, 0.7, intensity)
+			saturation_target = lerpf(0.86, 0.64, intensity)
+			aerial_target = 0.84
+			scatter_target = 0.08
+			anisotropy_target = 0.7
 		State.SNOW:
 			fog_target = maxf(fog_target, 0.02)
 			volumetric_target = maxf(volumetric_target, 0.028)
+			brightness_target = lerpf(1.0, 1.04, intensity)
+			saturation_target = lerpf(1.0, 0.82, intensity)
+			aerial_target = 0.86
 	if immediate:
 		_environment.fog_density = fog_target
 		_environment.volumetric_fog_density = volumetric_target
+		_environment.adjustment_brightness = brightness_target
+		_environment.adjustment_saturation = saturation_target
+		_environment.fog_aerial_perspective = aerial_target
+		_environment.fog_sun_scatter = scatter_target
+		_environment.volumetric_fog_anisotropy = anisotropy_target
 	else:
 		var tween := create_tween().set_parallel(true)
 		tween.tween_property(_environment, "fog_density", fog_target, 2.8)
 		tween.tween_property(_environment, "volumetric_fog_density", volumetric_target, 2.8)
+		tween.tween_property(_environment, "adjustment_brightness", brightness_target, 2.8)
+		tween.tween_property(_environment, "adjustment_saturation", saturation_target, 2.8)
+		tween.tween_property(_environment, "fog_aerial_perspective", aerial_target, 2.8)
+		tween.tween_property(_environment, "fog_sun_scatter", scatter_target, 2.8)
+		tween.tween_property(_environment, "volumetric_fog_anisotropy", anisotropy_target, 2.8)
 
 
 func _build_lightning() -> void:

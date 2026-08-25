@@ -12,6 +12,7 @@ var _environment: Environment
 var _tween: Tween
 var _sky_material: ProceduralSkyMaterial
 var _primary_light: DirectionalLight3D
+var _fill_light: DirectionalLight3D
 var _base_profile: BiomeVisualProfile
 var _metamorphosis_active: bool = false
 var _world_override: BiomeVisualProfile
@@ -35,6 +36,7 @@ func setup(world_environment: WorldEnvironment) -> void:
 	_primary_light = get_parent().find_child("MoonLight", true, false) as DirectionalLight3D
 	if _primary_light == null and get_tree().current_scene != null:
 		_primary_light = get_tree().current_scene.find_child("MoonLight", true, false) as DirectionalLight3D
+	_configure_light_rig()
 	_base_profile = shelter_profile
 	apply_profile(shelter_profile, true)
 
@@ -108,6 +110,10 @@ func apply_profile(profile: BiomeVisualProfile, immediate: bool = false) -> void
 			_tween.tween_property(_primary_light, "light_color", state.light_color, 0.85)
 			_tween.tween_property(_primary_light, "light_energy", state.light_energy, 0.85)
 			_tween.tween_property(_primary_light, "rotation", state.light_rotation, 1.1)
+		if is_instance_valid(_fill_light):
+			_tween.tween_property(_fill_light, "light_color", state.fill_color, 0.85)
+			_tween.tween_property(_fill_light, "light_energy", state.fill_energy, 0.85)
+			_tween.tween_property(_fill_light, "rotation", state.fill_rotation, 1.1)
 		_tween.tween_property(_environment, "fog_light_color", state.fog_color, 0.65)
 		_tween.tween_property(_environment, "fog_density", state.fog_density, 0.65)
 		_tween.tween_property(_environment, "fog_light_energy", profile.fog_light_energy, 0.65)
@@ -136,6 +142,10 @@ func _set_values(profile: BiomeVisualProfile) -> void:
 		_primary_light.light_color = state.light_color
 		_primary_light.light_energy = state.light_energy
 		_primary_light.rotation = state.light_rotation
+	if is_instance_valid(_fill_light):
+		_fill_light.light_color = state.fill_color
+		_fill_light.light_energy = state.fill_energy
+		_fill_light.rotation = state.fill_rotation
 	_environment.fog_light_color = state.fog_color
 	_environment.fog_density = state.fog_density
 	_environment.fog_light_energy = profile.fog_light_energy
@@ -172,11 +182,39 @@ func _time_state(profile: BiomeVisualProfile) -> Dictionary:
 		"light_color": light_color,
 		"light_energy": lerpf(profile.primary_light_energy, profile.primary_light_energy * 0.68, dusk) * lerpf(1.0, profile.night_light_energy_scale, night),
 		"light_rotation": light_rotation,
+		"fill_color": ambient.lerp(sky_horizon, 0.38),
+		"fill_energy": lerpf(profile.ambient_energy * 0.24, profile.ambient_energy * 0.16, night),
+		"fill_rotation": Vector3(-0.24, light_rotation.y + PI, 0.06),
 		"fog_color": profile.fog_color.lerp(profile.dusk_horizon_color.darkened(0.38), dusk * 0.72).lerp(profile.night_fog_color, night),
 		"fog_density": profile.fog_density * lerpf(1.0, 1.22, night),
 		"volumetric_density": profile.volumetric_density * lerpf(1.0, 1.34, night),
 		"volumetric_albedo": profile.volumetric_albedo.lerp(profile.dusk_light_color, dusk * 0.26).lerp(profile.night_fog_color.lightened(0.18), night * 0.72),
 	}
+
+
+func _configure_light_rig() -> void:
+	if is_instance_valid(_primary_light):
+		_primary_light.shadow_enabled = true
+		_primary_light.shadow_opacity = 0.86
+		_primary_light.light_angular_distance = 1.15
+		_primary_light.directional_shadow_max_distance = 150.0
+		_primary_light.directional_shadow_blend_splits = true
+		_primary_light.directional_shadow_fade_start = 0.86
+		_primary_light.light_volumetric_fog_energy = 1.35
+	_fill_light = DirectionalLight3D.new()
+	_fill_light.name = "AtmosphericFillLight"
+	_fill_light.shadow_enabled = false
+	_fill_light.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_ONLY
+	_fill_light.light_volumetric_fog_energy = 0.18
+	add_child(_fill_light)
+	if _environment != null:
+		_environment.fog_aerial_perspective = 0.72
+		_environment.fog_sun_scatter = 0.32
+		_environment.fog_sky_affect = 0.62
+		_environment.volumetric_fog_anisotropy = 0.58
+		_environment.volumetric_fog_sky_affect = 0.72
+		_environment.volumetric_fog_temporal_reprojection_enabled = true
+		_environment.volumetric_fog_temporal_reprojection_amount = 0.88
 
 
 func get_primary_light() -> DirectionalLight3D:

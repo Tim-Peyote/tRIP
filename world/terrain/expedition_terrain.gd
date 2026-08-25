@@ -1975,6 +1975,7 @@ func _build_terrain_material() -> ShaderMaterial:
 shader_type spatial;
 render_mode cull_disabled;
 uniform float metamorphosis : hint_range(0.0, 1.0) = 0.0;
+uniform float weather_wetness : hint_range(0.0, 1.0) = 0.0;
 uniform vec3 phase_low : source_color = vec3(0.025, 0.16, 0.32);
 uniform vec3 phase_high : source_color = vec3(0.82, 0.025, 0.7);
 varying float pulse;
@@ -2005,8 +2006,10 @@ void fragment() {
 	ground *= grain;
 	ground = mix(ground, ground * 0.48 + phase_low * 0.13, slope_mask * 0.68);
 	ground *= mix(0.82, 1.08, height_band * (1.0 - slope_mask * 0.45));
-	ALBEDO = ground;
-	ROUGHNESS = clamp(mix(0.96, 0.78, metamorphosis) - cells * 0.07 + slope_mask * 0.08, 0.62, 1.0);
+	float wet_mask = weather_wetness * mix(0.62, 1.0, cells) * (1.0 - slope_mask * 0.72);
+	ALBEDO = mix(ground, ground * vec3(0.5, 0.58, 0.54), wet_mask * 0.7);
+	ROUGHNESS = clamp(mix(0.96, 0.78, metamorphosis) - cells * 0.07 + slope_mask * 0.08 - wet_mask * 0.54, 0.22, 1.0);
+	SPECULAR = mix(0.22, 0.68, wet_mask);
 	// Only the consciousness pulse emits. The former constant ground emission
 	// cancelled contact shadows and was the main source of the flat colour wash.
 	EMISSION = altered_palette * metamorphosis * (0.025 + max(pulse, 0.0) * 0.075) * (1.0 - slope_mask * 0.72);
@@ -2015,7 +2018,13 @@ void fragment() {
 	var material := ShaderMaterial.new()
 	material.shader = shader
 	material.set_shader_parameter(&"metamorphosis", _phase_amount)
+	material.set_shader_parameter(&"weather_wetness", 0.0)
 	return material
+
+
+func set_weather_wetness(value: float) -> void:
+	if _terrain_material != null:
+		_terrain_material.set_shader_parameter(&"weather_wetness", clampf(value, 0.0, 1.0))
 
 
 func _blend_disc(current: float, point: Vector2, center: Vector2, radius: float, target_height: float) -> float:

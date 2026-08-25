@@ -950,6 +950,11 @@ rotation = Vector3(-0.62, -0.42, 0)
 light_color = Color(0.32, 0.5, 0.47, 1)
 light_energy = 0.72
 shadow_enabled = true
+shadow_opacity = 0.86
+light_angular_distance = 1.15
+directional_shadow_max_distance = 150.0
+directional_shadow_blend_splits = true
+directional_shadow_fade_start = 0.86
 
 [node name="Lamp" type="OmniLight3D" parent="Lighting"]
 position = Vector3(-1.65, 2.18, -1.8)

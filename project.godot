@@ -159,6 +159,15 @@ environment/defaults/default_clear_color=Color(0.011, 0.016, 0.014, 1)
 
 [shader_globals]
 
+trip_wind_vector={
+"type": "vec3",
+"value": Vector3(0.35, 0, 0.12)
+}
+trip_wind_strength={
+"type": "float",
+"value": 0.0
+}
+
 trip_visual_intensity={
 "type": "float",
 "value": 1.0

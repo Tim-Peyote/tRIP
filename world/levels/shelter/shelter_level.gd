@@ -209,6 +209,9 @@ func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	weather.name = "WeatherOrchestrator"
 	add_child(weather)
 	weather.setup(world_environment, player)
+	var terrain := $ExpeditionTerrain as ExpeditionTerrain
+	weather.wetness_changed.connect(terrain.set_weather_wetness)
+	terrain.set_weather_wetness(weather.wetness)
 	world_phase_orchestrator.phase_changed.connect(weather.apply_world_phase)
 	weather.apply_world_phase(world_phase_orchestrator.get_current())
 	biome_visual_controller.atmosphere_baseline_changed.connect(weather.set_atmosphere_baseline)

@@ -73,6 +73,15 @@ func _test_weather() -> void:
 	_expect(weather.wetness > 0.0, "Storm did not begin wetting the world.")
 	var precipitation := weather.get_node("LocalPrecipitation") as GPUParticles3D
 	_expect(precipitation != null and precipitation.emitting, "Storm precipitation is not visible.")
+	_expect(precipitation.draw_pass_1 is SphereMesh, "Storm still renders precipitation as screen-facing stripe quads.")
+	_expect(world_environment.environment.adjustment_brightness < 0.9, "Storm does not lower the global atmosphere exposure.")
+	_expect(world_environment.environment.fog_aerial_perspective > 0.7, "Storm has no aerial perspective depth.")
+	var terrain := ExpeditionTerrain.new()
+	add_child(terrain)
+	terrain.set_weather_wetness(weather.wetness)
+	var terrain_material := terrain.get("_terrain_material") as ShaderMaterial
+	_expect(float(terrain_material.get_shader_parameter(&"weather_wetness")) > 0.0, "Systemic rain wetness does not reach the terrain material.")
+	terrain.free()
 	_expect(rain_audio.playing and wind_audio.playing and wind_audio.stream == WeatherOrchestrator.WIND_STRONG, "Storm did not start its recorded rain and strong-wind layers.")
 	weather.developer_set(WeatherOrchestrator.State.FOG)
 	weather.call("_update_audio", 10.0)

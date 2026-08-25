@@ -6,6 +6,8 @@ uniform float motion_strength : hint_range(0.0, 0.5) = 0.08;
 uniform float motion_speed : hint_range(0.1, 3.0) = 1.0;
 uniform float height_response : hint_range(0.1, 4.0) = 1.0;
 uniform float emission_strength : hint_range(0.0, 1.0) = 0.0;
+global uniform vec3 trip_wind_vector;
+global uniform float trip_wind_strength;
 
 varying float motion_light;
 
@@ -14,9 +16,13 @@ void vertex() {
 	float height_mask = clamp(max(VERTEX.y, 0.0) * height_response, 0.0, 1.0);
 	float broad_wave = sin(TIME * motion_speed + world_origin.x * 0.071 + world_origin.z * 0.053);
 	float detail_wave = sin(TIME * motion_speed * 1.73 + world_origin.z * 0.13 + VERTEX.y * 1.9);
-	float displacement = (broad_wave * 0.72 + detail_wave * 0.28) * motion_strength * height_mask;
-	VERTEX.x += displacement;
-	VERTEX.z += displacement * 0.38;
+	float gust = mix(0.72, 1.28, sin(TIME * 0.43 + world_origin.x * 0.018) * 0.5 + 0.5);
+	float weather_response = 1.0 + trip_wind_strength * 2.4 * gust;
+	float displacement = (broad_wave * 0.72 + detail_wave * 0.28) * motion_strength * height_mask * weather_response;
+	vec2 authored_direction = vec2(1.0, 0.38);
+	vec2 weather_direction = normalize(trip_wind_vector.xz + vec2(0.001));
+	vec2 bend_direction = normalize(mix(authored_direction, weather_direction, clamp(trip_wind_strength, 0.0, 1.0)));
+	VERTEX.xz += bend_direction * displacement;
 	motion_light = broad_wave * 0.5 + 0.5;
 }
 
