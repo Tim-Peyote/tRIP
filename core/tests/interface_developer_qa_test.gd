@@ -10,13 +10,14 @@ func _ready() -> void:
 
 func _run() -> void:
 	InputBootstrap.ensure_defaults()
-	for action: StringName in [&"move_forward", &"move_back", &"move_left", &"move_right", &"interact", &"inventory", &"toggle_view"]:
+	for action: StringName in [&"move_forward", &"move_back", &"move_left", &"move_right", &"interact", &"inventory", &"map", &"toggle_view"]:
 		var has_keyboard_binding := false
 		for event: InputEvent in InputMap.action_get_events(action):
 			if event is InputEventKey and event.device < 0:
 				has_keyboard_binding = true
 		_expect(has_keyboard_binding, "Gameplay action has no normal-keyboard binding: %s" % action)
 	_expect(_action_has_physical_key(&"inventory", KEY_I), "Inventory is not bound to the expected I key.")
+	_expect(_action_has_physical_key(&"map", KEY_M), "Map is not bound to the expected M key.")
 	_expect(_action_has_physical_key(&"toggle_view", KEY_V), "Camera view is not bound to the expected V key.")
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
 	add_child(main)
@@ -196,7 +197,7 @@ func _run() -> void:
 	var developer := level.world_phase_developer_panel
 	developer.set_panel_visible(true)
 	await get_tree().process_frame
-	var panel := developer.find_child("WorldPhaseDeveloperPanel", true, false) as PanelContainer
+	var panel := developer.find_child("WorldPhaseDeveloperPanel", true, false) as Control
 	_expect(panel != null and panel.position.y + panel.size.y <= 720.0, "Developer panel overflows the reference viewport: rect=%s viewport=%s" % [panel.get_rect() if panel != null else Rect2(), get_viewport().get_visible_rect()])
 	_expect(developer.find_children("*", "Button", true, false).size() >= 18, "Developer panel is missing rapid QA actions.")
 	var laboratory := level.get_road_laboratory()
@@ -223,6 +224,9 @@ func _run() -> void:
 	_expect(hud.close_pause_settings() and hud.pause_panel.visible, "Closing in-game settings did not return to pause.")
 	main.call("_resume_game")
 	_expect(not get_tree().paused and not hud.pause_panel.visible and player.viewmodel.visible, "Resume did not restore gameplay state.")
+	if laboratory.manifested and not laboratory.is_metamorphosing():
+		laboratory.developer_toggle(false)
+		await get_tree().process_frame
 
 	main.queue_free()
 	await get_tree().process_frame

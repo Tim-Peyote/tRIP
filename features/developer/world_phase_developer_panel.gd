@@ -12,12 +12,20 @@ var _persistence: SessionPersistenceOrchestrator
 var _population: BiomePopulationOrchestrator
 var _weather: WeatherOrchestrator
 var _canvas: CanvasLayer
-var _panel: PanelContainer
+var _panel: Control
 var _status: Label
 var _seed_label: Label
 var _seed: int = 117
 var _previous_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 var _status_elapsed: float = 0.0
+var _tools: VBoxContainer
+var _responsive_grids: Array[GridContainer] = []
+var _phase_buttons: Dictionary[StringName, Button] = {}
+var _weather_buttons: Dictionary[int, Button] = {}
+var _header: HBoxContainer
+var _status_panel: PanelContainer
+var _scroll: DeveloperToolsScroll
+var _help: Label
 
 
 func setup(
@@ -56,6 +64,11 @@ func set_panel_visible(value: bool) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		else:
 			Input.mouse_mode = _previous_mouse_mode
+	if _player != null:
+		_player.set_gameplay_enabled(not value)
+		_player.set_viewmodel_interface_hidden(value)
+		_player.interactor.set_process(not value)
+	_apply_responsive_layout()
 	_update_status()
 
 
@@ -82,51 +95,55 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 	var key := event as InputEventKey
-	if key.keycode == KEY_F10:
-		set_panel_visible(not _panel.visible)
-		get_viewport().set_input_as_handled()
+	var physical := key.physical_keycode if key.physical_keycode != 0 else key.keycode
+	if physical == KEY_F10:
+		# TripMain owns opening so it can close inventory/map first. The panel keeps
+		# a local close fallback because it is also instantiated by isolated QA scenes.
+		if _panel.visible:
+			set_panel_visible(false)
+			get_viewport().set_input_as_handled()
 		return
 	if not _panel.visible:
 		return
-	if key.keycode >= KEY_1 and key.keycode <= KEY_8:
-		_set_phase_by_index(int(key.keycode - KEY_1))
+	if physical >= KEY_1 and physical <= KEY_8:
+		_set_phase_by_index(int(physical - KEY_1))
 		get_viewport().set_input_as_handled()
 		return
-	if key.keycode == KEY_PAGEUP:
+	if physical == KEY_PAGEUP:
 		_cycle_phase(-1)
-	elif key.keycode == KEY_PAGEDOWN:
+	elif physical == KEY_PAGEDOWN:
 		_cycle_phase(1)
-	elif key.keycode == KEY_R:
+	elif physical == KEY_R:
 		_randomize_seed()
-	elif key.keycode == KEY_BACKSPACE:
+	elif physical == KEY_BACKSPACE:
 		_orchestrator.clear_developer_override()
-	elif key.keycode == KEY_ENTER and _progression != null:
+	elif physical == KEY_ENTER and _progression != null:
 		_progression.simulate_transition_formula()
-	elif key.keycode == KEY_P and _progression != null:
+	elif physical == KEY_P and _progression != null:
 		_progression.simulate_nearest_mystery_event()
-	elif key.keycode == KEY_H and _hazard != null:
+	elif physical == KEY_H and _hazard != null:
 		_hazard.force_active()
-	elif key.keycode == KEY_DELETE and _hazard != null:
+	elif physical == KEY_DELETE and _hazard != null:
 		_hazard.developer_clear()
-	elif key.keycode == KEY_M and _laboratory != null:
+	elif physical == KEY_M and _laboratory != null:
 		_laboratory.developer_toggle(not key.shift_pressed)
-	elif key.keycode == KEY_T:
+	elif physical == KEY_T:
 		_teleport_route_ahead()
-	elif key.keycode == KEY_O:
+	elif physical == KEY_O:
 		_teleport_to_nearest(&"poi")
-	elif key.keycode == KEY_C:
+	elif physical == KEY_C:
 		_teleport_to_nearest(&"composition")
-	elif key.keycode == KEY_I:
+	elif physical == KEY_I:
 		_add_current_biome_sample()
-	elif key.keycode == KEY_Y:
+	elif physical == KEY_Y:
 		_cycle_time()
-	elif key.keycode == KEY_K and _population != null:
+	elif physical == KEY_K and _population != null:
 		_population.developer_respawn()
-	elif key.keycode == KEY_N and _population != null:
+	elif physical == KEY_N and _population != null:
 		_population.developer_cycle_density()
-	elif key.keycode == KEY_W and _weather != null:
+	elif physical == KEY_W and _weather != null:
 		_weather.developer_cycle()
-	elif key.keycode == KEY_B:
+	elif physical == KEY_B:
 		_teleport_to_physics_lab()
 	else:
 		return
@@ -138,135 +155,196 @@ func _build_ui() -> void:
 	_canvas.name = "WorldPhaseDeveloperCanvas"
 	_canvas.layer = 90
 	add_child(_canvas)
-	_panel = PanelContainer.new()
+	_panel = Control.new()
 	_panel.name = "WorldPhaseDeveloperPanel"
 	_panel.visible = false
-	_panel.position = Vector2(18, 44)
-	_panel.custom_minimum_size = Vector2(610, 530)
 	_panel.theme = TripUITheme.build()
 	_canvas.add_child(_panel)
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 18)
-	margin.add_theme_constant_override("margin_right", 18)
-	margin.add_theme_constant_override("margin_top", 14)
-	margin.add_theme_constant_override("margin_bottom", 14)
-	_panel.add_child(margin)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 7)
-	margin.add_child(column)
+	var background := PanelContainer.new()
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.mouse_filter = Control.MOUSE_FILTER_STOP
+	background.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("a9c86d")))
+	_panel.add_child(background)
+	_header = HBoxContainer.new()
+	_header.add_theme_constant_override("separation", 12)
+	_panel.add_child(_header)
+	var title_stack := VBoxContainer.new()
+	title_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_header.add_child(title_stack)
 	var title := Label.new()
-	title.text = "TRip · ПУЛЬТ РАЗРАБОТЧИКА"
-	title.add_theme_font_size_override("font_size", 18)
-	column.add_child(title)
+	title.text = "ПУЛЬТ РАЗРАБОТЧИКА"
+	title.add_theme_font_size_override("font_size", 22)
+	title_stack.add_child(title)
+	var subtitle := Label.new()
+	subtitle.text = "МИР · СЦЕНАРИИ · ФИЗИОЛОГИЯ · ПОГОДА"
+	subtitle.modulate = Color(0.62, 0.71, 0.59)
+	subtitle.add_theme_font_size_override("font_size", 11)
+	title_stack.add_child(subtitle)
+	var close_button := Button.new()
+	close_button.text = "F10  ЗАКРЫТЬ"
+	close_button.custom_minimum_size = Vector2(118, 38)
+	close_button.pressed.connect(set_panel_visible.bind(false))
+	_header.add_child(close_button)
+	_status_panel = PanelContainer.new()
+	_status_panel.clip_contents = true
+	_status_panel.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel(Color("9fbd72"), 0.74))
+	_panel.add_child(_status_panel)
+	var status_margin := MarginContainer.new()
+	status_margin.add_theme_constant_override("margin_left", 14)
+	status_margin.add_theme_constant_override("margin_right", 14)
+	status_margin.add_theme_constant_override("margin_top", 10)
+	status_margin.add_theme_constant_override("margin_bottom", 10)
+	_status_panel.add_child(status_margin)
+	var status_column := VBoxContainer.new()
+	status_column.add_theme_constant_override("separation", 4)
+	status_margin.add_child(status_column)
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_status)
+	_status.add_theme_font_size_override("font_size", 12)
+	status_column.add_child(_status)
 	_seed_label = Label.new()
-	column.add_child(_seed_label)
-	var scroll := ScrollContainer.new()
-	# Status gained local weather and physiology lines; keep the tool list itself
-	# scrollable instead of allowing the entire QA panel to leave a 720p viewport.
-	scroll.custom_minimum_size = Vector2(0, 215)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	column.add_child(scroll)
-	var tools := VBoxContainer.new()
-	tools.name = "DeveloperTools"
-	tools.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tools.add_theme_constant_override("separation", 9)
-	scroll.add_child(tools)
-	var world_header := Label.new()
-	world_header.text = "МИРЫ · клавиши 1–8"
-	world_header.modulate = Color(0.72, 0.82, 0.56)
-	tools.add_child(world_header)
-	var world_grid := GridContainer.new()
-	world_grid.columns = 2
-	world_grid.add_theme_constant_override("h_separation", 7)
-	world_grid.add_theme_constant_override("v_separation", 5)
-	tools.add_child(world_grid)
+	_seed_label.modulate = Color(0.67, 0.76, 0.62)
+	_seed_label.add_theme_font_size_override("font_size", 11)
+	status_column.add_child(_seed_label)
+	_scroll = DeveloperToolsScroll.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_panel.add_child(_scroll)
+	_tools = VBoxContainer.new()
+	_tools.name = "DeveloperTools"
+	_tools.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tools.add_theme_constant_override("separation", 12)
+	_scroll.add_child(_tools)
+	var world_grid := _add_section("МИРЫ", "1–8 · отдельная генерация и разведка для каждого слоя")
 	var definitions := _orchestrator.get_definitions()
 	for definition: WorldPhaseDefinition in definitions:
 		var button := Button.new()
 		button.text = "%d · %s" % [definition.order + 1, definition.display_name]
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.custom_minimum_size.x = 270
+		button.custom_minimum_size = Vector2(0, 36)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.toggle_mode = true
+		button.tooltip_text = String(definition.content_pack.landscape_statement) if definition.content_pack != null else definition.display_name
 		button.pressed.connect(_orchestrator.set_developer_phase.bind(definition.id))
 		world_grid.add_child(button)
-	var action_header := Label.new()
-	action_header.text = "СЦЕНАРИИ QA"
-	action_header.modulate = Color(0.72, 0.82, 0.56)
-	tools.add_child(action_header)
-	var action_grid := GridContainer.new()
-	action_grid.columns = 2
-	action_grid.add_theme_constant_override("h_separation", 7)
-	action_grid.add_theme_constant_override("v_separation", 5)
-	tools.add_child(action_grid)
+		_phase_buttons[definition.id] = button
+	var action_grid := _add_section("СЦЕНАРИИ И НАВИГАЦИЯ", "Переходы, события, лаборатория и точки проверки")
 	if _progression != null:
-		_add_action_button(action_grid, "Enter · принять формулу", _progression.simulate_transition_formula)
-		_add_action_button(action_grid, "P · решить событие POI", _progression.simulate_nearest_mystery_event)
+		_add_action_button(action_grid, "ENTER  Принять формулу", _progression.simulate_transition_formula, &"transition_formula")
+		_add_action_button(action_grid, "P  Решить ближайшее таинство", _progression.simulate_nearest_mystery_event, &"resolve_mystery")
 	if _hazard != null:
-		_add_action_button(action_grid, "H · запустить явление", _hazard.force_active)
-		_add_action_button(action_grid, "Delete · очистить явление", _hazard.developer_clear)
+		_add_action_button(action_grid, "H  Запустить явление", _hazard.force_active, &"hazard_start")
+		_add_action_button(action_grid, "DEL  Очистить явление", _hazard.developer_clear, &"hazard_clear")
 	if _laboratory != null:
-		_add_action_button(action_grid, "M · лаборатория с эффектом", _toggle_laboratory.bind(true))
-		_add_action_button(action_grid, "Shift+M · мгновенно", _toggle_laboratory.bind(false))
-	_add_action_button(action_grid, "T · маршрут +90 м", _teleport_route_ahead)
-	_add_action_button(action_grid, "O · к ближайшему POI", _teleport_to_nearest.bind(&"poi"))
-	_add_action_button(action_grid, "C · к экокомпозиции", _teleport_to_nearest.bind(&"composition"))
-	_add_action_button(action_grid, "I · образец текущего мира", _add_current_biome_sample)
+		_add_action_button(action_grid, "M  Лаборатория с метаморфозой", _toggle_laboratory.bind(true), &"laboratory_animated")
+		_add_action_button(action_grid, "SHIFT+M  Лаборатория мгновенно", _toggle_laboratory.bind(false), &"laboratory_instant")
+	_add_action_button(action_grid, "T  Вперёд по маршруту +90 м", _teleport_route_ahead, &"teleport_route")
+	_add_action_button(action_grid, "O  К ближайшему таинству", _teleport_to_nearest.bind(&"poi"), &"teleport_poi")
+	_add_action_button(action_grid, "C  К экокомпозиции", _teleport_to_nearest.bind(&"composition"), &"teleport_composition")
+	_add_action_button(action_grid, "B  Физический стенд", _teleport_to_physics_lab, &"teleport_physics")
+	_add_action_button(action_grid, "I  Выдать образец мира", _add_current_biome_sample, &"grant_sample")
 	if _clock != null:
-		_add_action_button(action_grid, "Y · сменить время", _cycle_time)
+		_add_action_button(action_grid, "Y  Следующее время суток", _cycle_time, &"cycle_time")
 	if _persistence != null:
-		_add_action_button(action_grid, "Сохранить сейчас", _persistence.save_now.bind(&"developer_manual"))
+		_add_action_button(action_grid, "Сохранить состояние сейчас", _persistence.save_now.bind(&"developer_manual"), &"save")
 	if _population != null:
-		_add_action_button(action_grid, "K · переселить живность", _population.developer_respawn)
-		_add_action_button(action_grid, "N · плотность фауны", _population.developer_cycle_density)
-	_add_action_button(action_grid, "R · новый seed", _randomize_seed)
-	_add_action_button(action_grid, "B · физический стенд", _teleport_to_physics_lab)
-	if _weather != null:
-		_add_action_button(action_grid, "W · следующая погода", _weather.developer_cycle)
+		_add_action_button(action_grid, "K  Переселить живность", _population.developer_respawn, &"fauna_respawn")
+		_add_action_button(action_grid, "N  Плотность фауны", _population.developer_cycle_density, &"fauna_density")
+	_add_action_button(action_grid, "R  Новый seed генерации", _randomize_seed, &"randomize_seed")
+	var body_grid := _add_section("СОСТОЯНИЕ ПЕРСОНАЖА", "Быстрая проверка HUD, урона и побочных эффектов")
 	if _player != null and _player.vitals != null:
-		_add_action_button(action_grid, "Тело · восстановить", _player.vitals.developer_restore)
-		_add_action_button(action_grid, "Тело · холод", _player.vitals.developer_set_condition.bind(&"cold"))
-		_add_action_button(action_grid, "Тело · замерзание", _player.vitals.developer_set_condition.bind(&"freezing"))
-		_add_action_button(action_grid, "Тело · отравление", _player.vitals.developer_set_condition.bind(&"toxic"))
-		_add_action_button(action_grid, "Тело · споры", _player.vitals.developer_set_condition.bind(&"spores"))
-		_add_action_button(action_grid, "Тело · истощение", _player.vitals.developer_set_condition.bind(&"exhausted"))
-	_add_action_button(action_grid, "Backspace · реальный мир", _orchestrator.clear_developer_override)
-	var help := Label.new()
-	help.text = "PgUp/PgDn — соседний мир · 1–8 — прямой выбор · F10 — закрыть"
-	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	help.modulate = Color(0.68, 0.76, 0.62)
-	column.add_child(help)
+		_add_action_button(body_grid, "Восстановить показатели", _player.vitals.developer_restore, &"body_restore")
+		_add_action_button(body_grid, "Переохлаждение", _player.vitals.developer_set_condition.bind(&"cold"), &"body_cold")
+		_add_action_button(body_grid, "Замерзание", _player.vitals.developer_set_condition.bind(&"freezing"), &"body_freezing")
+		_add_action_button(body_grid, "Отравление", _player.vitals.developer_set_condition.bind(&"toxic"), &"body_toxic")
+		_add_action_button(body_grid, "Споровое заражение", _player.vitals.developer_set_condition.bind(&"spores"), &"body_spores")
+		_add_action_button(body_grid, "Истощение", _player.vitals.developer_set_condition.bind(&"exhausted"), &"body_exhausted")
+	var system_grid := _add_section("СИСТЕМА", "Возврат к сюжетному состоянию и диагностика")
+	_add_action_button(system_grid, "BACKSPACE  Вернуть сюжетный мир", _orchestrator.clear_developer_override, &"clear_override")
+	_help = Label.new()
+	_help.text = "PGUP / PGDN  соседний мир    ·    1–8  прямой выбор    ·    F10  закрыть"
+	_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_help.modulate = Color(0.68, 0.76, 0.62)
+	_panel.add_child(_help)
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
 
 
 func _rebuild_weather_controls() -> void:
 	if _panel == null or _weather == null:
 		return
-	var column := _panel.find_child("WeatherDeveloperControls", true, false) as HBoxContainer
-	if column != null:
+	var existing := _panel.find_child("WeatherDeveloperControls", true, false)
+	if existing != null:
 		return
-	column = HBoxContainer.new()
-	column.name = "WeatherDeveloperControls"
-	column.add_theme_constant_override("separation", 6)
-	# Keep quick weather controls inside the existing scroll region at 720p.
-	var tools := _panel.find_child("DeveloperTools", true, false) as VBoxContainer
-	if tools == null:
+	if _tools == null:
 		return
-	tools.add_child(column)
+	var grid := _add_section("ПОГОДА", "W переключает по кругу · кнопки задают состояние напрямую", "WeatherDeveloperControls")
 	for weather_state: int in WeatherOrchestrator.State.values():
-		var button := Button.new()
-		button.text = ["Ясно", "Дождь", "Гроза", "Туман", "Снег"][weather_state]
-		button.pressed.connect(_weather.developer_set.bind(weather_state))
-		column.add_child(button)
+		var button := _add_action_button(grid, ["Ясно", "Дождь", "Гроза", "Туман", "Снег"][weather_state], _weather.developer_set.bind(weather_state), StringName("weather_%d" % weather_state))
+		button.toggle_mode = true
+		_weather_buttons[weather_state] = button
+	_apply_responsive_layout()
 
 
-func _add_action_button(parent: Control, text_value: String, callback: Callable) -> void:
+func _add_section(title_text: String, subtitle_text: String, node_name: String = "") -> GridContainer:
+	var section := VBoxContainer.new()
+	if not node_name.is_empty():
+		section.name = node_name
+	section.add_theme_constant_override("separation", 5)
+	_tools.add_child(section)
+	var title := Label.new()
+	title.text = title_text
+	title.modulate = Color(0.76, 0.86, 0.57)
+	title.add_theme_font_size_override("font_size", 13)
+	section.add_child(title)
+	var subtitle := Label.new()
+	subtitle.text = subtitle_text
+	subtitle.modulate = Color(0.55, 0.63, 0.54)
+	subtitle.add_theme_font_size_override("font_size", 11)
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	section.add_child(subtitle)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 6)
+	section.add_child(grid)
+	_responsive_grids.append(grid)
+	return grid
+
+
+func _add_action_button(parent: Control, text_value: String, callback: Callable, action_id: StringName = &"") -> Button:
 	var button := Button.new()
 	button.text = text_value
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.custom_minimum_size.x = 270
+	button.custom_minimum_size = Vector2(0, 34)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.set_meta(&"developer_action", action_id)
 	button.pressed.connect(callback)
 	parent.add_child(button)
+	return button
+
+
+func _apply_responsive_layout() -> void:
+	if _panel == null:
+		return
+	var viewport_size := get_viewport().get_visible_rect().size
+	var compact := viewport_size.x < 980.0
+	var panel_width := minf(760.0, viewport_size.x - (24.0 if compact else 40.0))
+	_panel.position = Vector2(12.0 if compact else 20.0, 12.0 if viewport_size.y < 800.0 else 20.0)
+	_panel.size = Vector2(panel_width, viewport_size.y - _panel.position.y * 2.0)
+	var inner_width := panel_width - 44.0
+	_header.position = Vector2(22.0, 18.0)
+	_header.size = Vector2(inner_width, 54.0)
+	var status_height := 226.0 if viewport_size.y < 800.0 else 236.0
+	_status_panel.position = Vector2(22.0, 78.0)
+	_status_panel.size = Vector2(inner_width, status_height)
+	var scroll_top := 78.0 + status_height + 14.0
+	_scroll.position = Vector2(22.0, scroll_top)
+	_scroll.size = Vector2(inner_width, maxf(150.0, _panel.size.y - scroll_top - 42.0))
+	_help.position = Vector2(22.0, _panel.size.y - 28.0)
+	_help.size = Vector2(inner_width, 22.0)
+	for grid: GridContainer in _responsive_grids:
+		grid.columns = 1 if panel_width < 610.0 else 2
 
 
 func _set_phase_by_index(index: int) -> void:
@@ -396,6 +474,11 @@ func _update_status() -> void:
 	var definition := _orchestrator.get_current()
 	if definition == null:
 		return
+	for phase_id: StringName in _phase_buttons:
+		_phase_buttons[phase_id].set_pressed_no_signal(phase_id == definition.id)
+	if _weather != null:
+		for weather_state: int in _weather_buttons:
+			_weather_buttons[weather_state].set_pressed_no_signal(weather_state == int(_weather.state))
 	var contract := _progression.get_contract_text() if _progression != null else "Рецепт стабилизации: %s" % definition.stabilizing_recipe_id
 	var laboratory_state := "закрыта"
 	if _laboratory != null:

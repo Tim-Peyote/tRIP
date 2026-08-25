@@ -71,6 +71,15 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not key.pressed or key.echo:
 		return
 	var physical := key.physical_keycode if key.physical_keycode != 0 else key.keycode
+	if physical == KEY_F10:
+		var developer_panel := _active_level.world_phase_developer_panel
+		if not developer_panel.is_panel_visible():
+			gameplay_hud.close_top_overlay()
+		developer_panel.set_panel_visible(not developer_panel.is_panel_visible())
+		get_viewport().set_input_as_handled()
+		return
+	if _active_level.world_phase_developer_panel.is_panel_visible():
+		return
 	if physical == KEY_I:
 		gameplay_hud.call("_toggle_inventory")
 		get_viewport().set_input_as_handled()
