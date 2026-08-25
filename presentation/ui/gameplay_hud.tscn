@@ -66,9 +66,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -270.0
-offset_top = -150.0
+offset_top = -132.0
 offset_right = 270.0
-offset_bottom = -78.0
+offset_bottom = -68.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -139,22 +139,22 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 28.0
-offset_top = -208.0
-offset_right = 448.0
-offset_bottom = -78.0
+offset_top = -156.0
+offset_right = 366.0
+offset_bottom = -68.0
 grow_vertical = 0
 mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="VitalsPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
 
 [node name="Layout" type="VBoxContainer" parent="VitalsPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 3
 
 [node name="Top" type="HBoxContainer" parent="VitalsPanel/Margin/Layout"]
 layout_mode = 2
@@ -164,20 +164,20 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.92, 0.72, 0.66, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "ЗДОРОВЬЕ  35 / 35"
 
 [node name="ConditionLabel" type="Label" parent="VitalsPanel/Margin/Layout/Top"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.74, 0.82, 0.62, 0.9)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "СТАБИЛЬНО"
 horizontal_alignment = 2
 
 [node name="HealthBar" type="ProgressBar" parent="VitalsPanel/Margin/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 7)
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 value = 100.0
 show_percentage = false
@@ -186,12 +186,12 @@ show_percentage = false
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.81, 0.5, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "ВЫНОСЛИВОСТЬ  60 / 60"
 
 [node name="StaminaBar" type="ProgressBar" parent="VitalsPanel/Margin/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 7)
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 value = 100.0
 show_percentage = false
@@ -234,12 +234,12 @@ autowrap_mode = 2
 [node name="ObjectiveLabel" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
-offset_left = 28.0
-offset_top = 24.0
-offset_right = 560.0
-offset_bottom = 68.0
+offset_left = 24.0
+offset_top = 22.0
+offset_right = 520.0
+offset_bottom = 64.0
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 0.94)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "ВЫЛАЗКА 01"
 autowrap_mode = 2
 
@@ -249,13 +249,13 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -220.0
-offset_top = 24.0
-offset_right = -28.0
-offset_bottom = 52.0
+offset_left = -190.0
+offset_top = 22.0
+offset_right = -24.0
+offset_bottom = 48.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.56, 0.61, 0.53, 0.9)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "ДЕНЬ · 06:00"
 horizontal_alignment = 2
 
@@ -469,13 +469,13 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 28.0
-offset_top = -48.0
-offset_right = 240.0
-offset_bottom = -20.0
+offset_left = 24.0
+offset_top = -44.0
+offset_right = 270.0
+offset_bottom = -18.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.45, 0.52, 0.43, 0.85)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 11
 text = "СУМКА"
 
 [node name="ToolLabel" type="Label" parent="."]
@@ -486,14 +486,14 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -250.0
-offset_top = -48.0
-offset_right = -28.0
-offset_bottom = -20.0
+offset_left = -230.0
+offset_top = -44.0
+offset_right = -24.0
+offset_bottom = -18.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.45, 0.52, 0.43, 0.85)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 11
 text = "ПОЛЕВОЙ НОЖ  [Q]"
 horizontal_alignment = 2
 
@@ -505,14 +505,14 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -250.0
-offset_top = -70.0
-offset_right = -28.0
-offset_bottom = -48.0
+offset_left = -230.0
+offset_top = -64.0
+offset_right = -24.0
+offset_bottom = -42.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.45, 0.52, 0.43, 0.85)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 11
 text = "КАМНИ  3  [G]"
 horizontal_alignment = 2
 
@@ -593,35 +593,35 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0.018, 0.024, 0.021, 0.46)
+color = Color(0.018, 0.024, 0.021, 0.58)
 
 [node name="InventoryPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchor_left = 0.045
-anchor_top = 0.055
-anchor_right = 0.955
-anchor_bottom = 0.945
+anchor_left = 0.04
+anchor_top = 0.045
+anchor_right = 0.96
+anchor_bottom = 0.955
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
 
 [node name="Margin" type="MarginContainer" parent="InventoryPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 22
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 22
 
 [node name="Layout" type="VBoxContainer" parent="InventoryPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 9
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.86, 0.61, 1)
-theme_override_font_sizes/font_size = 27
+theme_override_font_sizes/font_size = 25
 text = "СУМКА"
 
 [node name="Subtitle" type="Label" parent="InventoryPanel/Margin/Layout"]
@@ -633,29 +633,29 @@ text = "ПОЛЕВОЙ КОМПЛЕКТ · ТЕКУЩАЯ ВЫЛАЗКА"
 
 [node name="FilterBar" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="InventoryFilterAll" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 36)
+custom_minimum_size = Vector2(92, 34)
 layout_mode = 2
 text = "ВСЁ"
 
 [node name="InventoryFilterIngredients" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 36)
+custom_minimum_size = Vector2(106, 34)
 layout_mode = 2
 text = "СЫРЬЁ"
 
 [node name="InventoryFilterConsumables" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(118, 36)
+custom_minimum_size = Vector2(112, 34)
 layout_mode = 2
 text = "СОСТАВЫ"
 
 [node name="InventoryFilterTools" type="Button" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(136, 36)
+custom_minimum_size = Vector2(128, 34)
 layout_mode = 2
 text = "СНАРЯЖЕНИЕ"
 
@@ -671,7 +671,7 @@ vertical_alignment = 1
 
 [node name="InventorySort" type="OptionButton" parent="InventoryPanel/Margin/Layout/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(154, 36)
+custom_minimum_size = Vector2(150, 34)
 layout_mode = 2
 
 [node name="InventoryItemCount" type="Label" parent="InventoryPanel/Margin/Layout"]
@@ -710,7 +710,7 @@ show_percentage = false
 [node name="Body" type="HBoxContainer" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 36
+theme_override_constants/separation = 28
 
 [node name="ListScroll" type="ScrollContainer" parent="InventoryPanel/Margin/Layout/Body"]
 custom_minimum_size = Vector2(640, 0)
@@ -722,8 +722,8 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 18
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 22
 columns = 4
 
 [node name="Detail" type="PanelContainer" parent="InventoryPanel/Margin/Layout/Body"]

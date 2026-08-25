@@ -114,7 +114,9 @@ func _ready() -> void:
 	for journal_tab: Button in [%JournalTabSpecies, %JournalTabHypotheses, %JournalTabRecipes]:
 		journal_tab.toggle_mode = true
 	get_viewport().size_changed.connect(_update_inventory_responsive_layout)
+	get_viewport().size_changed.connect(_update_hud_responsive_layout)
 	_update_inventory_responsive_layout()
+	_update_hud_responsive_layout()
 	_refresh_inventory_filter_buttons()
 
 
@@ -639,6 +641,11 @@ func _on_vitals_state_changed(snapshot: Dictionary) -> void:
 	while slot_labels.size() < PlayerVitalsComponent.MAX_FOOD_SLOTS:
 		slot_labels.append("○ ПУСТО")
 	%FoodSlotsLabel.text = "   ".join(slot_labels)
+	var condition := StringName(snapshot.get("condition", &"normal"))
+	var has_food := not (snapshot.get("food_slots", []) as Array).is_empty()
+	%PhysiologyLabel.visible = condition != &"normal" or wet > 0.04 or spores > 0.04 or toxicity_value > 0.04
+	%FoodSlotsLabel.visible = has_food
+	_update_vitals_compact_height(%PhysiologyLabel.visible, has_food)
 	%VitalsPanel.visible = true
 
 
@@ -787,21 +794,65 @@ func _update_inventory_responsive_layout() -> void:
 	var viewport_width := get_viewport_rect().size.x
 	var list_scroll := $InventoryPanel/Margin/Layout/Body/ListScroll as ScrollContainer
 	var body := $InventoryPanel/Margin/Layout/Body as HBoxContainer
+	inventory_sort.visible = viewport_width >= 920.0
 	if viewport_width >= 1180.0:
 		inventory_list.columns = 4
-		list_scroll.custom_minimum_size.x = 640.0
+		list_scroll.custom_minimum_size.x = 620.0
 		inventory_detail_panel.custom_minimum_size.x = 330.0
-		body.add_theme_constant_override("separation", 36)
-	elif viewport_width >= 940.0:
-		inventory_list.columns = 3
-		list_scroll.custom_minimum_size.x = 478.0
-		inventory_detail_panel.custom_minimum_size.x = 310.0
 		body.add_theme_constant_override("separation", 28)
-	else:
-		inventory_list.columns = 2
-		list_scroll.custom_minimum_size.x = 308.0
-		inventory_detail_panel.custom_minimum_size.x = 280.0
+		inventory_detail_panel.visible = true
+	elif viewport_width >= 920.0:
+		inventory_list.columns = 3
+		list_scroll.custom_minimum_size.x = 430.0
+		inventory_detail_panel.custom_minimum_size.x = 286.0
 		body.add_theme_constant_override("separation", 20)
+		inventory_detail_panel.visible = true
+	elif viewport_width >= 760.0:
+		inventory_list.columns = 2
+		list_scroll.custom_minimum_size.x = 292.0
+		inventory_detail_panel.custom_minimum_size.x = 250.0
+		body.add_theme_constant_override("separation", 16)
+		inventory_detail_panel.visible = true
+	else:
+		inventory_list.columns = 3
+		list_scroll.custom_minimum_size.x = 0.0
+		body.add_theme_constant_override("separation", 0)
+		inventory_detail_panel.visible = false
+
+
+func _update_hud_responsive_layout() -> void:
+	var viewport_size := get_viewport_rect().size
+	var safe_x := clampf(viewport_size.x * 0.019, 16.0, 34.0)
+	%ObjectiveLabel.offset_left = safe_x
+	%ObjectiveLabel.offset_right = minf(viewport_size.x * 0.48, safe_x + 520.0)
+	%ClockLabel.offset_left = -minf(190.0, viewport_size.x * 0.26)
+	%ClockLabel.offset_right = -safe_x
+	%InventoryLabel.offset_left = safe_x
+	%ToolLabel.offset_right = -safe_x
+	%DistractionLabel.offset_right = -safe_x
+	%VitalsPanel.offset_left = safe_x
+	%VitalsPanel.offset_right = safe_x + clampf(viewport_size.x * 0.27, 300.0, 350.0)
+	var inventory_margin := clampf(viewport_size.x * 0.028, 18.0, 42.0)
+	var inventory_margin_node := $InventoryPanel/Margin as MarginContainer
+	for side: StringName in [&"margin_left", &"margin_right"]:
+		inventory_margin_node.add_theme_constant_override(side, roundi(inventory_margin))
+	var journal := %JournalPanel as PanelContainer
+	var journal_half_width := minf(540.0, maxf(300.0, (viewport_size.x - 48.0) * 0.5))
+	var journal_half_height := minf(310.0, maxf(220.0, (viewport_size.y - 48.0) * 0.5))
+	journal.offset_left = -journal_half_width
+	journal.offset_right = journal_half_width
+	journal.offset_top = -journal_half_height
+	journal.offset_bottom = journal_half_height
+
+
+func _update_vitals_compact_height(show_physiology: bool, show_food: bool) -> void:
+	var height := 57.0
+	if show_physiology:
+		height += 14.0
+	if show_food:
+		height += 14.0
+	%VitalsPanel.offset_bottom = -68.0
+	%VitalsPanel.offset_top = %VitalsPanel.offset_bottom - height
 
 
 func _show_empty_inventory_detail() -> void:

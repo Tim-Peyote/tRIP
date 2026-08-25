@@ -54,9 +54,11 @@ static func build() -> Theme:
 
 
 static func make_glass_panel(accent: Color = MOSS, opacity: float = 0.9) -> StyleBoxFlat:
-	var style := _box(Color(0.055, 0.072, 0.061, opacity), Color(accent.r, accent.g, accent.b, 0.4), 1, 12, 14)
-	style.border_width_left = 3
-	style.border_width_top = 1
+	var style := _box(Color(0.035, 0.047, 0.04, opacity * 0.72), Color(accent.r, accent.g, accent.b, 0.16), 1, 10, 12)
+	style.border_width_left = 2
+	style.border_width_top = 0
+	style.border_width_right = 0
+	style.border_width_bottom = 0
 	return style
 
 
@@ -65,12 +67,14 @@ static func make_key_chip() -> StyleBoxFlat:
 
 
 static func make_inventory_panel() -> StyleBoxFlat:
-	var style := _box(Color(0.075, 0.09, 0.078, 0.84), Color(0.76, 0.84, 0.61, 0.28), 1, 18, 22)
-	style.border_width_top = 2
-	style.border_width_left = 1
-	style.shadow_color = Color(0, 0, 0, 0.42)
-	style.shadow_size = 14
-	style.shadow_offset = Vector2(0, 6)
+	var style := _box(Color(0.055, 0.067, 0.059, 0.88), Color(0.76, 0.84, 0.61, 0.16), 1, 14, 26)
+	style.border_width_top = 1
+	style.border_width_left = 0
+	style.border_width_right = 0
+	style.border_width_bottom = 0
+	style.shadow_color = Color(0, 0, 0, 0.3)
+	style.shadow_size = 10
+	style.shadow_offset = Vector2(0, 4)
 	return style
 
 
@@ -84,39 +88,37 @@ static func make_modal_panel(accent: Color = MOSS) -> StyleBoxFlat:
 
 
 static func make_content_panel(accent: Color = Color(0.58, 0.65, 0.5), opacity: float = 0.82) -> StyleBoxFlat:
-	var style := _box(Color(0.12, 0.14, 0.12, opacity), Color(accent.r, accent.g, accent.b, 0.34), 1, 14, 18)
-	style.border_width_top = 1
-	style.border_width_left = 2
+	var style := _box(Color(0.09, 0.105, 0.092, opacity * 0.82), Color(accent.r, accent.g, accent.b, 0.2), 1, 11, 18)
+	style.border_width_top = 0
+	style.border_width_left = 1
 	return style
 
 
 static func make_hud_plate(accent: Color = MOSS, align_right: bool = false) -> StyleBoxFlat:
-	var style := _box(Color(0.025, 0.035, 0.03, 0.62), Color(accent.r, accent.g, accent.b, 0.42), 0, 8, 10)
-	style.border_width_right = 3 if align_right else 0
-	style.border_width_left = 0 if align_right else 3
-	style.shadow_size = 7
+	var style := _box(Color(0.02, 0.028, 0.024, 0.38), Color(accent.r, accent.g, accent.b, 0.18), 0, 6, 8)
+	style.border_width_right = 2 if align_right else 0
+	style.border_width_left = 0 if align_right else 2
+	style.shadow_size = 0
 	return style
 
 
 static func make_button(state: StringName, accent: Color = MOSS) -> StyleBoxFlat:
 	match state:
 		&"hover":
-			var hover := _box(Color(0.13, 0.16, 0.135, 0.96), Color(accent.r, accent.g, accent.b, 0.78), 1, 9, 15)
-			hover.border_width_left = 4
-			hover.shadow_size = 4
+			var hover := _box(Color(0.13, 0.16, 0.135, 0.88), Color(accent.r, accent.g, accent.b, 0.62), 1, 8, 13)
+			hover.border_width_left = 3
 			return hover
 		&"focus":
-			var focus := _box(Color(0.15, 0.18, 0.145, 0.98), accent, 1, 9, 15)
-			focus.border_width_left = 5
-			focus.shadow_size = 5
+			var focus := _box(Color(0.15, 0.18, 0.145, 0.94), accent, 1, 8, 13)
+			focus.border_width_left = 3
 			return focus
 		&"pressed":
-			return _box(Color(accent.r, accent.g, accent.b, 0.96), accent.lightened(0.12), 1, 9, 15)
+			return _box(Color(accent.r, accent.g, accent.b, 0.9), accent.lightened(0.12), 1, 8, 13)
 		&"disabled":
-			return _box(Color(0.065, 0.075, 0.067, 0.44), Color(0.3, 0.32, 0.28, 0.2), 1, 9, 15)
+			return _box(Color(0.065, 0.075, 0.067, 0.34), Color(0.3, 0.32, 0.28, 0.14), 1, 8, 13)
 		_:
-			var normal := _box(Color(0.075, 0.09, 0.078, 0.74), Color(0.56, 0.62, 0.5, 0.3), 1, 9, 15)
-			normal.border_width_left = 2
+			var normal := _box(Color(0.075, 0.09, 0.078, 0.5), Color(0.56, 0.62, 0.5, 0.2), 1, 8, 13)
+			normal.border_width_left = 1
 			return normal
 
 
@@ -130,13 +132,13 @@ static func make_menu_button(state: StringName) -> StyleBoxFlat:
 static func make_inventory_slot(state: StringName, accent: Color = MOSS) -> StyleBoxFlat:
 	match state:
 		&"hover":
-			return _box(Color(0.14, 0.165, 0.14, 0.98), Color(accent.r, accent.g, accent.b, 0.9), 1, 13, 8)
+			return _box(Color(0.14, 0.165, 0.14, 0.86), Color(accent.r, accent.g, accent.b, 0.72), 1, 10, 7)
 		&"selected":
-			return _box(Color(0.17, 0.2, 0.16, 1.0), accent.lightened(0.1), 2, 13, 8)
+			return _box(Color(0.17, 0.2, 0.16, 0.9), accent.lightened(0.1), 2, 10, 7)
 		&"pressed":
-			return _box(Color(accent.r * 0.38, accent.g * 0.38, accent.b * 0.38, 1.0), accent, 2, 13, 8)
+			return _box(Color(accent.r * 0.38, accent.g * 0.38, accent.b * 0.38, 0.9), accent, 2, 10, 7)
 		_:
-			return _box(Color(0.085, 0.1, 0.087, 0.92), Color(0.55, 0.61, 0.5, 0.36), 1, 13, 8)
+			return _box(Color(0.085, 0.1, 0.087, 0.6), Color(0.55, 0.61, 0.5, 0.2), 1, 10, 7)
 
 
 static func _line(color: Color, thickness: int) -> StyleBoxLine:
