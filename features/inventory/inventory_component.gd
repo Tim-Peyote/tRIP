@@ -47,14 +47,34 @@ func count(definition_id: StringName) -> float:
 
 
 func remove_one(definition_id: StringName) -> ItemInstance:
+	var specimens := get_specimens(definition_id)
+	if not specimens.is_empty():
+		return remove_instance(specimens[0].instance_id)
+	return null
+
+
+func get_item(instance_id: StringName) -> ItemInstance:
+	for item: ItemInstance in items:
+		if item.instance_id == instance_id:
+			return item
+	return null
+
+
+func remove_instance(instance_id: StringName, quantity: float = 1.0) -> ItemInstance:
+	var amount := maxf(quantity, 0.0)
+	if amount <= 0.0:
+		return null
 	for index in items.size():
 		var item := items[index]
-		if item.definition_id != definition_id:
+		if item.instance_id != instance_id:
 			continue
 		var removed := ItemInstance.from_save_data(item.to_save_data())
-		removed.quantity = 1.0
-		if item.quantity > 1.0:
-			item.quantity -= 1.0
+		removed.quantity = minf(amount, item.quantity)
+		if item.quantity > amount:
+			item.quantity -= amount
+			# A split stack is now a distinct physical specimen. Keeping the same
+			# id on both halves makes later drag/drop target the wrong object.
+			removed.instance_id = StringName("item_%s" % ResourceUID.create_id())
 		else:
 			items.remove_at(index)
 		item_removed.emit(removed)
@@ -78,21 +98,27 @@ func use_consumable(definition_id: StringName) -> bool:
 	var definition := ContentDB.get_definition(definition_id)
 	if not definition is ConsumableDefinition:
 		return false
-	var specimen: ItemInstance
-	for item: ItemInstance in items:
-		if item.definition_id == definition_id:
-			specimen = item
-			break
+	var specimens := get_specimens(definition_id)
+	if specimens.is_empty():
+		return false
+	return use_consumable_instance(specimens[0].instance_id)
+
+
+func use_consumable_instance(instance_id: StringName) -> bool:
+	var specimen := get_item(instance_id)
 	if specimen == null:
 		return false
-	if _consumption_guard.is_valid() and not bool(_consumption_guard.call(definition, specimen)):
-		item_rejected.emit(definition_id, "metabolic_limit")
+	var definition := ContentDB.get_definition(specimen.definition_id)
+	if not definition is ConsumableDefinition:
 		return false
-	var removed := remove_one(definition_id)
+	if _consumption_guard.is_valid() and not bool(_consumption_guard.call(definition, specimen)):
+		item_rejected.emit(specimen.definition_id, "metabolic_limit")
+		return false
+	var removed := remove_instance(instance_id)
 	if removed == null:
 		return false
 	var consumable := definition as ConsumableDefinition
-	consumable_consumed.emit(definition_id, removed.quality)
+	consumable_consumed.emit(removed.definition_id, removed.quality)
 	consumable_used.emit(consumable.effect_ids, consumable.display_name)
 	return true
 

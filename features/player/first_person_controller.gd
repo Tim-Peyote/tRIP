@@ -221,6 +221,26 @@ func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
+func drop_inventory_item(instance_id: StringName) -> bool:
+	if instance_id == &"" or inventory == null:
+		return false
+	var removed := inventory.remove_instance(instance_id)
+	if removed == null:
+		return false
+	var world_parent := get_parent()
+	if world_parent == null:
+		inventory.add_item(removed)
+		return false
+	var dropped := DroppedInventoryItem.new()
+	dropped.configure(removed)
+	world_parent.add_child(dropped)
+	var forward := -camera.global_basis.z
+	dropped.global_position = camera.global_position + forward * 0.9 - Vector3.UP * 0.34
+	dropped.linear_velocity = forward * 1.15 + Vector3.UP * 0.22
+	dropped.angular_velocity = Vector3(0.6, 1.2, -0.4)
+	return true
+
+
 func set_gameplay_input_override_for_testing(value: bool) -> void:
 	_gameplay_input_override = value
 

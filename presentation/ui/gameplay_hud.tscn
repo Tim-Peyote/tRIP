@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://presentation/ui/gameplay_hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://features/inspection/sample_inspection_view.tscn" id="2_inspection"]
 [ext_resource type="PackedScene" path="res://features/frontend/settings_panel.tscn" id="3_settings"]
+[ext_resource type="Script" path="res://features/inventory/inventory_specimen_list.gd" id="4_specimens"]
+[ext_resource type="Script" path="res://features/inventory/inventory_action_button.gd" id="5_action"]
 
 [node name="GameplayHUD" type="Control"]
 visible = false
@@ -824,18 +826,34 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_vertical = 3
 allow_reselect = true
+script = ExtResource("4_specimens")
 
-[node name="InventoryUseButton" type="Button" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout"]
+[node name="InventoryActions" type="HBoxContainer" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="InventoryUseButton" type="Button" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/InventoryActions"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 disabled = true
 text = "Нельзя применить напрямую"
+script = ExtResource("5_action")
+inventory_action = "consume"
+
+[node name="InventoryDropButton" type="Button" parent="InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/InventoryActions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Выложить"
+script = ExtResource("5_action")
+inventory_action = "drop"
 
 [node name="Hint" type="Label" parent="InventoryPanel/Margin/Layout"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.61, 0.65, 0.58, 1)
 theme_override_font_sizes/font_size = 13
-text = "[I] закрыть  ·  [1] быстро принять первый готовый состав  ·  выбор мышью или геймпадом"
+text = "[I] закрыть  ·  перетащи образец на действие или используй кнопки  ·  выброшенное можно поднять обратно"
 
 [node name="JournalPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true

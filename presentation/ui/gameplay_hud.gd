@@ -25,6 +25,7 @@ signal audio_cue_requested(cue_id: StringName)
 @onready var inventory_volume_bar: ProgressBar = %InventoryVolumeBar
 @onready var inventory_capacity_label: Label = %InventoryCapacityLabel
 @onready var inventory_use_button: Button = %InventoryUseButton
+@onready var inventory_drop_button: Button = %InventoryDropButton
 @onready var inventory_sort: OptionButton = %InventorySort
 @onready var inventory_item_count: Label = %InventoryItemCount
 @onready var inventory_quality_bar: ProgressBar = %InventoryQualityBar
@@ -64,6 +65,7 @@ var _notice_tween: Tween
 var _notice_rest_y: float
 var _last_interaction_context: Dictionary = {}
 var _selected_inventory_id: StringName
+var _selected_inventory_instance_id: StringName
 var _inventory_filter: StringName = &"all"
 var _inventory_sort_mode: StringName = &"name"
 var _journal_mode: StringName = &"species"
@@ -80,6 +82,9 @@ func _ready() -> void:
 	pause_settings_panel.closed.connect(_hide_pause_settings)
 	%ContinueCycleButton.pressed.connect(_acknowledge_cycle_result)
 	inventory_use_button.pressed.connect(_use_selected_inventory_item)
+	inventory_drop_button.pressed.connect(_drop_selected_inventory_item)
+	(inventory_use_button as InventoryActionButton).inventory_payload_dropped.connect(_on_inventory_payload_dropped)
+	(inventory_drop_button as InventoryActionButton).inventory_payload_dropped.connect(_on_inventory_payload_dropped)
 	%InventoryFilterAll.pressed.connect(_set_inventory_filter.bind(&"all"))
 	%InventoryFilterIngredients.pressed.connect(_set_inventory_filter.bind(&"ingredients"))
 	%InventoryFilterConsumables.pressed.connect(_set_inventory_filter.bind(&"consumables"))
@@ -725,7 +730,7 @@ func _update_inventory_panel() -> void:
 		card.custom_minimum_size = Vector2(146.0, 172.0)
 		card.add_theme_constant_override("separation", 7)
 		card.set_meta(&"definition_id", definition_id)
-		var button := Button.new()
+		var button := InventoryDragButton.new()
 		button.custom_minimum_size = Vector2(146.0, 126.0)
 		button.toggle_mode = true
 		button.button_pressed = definition_id == _selected_inventory_id
@@ -745,6 +750,14 @@ func _update_inventory_panel() -> void:
 		button.add_theme_stylebox_override("pressed", TripUITheme.make_inventory_slot(&"pressed", accent))
 		button.add_theme_stylebox_override("hover_pressed", TripUITheme.make_inventory_slot(&"selected", accent))
 		button.tooltip_text = definition.description if definition != null else String(definition_id)
+		var specimens := _player.inventory.get_specimens(definition_id)
+		var instance_id := specimens[0].instance_id if not specimens.is_empty() else &""
+		button.configure_drag({
+			"kind": &"inventory_item",
+			"definition_id": definition_id,
+			"instance_id": instance_id,
+			"consumable": definition is ConsumableDefinition,
+		}, button.icon, definition.display_name if definition != null else String(definition_id))
 		button.pressed.connect(_select_inventory_stack.bind(definition_id))
 		button.focus_entered.connect(_select_inventory_stack.bind(definition_id, false))
 		button.mouse_entered.connect(_select_inventory_stack.bind(definition_id, false))
@@ -771,6 +784,7 @@ func _update_inventory_panel() -> void:
 		inventory_list.add_child(_make_inventory_empty_state())
 		if catalog.is_empty():
 			_selected_inventory_id = &""
+			_selected_inventory_instance_id = &""
 		_show_empty_inventory_detail()
 	elif _selected_inventory_id == &"" or _player.inventory.count(_selected_inventory_id) <= 0.0 or not _inventory_definition_matches_filter(ContentDB.get_definition(_selected_inventory_id)):
 		_select_inventory_stack(visible_entries[0]["definition_id"], false)
@@ -897,6 +911,8 @@ func _show_empty_inventory_detail() -> void:
 	inventory_specimen_list.add_item("Нет собранных образцов")
 	inventory_use_button.disabled = true
 	inventory_use_button.text = "Сначала найди сырьё"
+	inventory_drop_button.disabled = true
+	inventory_drop_button.text = "Нечего выкладывать"
 
 
 func _clear_inventory_list() -> void:
@@ -909,11 +925,13 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 	if play_audio:
 		audio_cue_requested.emit(&"select")
 	_selected_inventory_id = definition_id
+	_selected_inventory_instance_id = &""
 	var definition := ContentDB.get_definition(definition_id)
 	if definition == null:
 		inventory_detail_title.text = String(definition_id)
 		inventory_detail_body.text = "Нет данных об образце."
 		inventory_use_button.disabled = true
+		inventory_drop_button.disabled = true
 		return
 	for child: Node in inventory_list.get_children():
 		var button := child.get_child(0) as Button if child.get_child_count() > 0 else null
@@ -939,17 +957,26 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 	inventory_quality_bar.value = best_quality
 	inventory_freshness_bar.value = average_freshness
 	inventory_specimen_list.clear()
+	(inventory_specimen_list as InventorySpecimenList).configure_drag_preview(_inventory_icon(definition), definition.display_name)
 	for index in specimens.size():
 		var specimen := specimens[index]
 		var part := String(specimen.processing_state.get(&"part", "целый образец"))
 		inventory_specimen_list.add_item("#%02d  %s  ·  качество %d%%  ·  свежесть %d%%" % [
 			index + 1, part, roundi(specimen.quality * 100.0), roundi(specimen.freshness * 100.0),
 		])
-		inventory_specimen_list.set_item_metadata(index, specimen.instance_id)
+		inventory_specimen_list.set_item_metadata(index, {
+			"kind": &"inventory_item",
+			"definition_id": definition_id,
+			"instance_id": specimen.instance_id,
+			"consumable": definition is ConsumableDefinition,
+		})
 	if not specimens.is_empty():
 		inventory_specimen_list.select(0)
+		_selected_inventory_instance_id = specimens[0].instance_id
 	inventory_use_button.disabled = not definition is ConsumableDefinition
-	inventory_use_button.text = "Принять состав" if definition is ConsumableDefinition else "Нельзя применить напрямую"
+	inventory_use_button.text = "Принять" if definition is ConsumableDefinition else "Не употребляется"
+	inventory_drop_button.disabled = specimens.is_empty()
+	inventory_drop_button.text = "Выложить в мир"
 
 
 func _consumable_profile_text(definition: ConsumableDefinition) -> String:
@@ -975,16 +1002,41 @@ func _consumable_profile_text(definition: ConsumableDefinition) -> String:
 
 
 func _use_selected_inventory_item() -> void:
-	if _player == null or _selected_inventory_id == &"":
+	if _player == null or _selected_inventory_instance_id == &"":
 		return
-	if _player.inventory.use_consumable(_selected_inventory_id):
+	if _player.inventory.use_consumable_instance(_selected_inventory_instance_id):
 		audio_cue_requested.emit(&"confirm")
 		_update_inventory_panel()
+
+
+func _drop_selected_inventory_item() -> void:
+	if _player == null or _selected_inventory_instance_id == &"":
+		return
+	var definition := ContentDB.get_definition(_selected_inventory_id)
+	var display_name := definition.display_name if definition != null else String(_selected_inventory_id)
+	if _player.drop_inventory_item(_selected_inventory_instance_id):
+		audio_cue_requested.emit(&"confirm")
+		show_notice("ВЫЛОЖЕНО В МИР · %s · можно поднять обратно" % display_name)
+		_update_inventory_panel()
+
+
+func _on_inventory_payload_dropped(action: StringName, payload: Dictionary) -> void:
+	var instance_id := StringName(payload.get("instance_id", &""))
+	if instance_id == &"":
+		return
+	_selected_inventory_id = StringName(payload.get("definition_id", &""))
+	_selected_inventory_instance_id = instance_id
+	match action:
+		&"consume":
+			_use_selected_inventory_item()
+		&"drop":
+			_drop_selected_inventory_item()
 
 
 func _set_inventory_filter(filter_id: StringName) -> void:
 	_inventory_filter = filter_id
 	_selected_inventory_id = &""
+	_selected_inventory_instance_id = &""
 	audio_cue_requested.emit(&"select")
 	_refresh_inventory_filter_buttons()
 	_update_inventory_panel()
@@ -1001,6 +1053,9 @@ func _on_inventory_specimen_selected(index: int) -> void:
 	if index < 0 or index >= inventory_specimen_list.item_count:
 		return
 	var selected_text := inventory_specimen_list.get_item_text(index)
+	var payload: Variant = inventory_specimen_list.get_item_metadata(index)
+	if payload is Dictionary:
+		_selected_inventory_instance_id = StringName(payload.get("instance_id", &""))
 	inventory_detail_title.text = "%s · %s" % [
 		ContentDB.get_definition(_selected_inventory_id).display_name,
 		selected_text.get_slice("  ·  ", 0),

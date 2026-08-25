@@ -249,5 +249,15 @@ func is_holding_body() -> bool:
 	return grabbed_body != null
 
 
+func try_grab_body(body: RigidBody3D) -> bool:
+	if body == null or grabbed_body != null or body.freeze or body.mass > MAX_GRAB_MASS:
+		return false
+	_cancel_active()
+	focused = null
+	_focused_body = body
+	_begin_grab(body)
+	return true
+
+
 func _humanize_name(value: String) -> String:
 	return value.replace("_", " ").capitalize()
