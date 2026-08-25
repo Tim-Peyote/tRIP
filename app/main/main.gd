@@ -42,6 +42,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			gameplay_hud.call("_toggle_journal")
 			get_viewport().set_input_as_handled()
 			return
+		if event.is_action_pressed(&"map"):
+			gameplay_hud.call("_toggle_map")
+			get_viewport().set_input_as_handled()
+			return
 	if _active_level != null and event.is_action_pressed(&"pause"):
 		if _active_level.world_phase_developer_panel.is_panel_visible():
 			_active_level.world_phase_developer_panel.set_panel_visible(false)
@@ -72,6 +76,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif physical == KEY_J:
 		gameplay_hud.call("_toggle_journal")
+		get_viewport().set_input_as_handled()
+	elif physical == KEY_M:
+		gameplay_hud.call("_toggle_map")
 		get_viewport().set_input_as_handled()
 
 
@@ -105,6 +112,7 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	gameplay_hud.setup_root_pressure(_active_level.get_root_pressure())
 	gameplay_hud.setup_biome_hazard(_active_level.get_biome_hazard())
 	gameplay_hud.setup_weather(_active_level.get_weather())
+	gameplay_hud.setup_map(_active_level.get_map_exploration(), _active_level.get_expedition_terrain(), _active_level.world_phase_orchestrator)
 	var persistence := _active_level.get_session_persistence()
 	persistence.setup(_active_level, _active_level.get_game_loop_orchestrator(), slot_id)
 	gameplay_hud.setup_persistence(persistence)

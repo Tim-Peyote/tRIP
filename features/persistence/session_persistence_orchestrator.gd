@@ -42,6 +42,7 @@ func initialize_new() -> void:
 	rng.randomize()
 	_loop.initialize_world_seed(rng.randi_range(1, 2147483646))
 	_level.apply_world_seed(_loop.world_seed)
+	_level.get_map_exploration().apply_save_data({})
 	_level.initialize_new_session()
 	save_now(&"new_game")
 
@@ -83,6 +84,7 @@ func capture_save_data() -> Dictionary:
 		"road_laboratory": _level.get_road_laboratory().to_save_data(),
 		"world_progression": _level.get_world_progression().to_save_data(),
 		"biome_hazard": _level.get_biome_hazard().to_save_data(),
+		"map_exploration": _level.get_map_exploration().to_save_data(),
 		"collected_spawn_ids": _collected_spawn_ids.keys().map(func(value: Variant) -> String: return String(value)),
 		"player": {
 			"position": [player.global_position.x, player.global_position.y, player.global_position.z],
@@ -117,6 +119,7 @@ func apply_save_data(data: Dictionary) -> void:
 	_level.player.rotation.y = float(player_data.get("yaw", 0.0))
 	_level.get_world_progression().apply_save_data(data.get("world_progression", {}) as Dictionary)
 	_level.get_biome_hazard().apply_save_data(data.get("biome_hazard", {}) as Dictionary)
+	_level.get_map_exploration().apply_save_data(data.get("map_exploration", {}) as Dictionary)
 	if data.has("road_laboratory"):
 		_level.get_road_laboratory().apply_save_data(data.get("road_laboratory", {}) as Dictionary)
 	else:

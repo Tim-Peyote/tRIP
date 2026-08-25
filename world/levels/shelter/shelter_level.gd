@@ -34,6 +34,7 @@ var biome_population: BiomePopulationOrchestrator
 var weather: WeatherOrchestrator
 var physical_showcase: PhysicalInteractionShowcase
 var cooking_station_progression_visuals: CookingStationProgressionVisuals
+var map_exploration: MapExplorationOrchestrator
 
 
 func _ready() -> void:
@@ -92,6 +93,7 @@ func _ready() -> void:
 	_setup_world_progression(terrain)
 	_setup_biome_population(terrain)
 	_setup_physical_interaction(terrain)
+	_setup_map_exploration(terrain)
 	world_phase_developer_panel.setup(
 		world_phase_orchestrator,
 		terrain,
@@ -177,6 +179,14 @@ func get_weather() -> WeatherOrchestrator:
 	return weather
 
 
+func get_map_exploration() -> MapExplorationOrchestrator:
+	return map_exploration
+
+
+func get_expedition_terrain() -> ExpeditionTerrain:
+	return $ExpeditionTerrain as ExpeditionTerrain
+
+
 func initialize_new_session() -> void:
 	_disable_legacy_shelter()
 	biome_visual_controller.show_forest_immediate()
@@ -220,6 +230,16 @@ func setup_visual_environment(world_environment: WorldEnvironment) -> void:
 	weather.state_changed.connect(terrain.set_weather_state)
 	terrain.set_weather_state(weather.state, weather.get_state_title(), weather.intensity)
 	world_phase_developer_panel.setup_weather(weather)
+
+
+func _setup_map_exploration(terrain: ExpeditionTerrain) -> void:
+	map_exploration = MapExplorationOrchestrator.new()
+	map_exploration.name = "MapExplorationOrchestrator"
+	add_child(map_exploration)
+	map_exploration.setup(player, terrain, world_phase_orchestrator)
+	map_exploration.exploration_changed.connect(func(_phase_id: StringName) -> void:
+		session_persistence.request_autosave(&"map_exploration")
+	)
 
 
 func _setup_road_laboratory(terrain: ExpeditionTerrain) -> void:

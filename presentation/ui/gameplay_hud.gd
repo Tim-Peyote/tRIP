@@ -74,6 +74,7 @@ var _inventory_has_visible_entries: bool = false
 var _journal_mode: StringName = &"species"
 var _journal_entries: Array[Dictionary] = []
 var _selected_journal_id: StringName
+var _map_view: ExpeditionMapView
 
 
 func _ready() -> void:
@@ -136,6 +137,10 @@ func _ready() -> void:
 	_update_inventory_responsive_layout()
 	_update_hud_responsive_layout()
 	_refresh_inventory_filter_buttons()
+	_map_view = ExpeditionMapView.new()
+	_map_view.name = "ExpeditionMapView"
+	add_child(_map_view)
+	_map_view.full_map_changed.connect(_on_full_map_changed)
 
 
 func setup(player: FirstPersonController) -> void:
@@ -183,6 +188,10 @@ func setup_weather(weather: WeatherOrchestrator) -> void:
 	weather.wetness_changed.connect(_on_weather_wetness_changed)
 	_on_weather_state_changed(weather.state, weather.get_state_title(), weather.intensity)
 	_on_weather_wetness_changed(weather.wetness)
+
+
+func setup_map(exploration: MapExplorationOrchestrator, terrain: ExpeditionTerrain, phases: WorldPhaseOrchestrator) -> void:
+	_map_view.setup(exploration, terrain, _player, phases)
 
 
 func setup_cooking(cooking: CookingOrchestrator) -> void:
@@ -273,6 +282,8 @@ func setup_biome_hazard(hazard: BiomeHazardOrchestrator) -> void:
 
 
 func clear() -> void:
+	if _map_view != null:
+		_map_view.set_full_map_open(false)
 	_player = null
 	_cooking = null
 	_knowledge = null
@@ -455,6 +466,18 @@ func _toggle_journal() -> void:
 	_apply_field_overlay_state()
 
 
+func _toggle_map() -> void:
+	var should_open := not _map_view.is_full_map_open()
+	_close_field_panels()
+	_map_view.set_full_map_open(should_open)
+	audio_cue_requested.emit(&"open" if should_open else &"close")
+	_apply_field_overlay_state()
+
+
+func _on_full_map_changed(_is_open: bool) -> void:
+	_apply_field_overlay_state()
+
+
 func _on_knowledge_changed(_definition_id: StringName, _level: int) -> void:
 	_update_journal()
 	show_notice("Гербарий обновлён · [J]")
@@ -611,7 +634,7 @@ func _on_inspection_closed() -> void:
 
 
 func has_modal_overlay() -> bool:
-	return inventory_panel.visible or %JournalPanel.visible or inspection_view.visible
+	return inventory_panel.visible or %JournalPanel.visible or inspection_view.visible or _map_view.is_full_map_open()
 
 
 func close_top_overlay() -> bool:
@@ -622,6 +645,9 @@ func close_top_overlay() -> bool:
 		_close_field_panels()
 		_apply_field_overlay_state()
 		return true
+	if _map_view.is_full_map_open():
+		_map_view.set_full_map_open(false)
+		return true
 	return false
 
 
@@ -629,10 +655,14 @@ func _close_field_panels() -> void:
 	inventory_panel.visible = false
 	inventory_scrim.visible = false
 	%JournalPanel.visible = false
+	if _map_view != null:
+		_map_view.set_full_map_open(false)
 
 
 func _apply_field_overlay_state() -> void:
-	var is_open: bool = inventory_panel.visible or bool(%JournalPanel.visible)
+	var is_open: bool = inventory_panel.visible or bool(%JournalPanel.visible) or (_map_view != null and _map_view.is_full_map_open())
+	if _map_view != null:
+		_map_view.set_minimap_suppressed(is_open and not _map_view.is_full_map_open())
 	if _player != null:
 		_player.interactor.set_process(not is_open)
 		_player.set_gameplay_enabled(not is_open)

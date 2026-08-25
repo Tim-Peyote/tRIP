@@ -203,6 +203,14 @@ func get_height_at_global(world_position: Vector3) -> float:
 	return _height_at(world_position.x, world_position.z)
 
 
+func get_map_bounds() -> Rect2:
+	var pack := _get_content_pack()
+	var half_width := pack.region_half_width if pack != null else 410.0
+	var length := pack.region_length if pack != null else 920.0
+	var south := pack.region_south if pack != null else -120.0
+	return Rect2(Vector2(-half_width, south), Vector2(half_width * 2.0, length))
+
+
 func get_collected_biome_ingredient_spawns() -> Array[StringName]:
 	var result: Array[StringName] = []
 	result.assign(_collected_biome_ingredient_spawns.keys())
