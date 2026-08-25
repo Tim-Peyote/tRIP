@@ -1788,7 +1788,10 @@ func _is_reserved(point: Vector2) -> bool:
 			return true
 	if is_instance_valid(_target):
 		var target_point := Vector2(_target.global_position.x, _target.global_position.z)
-		if point.distance_to(target_point) < 14.0:
+		# Keep only enough space to avoid rebuilding a large prop through the player.
+		# The former fourteen-metre exclusion followed streamed chunks and shaved a
+		# conspicuous bald circle out of every first-person foreground.
+		if point.distance_to(target_point) < 5.0:
 			return true
 	if point.y < MIN_EXPEDITION_Z + 2.0:
 		return true
