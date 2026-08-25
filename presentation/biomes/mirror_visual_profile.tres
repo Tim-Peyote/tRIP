@@ -8,6 +8,7 @@ sky_horizon_color = Color(0.12, 0.95, 0.8, 1)
 sky_energy = 0.86
 ambient_color = Color(0.12, 0.58, 0.54, 1)
 ambient_energy = 0.66
+tonemap_exposure = 1.12
 post_contrast = 1.03
 post_saturation = 1.08
 glow_intensity = 0.72

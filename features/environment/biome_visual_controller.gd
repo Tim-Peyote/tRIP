@@ -298,7 +298,10 @@ func _time_state(profile: BiomeVisualProfile) -> Dictionary:
 		"dusk_amount": dusk,
 		"night_amount": night,
 		"fill_color": ambient.lerp(sky_horizon, 0.38),
-		"fill_energy": lerpf(profile.ambient_energy * 0.12, profile.ambient_energy * 0.08, night),
+		# A shadowless opposite key approximates bounced sky light. Keeping it at a
+		# restrained floor prevents saturated altered worlds from losing every
+		# foreground form whenever the sun sits behind the camera.
+		"fill_energy": lerpf(maxf(profile.ambient_energy * 0.4, 0.25), maxf(profile.ambient_energy * 0.28, 0.15), night),
 		"fill_rotation": Vector3(-0.24, light_rotation.y + PI, 0.06),
 		"fog_color": profile.fog_color.lerp(profile.dusk_horizon_color.darkened(0.38), dusk * 0.72).lerp(profile.night_fog_color, night),
 		"fog_density": profile.fog_density * lerpf(1.0, 1.22, night),

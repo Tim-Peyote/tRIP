@@ -117,6 +117,7 @@ func apply_world_phase(definition: WorldPhaseDefinition) -> void:
 		# Beacon colour is intentionally a rare navigation accent. Feeding it into the
 		# entire landscape made every altered world read as one emissive colour wash.
 		_terrain_material.set_shader_parameter(&"phase_high", definition.stone_high)
+		_sync_terrain_surface_palette(definition)
 	var tween := create_tween()
 	tween.tween_method(_set_phase_amount, _phase_amount, 0.0 if definition.is_baseline() else 1.0, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	if should_reground_target:
@@ -695,6 +696,7 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(procedural_tree_budget * vegetation_density * tree_zone_scale)))
 	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density * rock_zone_scale)))
 	_add_groundcover_multimesh(body, coordinate, rng, maxi(4, roundi(34.0 * vegetation_density * ground_zone_scale)))
+	_add_zone_accent_cluster(body, coordinate, rng, pack, zone)
 	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
 		_add_authored_taiga_details(body, coordinate, rng)
 	if pack != null and _should_place_ecology_composition(coordinate, pack):
@@ -1185,6 +1187,102 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 	# Hundreds of ankle-high plants do not contribute a readable silhouette, but
 	# rendering them into every directional shadow cascade is expensive.
 	_add_multimesh_instance(body, "Groundcover_%d" % ecology, multimesh, false)
+
+
+func _add_zone_accent_cluster(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, pack: BiomeContentPack, zone: int) -> void:
+	if pack == null or zone == LandscapeZone.SHELTER_EDGE:
+		return
+	var chunk_center := Vector2((float(coordinate.x) + 0.5) * chunk_size, (float(coordinate.y) + 0.5) * chunk_size)
+	var route_x := _route_center_x(chunk_center.y)
+	var frames_route := absf(chunk_center.x - route_x) <= chunk_size * 0.78
+	# Route chunks always receive one readable side composition. Remote chunks use
+	# sparse deterministic clusters, leaving large negative spaces between vistas.
+	if not frames_route and absi(_chunk_seed(coordinate)) % 3 != 0:
+		return
+	var mesh: Mesh
+	var scale_range := Vector2(0.55, 1.0)
+	var height_offset := 0.02
+	match pack.ecology_family:
+		BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+			mesh = _cached_biome_mesh(&"zone_young_cedar", &"create_conifer_crown_windformed")
+			scale_range = Vector2(0.28, 0.58)
+		BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
+			mesh = _cached_biome_mesh(&"zone_bell_caps", &"create_fungus_cap_bell")
+			scale_range = Vector2(0.46, 0.88)
+		BiomeContentPack.EcologyFamily.CRIMSON_STEPPE:
+			mesh = _cached_biome_mesh(&"zone_antler_scrub", &"create_antler_crown_swept")
+			scale_range = Vector2(0.34, 0.68)
+		BiomeContentPack.EcologyFamily.GLACIAL_CIRQUE:
+			mesh = _cached_biome_mesh(&"zone_ice_arch", &"create_ice_arch")
+			scale_range = Vector2(0.34, 0.66)
+		BiomeContentPack.EcologyFamily.ASHEN_TUNDRA:
+			mesh = _cached_biome_mesh(&"zone_ash_cairn", &"create_ash_cairn")
+			scale_range = Vector2(0.58, 1.08)
+		BiomeContentPack.EcologyFamily.MIRROR_WETLAND:
+			mesh = _cached_biome_mesh(&"zone_wetland_shelf", &"create_wetland_shelf")
+			scale_range = Vector2(0.72, 1.28)
+		BiomeContentPack.EcologyFamily.ROOT_CAVERN:
+			mesh = _cached_biome_mesh(&"zone_root_bulb", &"create_root_bulb_cluster")
+			scale_range = Vector2(0.46, 0.92)
+		_:
+			mesh = _cached_biome_mesh(&"zone_floating_shard", &"create_floating_shard")
+			scale_range = Vector2(0.42, 0.78)
+			height_offset = 0.85
+	var material_color := pack.ground_high.lerp(pack.accent_color, 0.46)
+	_set_mesh_material(mesh, _standard_material(material_color, pack.ecology_family in [BiomeContentPack.EcologyFamily.MYCELIAL_KARST, BiomeContentPack.EcologyFamily.HEART_PLATEAU]))
+	var count := 5
+	match zone:
+		LandscapeZone.DENSE_FOREST:
+			count = 7
+		LandscapeZone.RIVER_VALLEY, LandscapeZone.BASIN:
+			count = 6
+		LandscapeZone.HIGHLAND:
+			count = 4
+		LandscapeZone.ALPINE, LandscapeZone.BOUNDARY:
+			count = 3
+	var multimesh := _new_multimesh(mesh, count)
+	var side := -1.0 if absi(_chunk_seed(coordinate)) % 2 == 0 else 1.0
+	var minimum_x := float(coordinate.x) * chunk_size + 2.0
+	var maximum_x := float(coordinate.x + 1) * chunk_size - 2.0
+	var minimum_z := float(coordinate.y) * chunk_size + 2.0
+	var maximum_z := float(coordinate.y + 1) * chunk_size - 2.0
+	var anchor := _random_chunk_point(coordinate, rng)
+	if frames_route:
+		var required_room := pack.route_width * 1.75 + 4.2
+		var preferred_room := (maximum_x - route_x) if side > 0.0 else (route_x - minimum_x)
+		var opposite_room := (route_x - minimum_x) if side > 0.0 else (maximum_x - route_x)
+		if preferred_room < required_room and opposite_room > preferred_room:
+			side *= -1.0
+		anchor.x = clampf(route_x + side * (pack.route_width * 1.75 + 4.2), minimum_x, maximum_x)
+		anchor.y = clampf(chunk_center.y + rng.randf_range(-chunk_size * 0.28, chunk_size * 0.28), minimum_z, maximum_z)
+	var placed := 0
+	for _attempt: int in count * 5:
+		if placed >= count:
+			break
+		var angle := TAU * float(placed) / float(count) + rng.randf_range(-0.42, 0.42)
+		var radius := rng.randf_range(0.8, 4.2) * (0.72 + float(placed % 3) * 0.18)
+		var point := anchor + Vector2(cos(angle), sin(angle)) * radius
+		point.x = clampf(point.x, minimum_x, maximum_x)
+		point.y = clampf(point.y, minimum_z, maximum_z)
+		# The cluster itself is the authored patch. Reapplying the scatter-noise gate
+		# to every member dissolved most groups into isolated single props.
+		if _is_reserved(point) or get_region_ratio(point) > 1.02:
+			continue
+		var scale_value := rng.randf_range(scale_range.x, scale_range.y)
+		var basis := Basis.from_euler(Vector3(0.0, rng.randf_range(0.0, TAU), rng.randf_range(-0.12, 0.12))).scaled(Vector3(scale_value * rng.randf_range(0.82, 1.22), scale_value, scale_value))
+		var ground := _height_at(point.x, point.y)
+		multimesh.set_instance_transform(placed, Transform3D(basis, Vector3(point.x, ground + height_offset * scale_value, point.y)))
+		multimesh.set_instance_color(placed, material_color.lerp(pack.accent_color, rng.randf_range(0.0, 0.28)))
+		placed += 1
+	if placed == 0 and not _is_reserved(anchor) and get_region_ratio(anchor) <= 1.02:
+		var fallback_scale := (scale_range.x + scale_range.y) * 0.5
+		var fallback_basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3.ONE * fallback_scale)
+		multimesh.set_instance_transform(0, Transform3D(fallback_basis, Vector3(anchor.x, _height_at(anchor.x, anchor.y) + height_offset * fallback_scale, anchor.y)))
+		multimesh.set_instance_color(0, material_color)
+		placed = 1
+	multimesh.instance_count = placed
+	_set_multimesh_chunk_bounds(multimesh, coordinate)
+	_add_multimesh_instance(body, "ZoneAccent_%d_%d" % [pack.ecology_family, zone], multimesh, false)
 
 
 func _add_point_of_interest(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:
@@ -2248,6 +2346,9 @@ uniform float weather_wetness : hint_range(0.0, 1.0) = 0.0;
 uniform float weather_snow : hint_range(0.0, 1.0) = 0.0;
 uniform vec3 phase_low : source_color = vec3(0.025, 0.16, 0.32);
 uniform vec3 phase_high : source_color = vec3(0.82, 0.025, 0.7);
+uniform vec3 surface_low : source_color = vec3(0.105, 0.255, 0.135);
+uniform vec3 surface_high : source_color = vec3(0.46, 0.4, 0.21);
+uniform vec3 surface_accent : source_color = vec3(0.53, 0.69, 0.24);
 varying float pulse;
 varying vec3 terrain_position;
 varying float terrain_slope;
@@ -2294,15 +2395,35 @@ void fragment() {
 	float cells = terrain_detail;
 	float micro_detail = sin(dot(terrain_position.xz, vec2(0.82, 0.37))) * sin(dot(terrain_position.xz, vec2(-0.31, 1.17)));
 	float height_band = 0.5 + 0.5 * sin(terrain_position.y * 0.47 + macro_cells * 2.8);
-	float grain = mix(0.84, 1.16, cells) * mix(0.9, 1.1, macro_cells);
+	float height_mask = smoothstep(-1.5, 22.0, terrain_position.y);
+	float grain = mix(0.86, 1.14, cells) * mix(0.9, 1.1, macro_cells);
 	float slope_mask = smoothstep(0.1, 0.46, terrain_slope);
-	vec3 altered_palette = mix(phase_low, phase_high, broad * 0.48 + height_band * 0.32 + cells * 0.2);
-	vec3 altered = mix(mundane, altered_palette, 0.58);
-	vec3 ground = mix(mundane, altered, metamorphosis);
+	float organic_mask = smoothstep(0.46, 0.76, macro_cells) * (1.0 - slope_mask) * (1.0 - height_mask * 0.62);
+	float basin_mask = (1.0 - smoothstep(0.0, 4.5, terrain_position.y)) * smoothstep(0.38, 0.72, cells);
+	vec3 soil_palette = mix(surface_low, surface_high, clamp(height_mask * 0.76 + macro_cells * 0.24, 0.0, 1.0));
+	vec3 organic_palette = mix(surface_low, surface_accent, 0.2) * mix(0.78, 1.02, cells);
+	vec3 geology_palette = mix(phase_low, phase_high, clamp(height_mask * 0.58 + cells * 0.3, 0.0, 1.0));
+	vec3 authored_surface = mix(mundane, soil_palette, 0.34);
+	authored_surface = mix(authored_surface, organic_palette, organic_mask * 0.58);
+	authored_surface = mix(authored_surface, surface_low * vec3(0.52, 0.62, 0.58), basin_mask * 0.54);
+	authored_surface = mix(authored_surface, geology_palette, slope_mask * 0.76);
+	float altered_trace = smoothstep(0.57, 0.83, broad * 0.44 + height_band * 0.28 + cells * 0.28);
+	vec3 altered_palette = mix(phase_low, phase_high, broad * 0.34 + height_band * 0.38 + cells * 0.28);
+	vec3 altered = mix(authored_surface, altered_palette, 0.12 + altered_trace * 0.2);
+	vec3 ground = mix(authored_surface, altered, metamorphosis);
 	ground *= grain;
-	ground *= mix(0.94, 1.06, micro_detail * 0.5 + 0.5);
-	ground = mix(ground, ground * 0.48 + phase_low * 0.13, slope_mask * 0.68);
+	ground *= mix(0.92, 1.08, micro_detail * 0.5 + 0.5);
+	// Steep faces keep their geology colour instead of collapsing to black. The
+	// directional sun and SSAO still describe the slope; this is only a restrained
+	// bounced-light floor for readable first-person navigation.
+	ground = mix(ground, geology_palette * 0.82 + ground * 0.18, slope_mask * 0.24);
 	ground *= mix(0.82, 1.08, height_band * (1.0 - slope_mask * 0.45));
+	// Very dark authored palettes still need a readable navigation floor. Lift only
+	// the missing luminance with the biome's own highland tint, preserving hue and
+	// leaving true night substantially darker than daytime.
+	float ground_luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
+	float readability_floor = mix(0.085, 0.038, trip_night);
+	ground += mix(surface_high, vec3(1.0), 0.62) * max(readability_floor - ground_luma, 0.0) * 0.92;
 	float cloud_shadow = terrain_cloud_shadow;
 	ground *= mix(1.0, mix(0.82, 0.7, trip_cloud_storm), cloud_shadow);
 	float wet_mask = weather_wetness * mix(0.62, 1.0, cells) * (1.0 - slope_mask * 0.72);
@@ -2314,8 +2435,8 @@ void fragment() {
 	AO = mix(0.94, 0.78, slope_mask * 0.72 + cloud_shadow * 0.12);
 	// Only the consciousness pulse emits. The former constant ground emission
 	// cancelled contact shadows and was the main source of the flat colour wash.
-	vec3 indirect_fill = ground * mix(0.065, 0.11, trip_night) * (1.0 - cloud_shadow * 0.22);
-	EMISSION = indirect_fill + altered_palette * metamorphosis * (0.025 + max(pulse, 0.0) * 0.075) * (1.0 - slope_mask * 0.72);
+	vec3 indirect_fill = ground * mix(0.13, 0.17, trip_night) * (1.0 - cloud_shadow * 0.22);
+	EMISSION = indirect_fill + altered_palette * metamorphosis * altered_trace * (0.018 + max(pulse, 0.0) * 0.065) * (1.0 - slope_mask * 0.72);
 }
 """
 	var material := ShaderMaterial.new()
@@ -2324,6 +2445,17 @@ void fragment() {
 	material.set_shader_parameter(&"weather_wetness", 0.0)
 	material.set_shader_parameter(&"weather_snow", 0.0)
 	return material
+
+
+func _sync_terrain_surface_palette(definition: WorldPhaseDefinition) -> void:
+	if _terrain_material == null or definition == null:
+		return
+	var pack := definition.content_pack
+	if pack == null:
+		return
+	_terrain_material.set_shader_parameter(&"surface_low", pack.ground_low)
+	_terrain_material.set_shader_parameter(&"surface_high", pack.ground_high)
+	_terrain_material.set_shader_parameter(&"surface_accent", pack.accent_color)
 
 
 func set_weather_wetness(value: float) -> void:
