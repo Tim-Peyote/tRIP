@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://features/frontend/main_menu.gd" id="1_menu"]
 [ext_resource type="Shader" path="res://features/frontend/main_menu_background.gdshader" id="2_shader"]
-[ext_resource type="Script" path="res://features/frontend/settings_panel.gd" id="3_settings"]
+[ext_resource type="PackedScene" path="res://features/frontend/settings_panel.tscn" id="3_settings"]
 [ext_resource type="Script" path="res://features/frontend/menu_camp_backdrop.gd" id="4_backdrop"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_background"]
@@ -156,95 +156,5 @@ theme_override_colors/font_color = Color(0.31, 0.38, 0.32, 1)
 theme_override_font_sizes/font_size = 13
 text = "PRE-PRODUCTION / GODOT 4.7.2"
 
-[node name="SettingsPanel" type="PanelContainer" parent="."]
+[node name="SettingsPanel" parent="." instance=ExtResource("3_settings")]
 unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -260.0
-offset_right = 250.0
-offset_bottom = 260.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("3_settings")
-
-[node name="Margin" type="MarginContainer" parent="SettingsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 30
-theme_override_constants/margin_bottom = 24
-
-[node name="Controls" type="VBoxContainer" parent="SettingsPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="Heading" type="Label" parent="SettingsPanel/Margin/Controls"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Настройки"
-
-[node name="VisualLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
-layout_mode = 2
-text = "Интенсивность визуальных эффектов"
-
-[node name="VisualIntensitySlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-max_value = 1.0
-step = 0.05
-value = 1.0
-
-[node name="MasterLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
-layout_mode = 2
-text = "Общая громкость"
-
-[node name="MasterVolumeSlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-max_value = 1.0
-step = 0.05
-value = 1.0
-
-[node name="HeadBobLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
-layout_mode = 2
-text = "Покачивание камеры"
-
-[node name="HeadBobSlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-max_value = 1.0
-step = 0.05
-value = 0.65
-
-[node name="FovLabel" type="Label" parent="SettingsPanel/Margin/Controls"]
-layout_mode = 2
-text = "Поле зрения"
-
-[node name="FovSlider" type="HSlider" parent="SettingsPanel/Margin/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-min_value = 60.0
-max_value = 100.0
-step = 1.0
-value = 75.0
-
-[node name="Info" type="Label" parent="SettingsPanel/Margin/Controls"]
-layout_mode = 2
-autowrap_mode = 2
-text = "Интенсивность эффектов и покачивание можно снижать независимо. FOV применяется сразу в активной экспедиции."
-
-[node name="ResetButton" type="Button" parent="SettingsPanel/Margin/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Сбросить настройки"
-
-[node name="CloseButton" type="Button" parent="SettingsPanel/Margin/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Назад"

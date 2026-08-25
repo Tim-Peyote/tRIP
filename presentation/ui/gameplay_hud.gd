@@ -42,6 +42,7 @@ signal audio_cue_requested(cue_id: StringName)
 @onready var focus_key: Label = %FocusKey
 @onready var focus_title: Label = %FocusTitle
 @onready var focus_action: Label = %FocusAction
+@onready var pause_settings_panel: SettingsPanel = %PauseSettingsPanel
 
 var _player: FirstPersonController
 var _cooking: CookingOrchestrator
@@ -75,6 +76,8 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	%ResumeButton.pressed.connect(func() -> void: resume_requested.emit())
 	%MainMenuButton.pressed.connect(func() -> void: main_menu_requested.emit())
+	%PauseSettingsButton.pressed.connect(_show_pause_settings)
+	pause_settings_panel.closed.connect(_hide_pause_settings)
 	%ContinueCycleButton.pressed.connect(_acknowledge_cycle_result)
 	inventory_use_button.pressed.connect(_use_selected_inventory_item)
 	%InventoryFilterAll.pressed.connect(_set_inventory_filter.bind(&"all"))
@@ -99,6 +102,7 @@ func _ready() -> void:
 	inventory_detail_panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color(0.62, 0.69, 0.52), 0.72))
 	%JournalPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
 	%PausePanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
+	pause_settings_panel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
 	%CycleResultPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(TripUITheme.EMBER))
 	inspection_panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color("8fb8a8"), 0.86))
 	%ObjectiveLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate())
@@ -279,11 +283,37 @@ func clear() -> void:
 func set_paused(is_paused: bool) -> void:
 	if is_paused:
 		close_top_overlay()
+	%PauseScrim.visible = is_paused
 	pause_panel.visible = is_paused
+	if not is_paused:
+		pause_settings_panel.visible = false
 	if _player != null:
 		_player.set_viewmodel_interface_hidden(is_paused)
 	if is_paused:
 		%ResumeButton.grab_focus()
+
+
+func is_pause_settings_visible() -> bool:
+	return pause_settings_panel.visible
+
+
+func close_pause_settings() -> bool:
+	if not pause_settings_panel.visible:
+		return false
+	_hide_pause_settings()
+	return true
+
+
+func _show_pause_settings() -> void:
+	pause_panel.visible = false
+	pause_settings_panel.visible = true
+	pause_settings_panel.focus_first_control()
+
+
+func _hide_pause_settings() -> void:
+	pause_settings_panel.visible = false
+	pause_panel.visible = true
+	%PauseSettingsButton.grab_focus()
 
 
 func _on_prompt_changed(text: String) -> void:

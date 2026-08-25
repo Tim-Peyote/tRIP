@@ -49,6 +49,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not get_tree().paused and gameplay_hud.close_top_overlay():
 			get_viewport().set_input_as_handled()
 			return
+		if get_tree().paused and gameplay_hud.close_pause_settings():
+			get_viewport().set_input_as_handled()
+			return
 		if get_tree().paused:
 			_resume_game()
 		else:

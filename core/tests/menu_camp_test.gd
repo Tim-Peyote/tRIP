@@ -8,6 +8,14 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	var old_mode := SettingsService.get_window_mode()
+	var old_resolution := SettingsService.get_resolution()
+	SettingsService.set_window_mode(&"borderless")
+	SettingsService.set_resolution(Vector2i(1600, 900))
+	_expect(SettingsService.get_window_mode() == &"borderless", "Display mode was not persisted.")
+	_expect(SettingsService.get_resolution() == Vector2i(1600, 900), "Window resolution was not persisted.")
+	SettingsService.set_resolution(old_resolution)
+	SettingsService.set_window_mode(old_mode)
 	var backdrop := MenuCampBackdrop.new()
 	add_child(backdrop)
 	backdrop.apply_progress_data({})

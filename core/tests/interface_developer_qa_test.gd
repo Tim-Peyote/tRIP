@@ -53,6 +53,7 @@ func _run() -> void:
 	var settings_panel := main.main_menu.settings_panel
 	_expect(settings_panel.visible and settings_panel.get_global_rect().end.y <= 720.0, "Settings panel overflows the reference viewport.")
 	_expect(settings_panel.get_node("Margin/Controls/HeadBobSlider") != null and settings_panel.get_node("Margin/Controls/FovSlider") != null, "Settings UI is missing first-person accessibility controls.")
+	_expect(settings_panel.get_node("Margin/Controls/WindowModeOption") != null and settings_panel.get_node("Margin/Controls/ResolutionOption") != null, "Settings UI is missing display mode or resolution controls.")
 	_expect((main.main_menu.get_node("SafeArea/Layout/NewGameButton") as Button).disabled, "Background menu remained interactive behind settings.")
 	main.main_menu.call("_hide_settings")
 	cursor_before = int(main.audio_director.get("_cue_cursor"))
@@ -210,6 +211,10 @@ func _run() -> void:
 	main.call("_pause_game")
 	_expect(get_tree().paused and hud.pause_panel.visible, "Pause UI did not own the paused state.")
 	_expect(not player.viewmodel.visible, "First-person hands remained visible behind the pause menu.")
+	_expect(hud.get_node("PauseSettingsPanel") != null, "In-game pause menu has no reusable settings screen.")
+	hud.call("_show_pause_settings")
+	_expect(hud.is_pause_settings_visible() and not hud.pause_panel.visible, "Pause settings did not replace the pause card.")
+	_expect(hud.close_pause_settings() and hud.pause_panel.visible, "Closing in-game settings did not return to pause.")
 	main.call("_resume_game")
 	_expect(not get_tree().paused and not hud.pause_panel.visible and player.viewmodel.visible, "Resume did not restore gameplay state.")
 
