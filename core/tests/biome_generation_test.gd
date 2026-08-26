@@ -123,6 +123,7 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 	var motion_signatures: Dictionary[String, bool] = {}
 	var route_signatures: Dictionary[String, bool] = {}
 	var boundary_signatures: Dictionary[String, bool] = {}
+	var variation_signatures: Dictionary[String, bool] = {}
 	var expected_poi_focal_nodes := [
 		"WeatheredCedarMarker", "ListeningBellCap", "WarmBoneWithoutBeast", "FrozenMemorySlab_00",
 		"HalfErasedTentSkin", "StillWaterEye", "RootMouthDarkness", "BrotherArc_-1",
@@ -139,9 +140,23 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 		motion_signatures["%.3f:%.3f" % [pack.ecology_motion_strength, pack.ecology_motion_speed]] = true
 		route_signatures["%.2f:%.2f:%.2f:%d" % [pack.route_width, pack.route_wander_scale, pack.route_relief_scale, pack.vista_period_chunks]] = true
 		boundary_signatures["%d:%.0f:%.0f:%.0f" % [pack.boundary_family, pack.region_half_width, pack.region_length, pack.boundary_height]] = true
+		variation_signatures["%.0f:%.2f:%.2f:%.2f:%.2f" % [pack.macro_patch_scale, pack.silhouette_variation, pack.palette_variation, pack.clustering_bias, pack.secondary_variant_bias]] = true
 		_expect(pack.region_length >= 700.0 and pack.region_half_width >= 300.0, "%s is too small to support a substantial finite expedition." % pack.id)
 		_expect(phase.visual_profile.ambient_energy <= 0.72, "%s flattens geometry with excessive ambient light." % phase.id)
 		terrain.apply_world_phase(phase)
+		var sample := terrain.get_art_direction_sample(Vector3(48.0, 0.0, 220.0))
+		var repeated_sample := terrain.get_art_direction_sample(Vector3(48.0, 0.0, 220.0))
+		_expect(sample == repeated_sample, "%s art-direction sample is not deterministic." % pack.id)
+		_expect(float(sample.get("density_scale", 0.0)) >= 0.45 and float(sample.get("density_scale", 0.0)) <= 1.75, "%s generated an unsafe ecology density multiplier." % pack.id)
+		_expect(float(sample.get("secondary_bias", 0.0)) >= 0.16 and float(sample.get("secondary_bias", 0.0)) <= 0.76, "%s escaped its compatible asset-variant budget." % pack.id)
+		var minimum_density := INF
+		var maximum_density := -INF
+		for sample_index: int in 8:
+			var sampled_density := float(terrain.get_art_direction_sample(Vector3(float(sample_index) * 47.0 - 130.0, 0.0, 120.0 + float(sample_index) * 61.0)).get("density_scale", 1.0))
+			minimum_density = minf(minimum_density, sampled_density)
+			maximum_density = maxf(maximum_density, sampled_density)
+		var density_span := maximum_density - minimum_density
+		_expect(density_span >= 0.025, "%s macro ecology field does not create readable patch variation." % pack.id)
 		var body := StaticBody3D.new()
 		terrain.add_child(body)
 		var rng := RandomNumberGenerator.new()
@@ -192,6 +207,7 @@ func _validate_ecology_compositions(terrain: ExpeditionTerrain) -> void:
 	_expect(motion_signatures.size() == phase_paths.size(), "Worlds reuse one vegetation motion profile.")
 	_expect(route_signatures.size() == phase_paths.size(), "Worlds reuse one route rhythm instead of owning distinct navigation geometry.")
 	_expect(boundary_signatures.size() == phase_paths.size(), "Worlds reuse one finite-map boundary instead of owning distinct enclosing landscapes.")
+	_expect(variation_signatures.size() == phase_paths.size(), "Worlds reuse one procedural art profile instead of owning distinct variation grammar.")
 
 
 func _create_scatter() -> BiomeDressingScatter:

@@ -444,6 +444,50 @@ func get_environment_context(world_position: Vector3) -> Dictionary:
 	}
 
 
+func get_art_direction_sample(world_position: Vector3) -> Dictionary:
+	var pack := _get_content_pack()
+	if pack == null:
+		return {
+			"patch": 0.5, "fertility": 0.5, "age": 0.5, "exposure": 0.5,
+			"density_scale": 1.0, "vertical_scale": 1.0, "width_scale": 1.0,
+			"geology_scale": 1.0, "palette_mix": 0.0, "secondary_bias": 0.4,
+		}
+	var point := Vector2(world_position.x, world_position.z)
+	var context := get_environment_context(world_position)
+	var family_offset := float(pack.ecology_family) * 283.0
+	var scale_ratio := 140.0 / maxf(pack.macro_patch_scale, 1.0)
+	var macro_raw := _noise.get_noise_2d(point.x * scale_ratio + family_offset, point.y * scale_ratio - family_offset)
+	var age_raw := _detail_noise.get_noise_2d(point.x * 0.19 - family_offset, point.y * 0.19 + family_offset)
+	var patch := clampf(macro_raw * 0.5 + 0.5, 0.0, 1.0)
+	var cluster_half_width := lerpf(0.48, 0.16, pack.clustering_bias)
+	var clustered_patch := smoothstep(0.5 - cluster_half_width, 0.5 + cluster_half_width, patch)
+	patch = lerpf(patch, clustered_patch, pack.clustering_bias)
+	var moisture := float(context.get("moisture", pack.lowland_moisture))
+	var exposure := float(context.get("exposure", 0.5))
+	var age := clampf(age_raw * 0.5 + 0.5, 0.0, 1.0)
+	var fertility := clampf(moisture * 0.52 + patch * 0.58 - exposure * 0.28, 0.0, 1.0)
+	var silhouette := pack.silhouette_variation
+	var density_scale := lerpf(0.68, 1.38, fertility) * lerpf(0.82, 1.18, patch)
+	var vertical_scale := 1.0 + (age - 0.5) * silhouette * 1.15 + (exposure - 0.5) * silhouette * 0.28
+	var width_scale := 1.0 + (fertility - 0.5) * silhouette * 0.72 - (exposure - 0.5) * silhouette * 0.32
+	var geology_scale := 1.0 + (exposure - 0.5) * silhouette * 0.9 + (1.0 - fertility) * silhouette * 0.35
+	var anomaly := 1.0 if _is_altered_phase() else 0.0
+	var palette_mix := clampf((moisture * 0.42 + age * 0.28 + anomaly * 0.3) * pack.palette_variation, 0.0, pack.palette_variation)
+	var secondary_bias := clampf(pack.secondary_variant_bias + (exposure - 0.5) * 0.22 + (age - 0.5) * 0.18, 0.16, 0.76)
+	return {
+		"patch": patch,
+		"fertility": fertility,
+		"age": age,
+		"exposure": exposure,
+		"density_scale": density_scale,
+		"vertical_scale": clampf(vertical_scale, 0.7, 1.42),
+		"width_scale": clampf(width_scale, 0.72, 1.34),
+		"geology_scale": clampf(geology_scale, 0.72, 1.5),
+		"palette_mix": palette_mix,
+		"secondary_bias": secondary_bias,
+	}
+
+
 func _chunk_intersects_region(coordinate: Vector2i) -> bool:
 	var start := Vector2(float(coordinate.x) * chunk_size, float(coordinate.y) * chunk_size)
 	var end := start + Vector2.ONE * chunk_size
@@ -670,6 +714,9 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	var vegetation_density := pack.vegetation_density if pack != null else 1.0
 	var geology_density := pack.geology_density if pack != null else 1.0
 	var center_position := Vector3((float(coordinate.x) + 0.5) * chunk_size, 0.0, (float(coordinate.y) + 0.5) * chunk_size)
+	var art_sample := get_art_direction_sample(center_position)
+	body.set_meta(&"art_direction_sample", art_sample)
+	var density_scale := float(art_sample.get("density_scale", 1.0))
 	var zone := int(get_environment_context(center_position).get("zone", LandscapeZone.DENSE_FOREST))
 	var tree_zone_scale := 1.0
 	var rock_zone_scale := 1.0
@@ -701,9 +748,10 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	if has_landmark and not _is_reserved(landmark_center):
 		_decor_exclusion_centers.append(landmark_center)
 	var procedural_tree_budget := 10.5 if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA else 16.0
-	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(procedural_tree_budget * vegetation_density * tree_zone_scale)))
-	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density * rock_zone_scale)))
-	_add_groundcover_multimesh(body, coordinate, rng, maxi(4, roundi(34.0 * vegetation_density * ground_zone_scale)))
+	_add_tree_multimeshes(body, coordinate, rng, maxi(2, roundi(procedural_tree_budget * vegetation_density * tree_zone_scale * density_scale)))
+	var geology_macro_scale := clampf(1.52 - density_scale * 0.45, 0.82, 1.24)
+	_add_rock_multimesh(body, coordinate, rng, maxi(2, roundi(10.0 * geology_density * rock_zone_scale * geology_macro_scale)))
+	_add_groundcover_multimesh(body, coordinate, rng, maxi(4, roundi(34.0 * vegetation_density * ground_zone_scale * density_scale)))
 	_add_zone_accent_cluster(body, coordinate, rng, pack, zone)
 	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
 		_add_authored_taiga_details(body, coordinate, rng)
@@ -900,6 +948,12 @@ func _add_composition_mesh(root: Node3D, mesh: Mesh, point: Vector2, height_offs
 
 func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
 	var pack := _get_content_pack()
+	var chunk_center := Vector3((float(coordinate.x) + 0.5) * chunk_size, 0.0, (float(coordinate.y) + 0.5) * chunk_size)
+	var art_sample := get_art_direction_sample(chunk_center)
+	var vertical_variation := float(art_sample.get("vertical_scale", 1.0))
+	var width_variation := float(art_sample.get("width_scale", 1.0))
+	var palette_mix := float(art_sample.get("palette_mix", 0.0))
+	var secondary_bias := float(art_sample.get("secondary_bias", 0.4))
 	var family := pack.vegetation_family if pack != null else BiomeContentPack.VegetationFamily.CEDAR_FIR
 	var trunk_shape := CylinderMesh.new()
 	trunk_shape.top_radius = 0.12
@@ -1004,16 +1058,18 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 		var ground := _height_at(point.x, point.y)
 		var yaw := rng.randf_range(0.0, TAU)
 		if not cedar_is_combined:
-			var trunk_y := ground if trunk_has_base_origin else ground + trunk_height * 0.5 * size
-			trunks.set_instance_transform(placed, Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size)), Vector3(point.x, trunk_y, point.y)))
-			trunks.set_instance_color(placed, Color(0.18, 0.065, 0.025).lerp(Color(0.36, 0.16, 0.05), rng.randf()))
+			var trunk_y := ground if trunk_has_base_origin else ground + trunk_height * 0.5 * size * vertical_variation
+			trunks.set_instance_transform(placed, Transform3D(Basis(Vector3.UP, yaw).scaled(Vector3(size * width_variation, size * vertical_variation, size * width_variation)), Vector3(point.x, trunk_y, point.y)))
+			var trunk_tint := Color(0.18, 0.065, 0.025).lerp(Color(0.36, 0.16, 0.05), rng.randf())
+			trunks.set_instance_color(placed, trunk_tint.lerp(pack.accent_color if pack != null else trunk_tint, palette_mix * 0.34))
 		# The ratio is deterministic per chunk, so streaming a chunk out and in never
 		# changes its silhouette. Secondary forms are common enough to shape the view,
 		# but primary forms still define the biome at a glance.
-		var use_secondary: bool = (variant_seed + placed * 7) % 5 >= 3
+		var variant_roll := float(posmod(variant_seed + placed * 7919, 1009)) / 1008.0
+		var use_secondary: bool = variant_roll < secondary_bias
 		for layer in crown_layers:
 			var crown_scale := size * (1.15 - float(layer) * 0.2)
-			var offset := Vector3(0, size * (trunk_height * 0.57 + float(layer) * 1.2), 0)
+			var offset := Vector3(0, size * vertical_variation * (trunk_height * 0.57 + float(layer) * 1.2), 0)
 			if cedar_is_combined:
 				crown_scale = size
 				offset = Vector3.ZERO
@@ -1026,12 +1082,13 @@ func _add_tree_multimeshes(body: Node3D, coordinate: Vector2i, rng: RandomNumber
 			var crown_rotation := Vector3(0.0, yaw + layer * 0.3, 0.0)
 			if family == BiomeContentPack.VegetationFamily.CONCORDANT_GROVE:
 				crown_rotation.z = float(layer) * 0.52
-			var crown_transform := Transform3D(Basis.from_euler(crown_rotation).scaled(Vector3(crown_scale, size, crown_scale)), Vector3(point.x, ground, point.y) + offset)
+			var crown_transform := Transform3D(Basis.from_euler(crown_rotation).scaled(Vector3(crown_scale * width_variation, size * vertical_variation, crown_scale * width_variation)), Vector3(point.x, ground, point.y) + offset)
 			var ordinary := Color(0.055, 0.24, 0.075).lerp(Color(0.4, 0.55, 0.12), rng.randf_range(0.0, 0.65))
 			var altered_low := _phase_definition.canopy_low if _phase_definition != null else Color(0.15, 0.05, 0.32)
 			var altered_high := _phase_definition.canopy_high if _phase_definition != null else Color(0.95, 0.12, 0.62)
 			var altered := altered_low.lerp(altered_high, rng.randf_range(0.15, 0.8))
 			var crown_color := altered if _is_altered_phase() else ordinary
+			crown_color = crown_color.lerp(pack.accent_color if pack != null else crown_color, palette_mix)
 			if use_secondary:
 				secondary_crowns.set_instance_transform(secondary_placed, crown_transform)
 				secondary_crowns.set_instance_color(secondary_placed, crown_color)
@@ -1066,6 +1123,12 @@ func _combine_tree_mesh(trunk: Mesh, crown: Mesh, crown_scale: float, crown_heig
 
 func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator, count: int) -> void:
 	var pack := _get_content_pack()
+	var chunk_center := Vector3((float(coordinate.x) + 0.5) * chunk_size, 0.0, (float(coordinate.y) + 0.5) * chunk_size)
+	var art_sample := get_art_direction_sample(chunk_center)
+	var geology_variation := float(art_sample.get("geology_scale", 1.0))
+	var width_variation := float(art_sample.get("width_scale", 1.0))
+	var palette_mix := float(art_sample.get("palette_mix", 0.0))
+	var secondary_bias := float(art_sample.get("secondary_bias", 0.4))
 	var family := pack.geology_family if pack != null else BiomeContentPack.GeologyFamily.ROUNDED_GRANITE
 	var mesh: Mesh
 	var secondary_mesh: Mesh
@@ -1131,9 +1194,10 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 			continue
 		var size := rng.randf_range(0.4, 1.9)
 		var ground := _height_at(point.x, point.y)
-		var vertical_scale := size * rng.randf_range(0.45, 0.9)
-		var basis := Basis.from_euler(Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(0.0, TAU), rng.randf_range(-0.2, 0.2))).scaled(Vector3(size * rng.randf_range(0.8, 1.5), vertical_scale, size))
-		var use_secondary: bool = (variant_seed + placed * 11) % 7 >= 4
+		var vertical_scale := size * rng.randf_range(0.45, 0.9) * geology_variation
+		var basis := Basis.from_euler(Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(0.0, TAU), rng.randf_range(-0.2, 0.2))).scaled(Vector3(size * rng.randf_range(0.8, 1.5) * width_variation, vertical_scale, size * width_variation))
+		var variant_roll := float(posmod(variant_seed + placed * 10007, 1013)) / 1012.0
+		var use_secondary: bool = variant_roll < secondary_bias
 		var mesh_height := secondary_height if use_secondary else primary_height
 		var instance_transform := Transform3D(basis, Vector3(point.x, ground + mesh_height * vertical_scale * 0.42, point.y))
 		var ordinary := Color(0.19, 0.24, 0.2).lerp(Color(0.48, 0.42, 0.28), rng.randf())
@@ -1141,6 +1205,7 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 		var altered_high := _phase_definition.stone_high if _phase_definition != null else Color(0.7, 0.16, 0.65)
 		var altered := altered_low.lerp(altered_high, rng.randf())
 		var instance_color := altered if _is_altered_phase() else ordinary
+		instance_color = instance_color.lerp(pack.accent_color if pack != null else instance_color, palette_mix * 0.72)
 		if use_secondary:
 			secondary_multimesh.set_instance_transform(secondary_placed, instance_transform)
 			secondary_multimesh.set_instance_color(secondary_placed, instance_color)
@@ -1163,6 +1228,10 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 	if pack == null:
 		return
 	var ecology := pack.ecology_family
+	var chunk_center := Vector3((float(coordinate.x) + 0.5) * chunk_size, 0.0, (float(coordinate.y) + 0.5) * chunk_size)
+	var art_sample := get_art_direction_sample(chunk_center)
+	var width_variation := float(art_sample.get("width_scale", 1.0))
+	var palette_mix := float(art_sample.get("palette_mix", 0.0))
 	var mesh: Mesh = _cached_biome_mesh(StringName("groundcover_%d" % ecology), &"create_ecology_groundcover", [ecology])
 	var colors := [
 		Color(0.19, 0.36, 0.08), Color(0.96, 0.08, 0.58), Color(0.68, 0.035, 0.012), Color(0.34, 0.82, 0.96),
@@ -1183,9 +1252,9 @@ func _add_groundcover_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomN
 			continue
 		var ground := _height_at(point.x, point.y)
 		var scale := rng.randf_range(0.72, 1.55)
-		var basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale, scale, scale))
+		var basis := Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale * width_variation, scale, scale * width_variation))
 		multimesh.set_instance_transform(placed, Transform3D(basis, Vector3(point.x, ground + 0.025, point.y)))
-		var tint := color.lerp(pack.accent_color, rng.randf_range(0.0, 0.32))
+		var tint := color.lerp(pack.accent_color, clampf(rng.randf_range(0.0, 0.32) + palette_mix, 0.0, 0.62))
 		multimesh.set_instance_color(placed, tint)
 		placed += 1
 	multimesh.instance_count = placed

@@ -495,4 +495,9 @@ func _update_status() -> void:
 			roundi(float(body["wetness"]) * 100.0), roundi(float(body["toxicity"]) * 100.0), roundi(float(body["spore_load"]) * 100.0),
 		]
 	_status.text = "%s · %s\n%s\nТело: %s\n%s\nФауна: %s\nПогода: %s" % [definition.display_name, contract, player_state, body_state, "Лаба: %s · явление: %s" % [laboratory_state, hazard_state], fauna_state, weather_state]
-	_seed_label.text = "Seed: %d · чанков: %d · время: %s" % [_seed, _terrain.get_loaded_chunk_count(), _clock.get_display_text() if _clock != null else "—"]
+	var art_sample := _terrain.get_art_direction_sample(_player.global_position) if _terrain != null and _player != null else {}
+	var art_state := "пятно %.2f · плодородие %.2f · возраст %.2f · плотность ×%.2f · форма %.2f/%.2f" % [
+		float(art_sample.get("patch", 0.5)), float(art_sample.get("fertility", 0.5)), float(art_sample.get("age", 0.5)),
+		float(art_sample.get("density_scale", 1.0)), float(art_sample.get("vertical_scale", 1.0)), float(art_sample.get("width_scale", 1.0)),
+	]
+	_seed_label.text = "Seed: %d · чанков: %d · время: %s\nArt field: %s" % [_seed, _terrain.get_loaded_chunk_count(), _clock.get_display_text() if _clock != null else "—", art_state]

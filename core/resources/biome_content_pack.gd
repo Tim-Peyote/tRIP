@@ -69,6 +69,12 @@ enum BoundaryFamily {
 @export_range(0.6, 2.4, 0.05) var composition_scale: float = 1.0
 @export_range(0.0, 0.5, 0.01) var ecology_motion_strength: float = 0.08
 @export_range(0.1, 3.0, 0.05) var ecology_motion_speed: float = 1.0
+@export_category("Art-directed variation")
+@export_range(60.0, 280.0, 5.0, "suffix:m") var macro_patch_scale: float = 140.0
+@export_range(0.0, 1.0, 0.05) var silhouette_variation: float = 0.35
+@export_range(0.0, 0.5, 0.01) var palette_variation: float = 0.16
+@export_range(0.0, 1.0, 0.05) var clustering_bias: float = 0.55
+@export_range(0.1, 0.8, 0.05) var secondary_variant_bias: float = 0.4
 @export_category("Route identity")
 @export_range(3.0, 12.0, 0.25, "suffix:m") var route_width: float = 5.5
 @export_range(0.25, 2.0, 0.05) var route_wander_scale: float = 1.0
@@ -89,4 +95,4 @@ enum BoundaryFamily {
 
 
 func get_generation_signature() -> String:
-	return "%s:%d:%d:%d:%s:%s:%.2f:%.2f:%.2f:%d:%d:%.0f:%.0f" % [id, ecology_family, vegetation_family, geology_family, poi_family, composition_family, route_width, route_wander_scale, route_relief_scale, vista_period_chunks, boundary_family, region_half_width, region_length]
+	return "%s:%d:%d:%d:%s:%s:%.2f:%.2f:%.2f:%d:%d:%.0f:%.0f:%.0f:%.2f:%.2f:%.2f:%.2f" % [id, ecology_family, vegetation_family, geology_family, poi_family, composition_family, route_width, route_wander_scale, route_relief_scale, vista_period_chunks, boundary_family, region_half_width, region_length, macro_patch_scale, silhouette_variation, palette_variation, clustering_bias, secondary_variant_bias]
