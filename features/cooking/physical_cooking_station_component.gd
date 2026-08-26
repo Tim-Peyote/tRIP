@@ -9,6 +9,7 @@ var orchestrator: CookingOrchestrator
 
 func _ready() -> void:
 	interactable.interaction_completed.connect(_on_interaction_completed)
+	interactable.alternative_requested.connect(_on_alternative_requested)
 
 
 func setup(value: CookingOrchestrator) -> void:
@@ -47,6 +48,11 @@ func _on_interaction_completed(actor: Node, _action: StringName) -> void:
 			orchestrator.flip_hourglass()
 
 
+func _on_alternative_requested(_actor: Node) -> void:
+	if orchestrator != null and role == "transfer":
+		orchestrator.discard_batch()
+
+
 func _update_prompt(state: ThermalVesselState) -> void:
 	match role:
 		"add_water":
@@ -56,7 +62,7 @@ func _update_prompt(state: ThermalVesselState) -> void:
 		"add_spirit":
 			interactable.primary_verb = "Налить хлебный спирт"
 		"transfer":
-			interactable.primary_verb = "Переложить крошку в котёл"
+			interactable.primary_verb = "Переложить крошку в котёл · [СКМ] вылить состав"
 		"cycle_heat":
 			var names := ["Погасить", "Зажечь слабый огонь", "Усилить огонь"]
 			interactable.primary_verb = names[wrapi(state.heat_level + 1, 0, 3)]

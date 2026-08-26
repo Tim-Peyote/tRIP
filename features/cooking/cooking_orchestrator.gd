@@ -3,8 +3,10 @@ extends Node
 
 signal action_recorded(operation: StringName, step_count: int)
 signal action_rejected(reason: String)
+signal process_warning(message: String)
 signal process_reset
 signal result_created(result: RecipeResolution, display_name: String)
+signal batch_evaluated(recipe_id: StringName, result: RecipeResolution)
 signal vessel_state_changed(state: ThermalVesselState)
 signal physical_action_recorded(action: StringName)
 signal mastery_changed(tier: int, batches_completed: int)
@@ -24,6 +26,7 @@ func _ready() -> void:
 		active_recipe = recipes[0]
 	else:
 		active_recipe = recipe
+	_configure_vessel_for_active_recipe()
 
 
 func _process(delta: float) -> void:
@@ -57,6 +60,7 @@ func transfer_prepared_ingredient() -> bool:
 	if not vessel.add_ingredient(source.ingredient_id, source.source_quality, source.ingredient_tags):
 		action_rejected.emit("Сначала налей воду; второй образец уже не нужен.")
 		return false
+	_configure_vessel_for_active_recipe()
 	physical_action_recorded.emit(&"transfer")
 	vessel_state_changed.emit(vessel)
 	return true
@@ -130,7 +134,7 @@ func finish_result(actor: Node, finish_method: RecipeDefinition.FinishMethod) ->
 		&"heat",
 		vessel.ingredient_id,
 		1.0,
-		vessel.peak_temperature,
+		vessel.get_controlled_temperature(),
 		vessel.effective_target_duration,
 		Time.get_ticks_msec() / 1000.0
 	)
@@ -158,6 +162,7 @@ func perform_action(
 ) -> bool:
 	if process.events.is_empty():
 		active_recipe = _find_recipe(ingredient_id)
+		_configure_vessel_for_active_recipe()
 	var current_recipe := active_recipe if active_recipe != null else recipe
 	if current_recipe == null:
 		action_rejected.emit("У станции не назначен рецепт.")
@@ -174,11 +179,11 @@ func perform_action(
 	if process.events.size() >= current_recipe.steps.size():
 		reset_process()
 		active_recipe = _find_recipe(ingredient_id)
+		_configure_vessel_for_active_recipe()
 		current_recipe = active_recipe if active_recipe != null else recipe
 	var expected_step := current_recipe.steps[process.events.size()]
 	if expected_step.operation != operation:
-		action_rejected.emit("Сейчас требуется другое действие. Сверься с рецептом.")
-		return false
+		process_warning.emit("Порядок нарушен: ожидалось «%s». Опыт продолжен — результат подскажет ошибку." % _operation_title(expected_step.operation))
 	var consumed_item: ItemInstance
 	var actual_tags := ingredient_tags.duplicate()
 	if required_item_id != &"":
@@ -208,8 +213,18 @@ func perform_action(
 func reset_process() -> void:
 	process.clear()
 	vessel.reset()
+	_configure_vessel_for_active_recipe()
 	vessel_state_changed.emit(vessel)
 	process_reset.emit()
+
+
+func discard_batch() -> bool:
+	if process.events.is_empty() and vessel.water_amount <= 0.0:
+		action_rejected.emit("Котёл и рабочая поверхность уже пусты.")
+		return false
+	reset_process()
+	physical_action_recorded.emit(&"discard")
+	return true
 
 
 func to_save_data() -> Dictionary:
@@ -229,6 +244,7 @@ func apply_save_data(data: Dictionary) -> void:
 	active_recipe = _find_recipe_by_id(saved_recipe_id)
 	if active_recipe == null:
 		active_recipe = _find_recipe(vessel.ingredient_id) if vessel.ingredient_id != &"" else recipe
+	_configure_vessel_for_active_recipe()
 	batches_completed = maxi(0, int(data.get("batches_completed", 0)))
 	station_tier = clampi(int(data.get("station_tier", _tier_for_batches(batches_completed))), 0, 3)
 	mastery_changed.emit(station_tier, batches_completed)
@@ -259,12 +275,13 @@ func _resolve(inventory: InventoryComponent, finish_method: RecipeDefinition.Fin
 		resolved_tier,
 		resolved_turns
 	)
+	batch_evaluated.emit(current_recipe.id, resolution)
 	if not physical_batch:
 		resolution.yield_count = current_recipe.base_yield
 	var result_definition := ContentDB.get_definition(resolution.result_item_id)
 	var result_name := result_definition.display_name if result_definition != null else String(resolution.result_item_id)
 	if resolution.quality < RecipeResolution.Quality.WORKING:
-		action_rejected.emit("Смесь испорчена. Проверь порядок и признаки процесса.")
+		action_rejected.emit(_build_resolution_message(resolution))
 		reset_process()
 		return
 	var result_item := ItemInstance.new(resolution.result_item_id, float(resolution.yield_count))
@@ -322,3 +339,41 @@ func add_recipe(value: RecipeDefinition) -> void:
 	if value == null or _find_recipe_by_id(value.id) != null:
 		return
 	recipes.append(value)
+
+
+func _configure_vessel_for_active_recipe() -> void:
+	vessel.configure_recipe(active_recipe if active_recipe != null else recipe)
+
+
+func _operation_title(operation: StringName) -> String:
+	return {
+		&"wash": "промыть образец",
+		&"slice": "разделить образец",
+		&"grind": "растолочь образец",
+		&"heat": "выдержать состав",
+	}.get(operation, String(operation))
+
+
+func _build_resolution_message(resolution: RecipeResolution) -> String:
+	var labels: Dictionary = {
+		&"wrong_operation": "нарушен порядок операций",
+		&"wrong_ingredient_trait": "взята неверная часть образца",
+		&"amount_out_of_range": "нарушена дозировка",
+		&"temperature_out_of_range": "температура ушла из окна",
+		&"duration_out_of_range": "неверная выдержка",
+		&"insufficient_stirring": "смесь плохо перемешана",
+		&"overheated": "состав перегрет",
+		&"wrong_base": "не подходит основа",
+		&"wrong_finish": "неверный способ завершения",
+		&"station_too_primitive": "не хватает точности лаборатории",
+		&"wrong_turn_count": "неверное число оборотов часов",
+		&"damaged_source": "сырьё повреждено",
+		&"step_count_mismatch": "формула не завершена",
+	}
+	var findings := PackedStringArray()
+	for tag: StringName in resolution.explanation_tags:
+		if labels.has(tag):
+			findings.append(labels[tag])
+	if findings.is_empty():
+		return "Опыт не удался. Сверь признаки сырья и ход процесса."
+	return "Опыт не удался: %s. Наблюдение записано в журнал." % ", ".join(findings)

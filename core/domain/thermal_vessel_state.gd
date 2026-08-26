@@ -25,11 +25,43 @@ var overheat_duration: float = 0.0
 var stir_count: int = 0
 var homogeneity: float = 0.0
 var peak_temperature: float = 20.0
+var target_temperature_min: float = TARGET_MIN
+var target_temperature_max: float = TARGET_MAX
+var required_effective_duration: float = 18.0
+var required_stirs: int = 2
+var required_homogeneity: float = 0.65
+var allowed_overheat_duration: float = 4.0
+var controlled_temperature_sum: float = 0.0
+var controlled_temperature_time: float = 0.0
+var target_sensory_cue: StringName = &""
 
 const TARGET_MIN: float = 72.0
 const TARGET_MAX: float = 86.0
 const OVERHEAT_THRESHOLD: float = 92.0
 const HOURGLASS_TURN_SECONDS: float = 8.0
+
+
+func configure_recipe(recipe: RecipeDefinition) -> void:
+	target_temperature_min = TARGET_MIN
+	target_temperature_max = TARGET_MAX
+	required_effective_duration = 18.0
+	required_stirs = 2
+	required_homogeneity = 0.65
+	allowed_overheat_duration = 4.0
+	target_sensory_cue = &""
+	if recipe == null:
+		return
+	for step: RecipeStepDefinition in recipe.steps:
+		if step.operation != &"heat":
+			continue
+		target_temperature_min = step.minimum_temperature
+		target_temperature_max = step.maximum_temperature
+		required_effective_duration = step.minimum_duration
+		required_stirs = step.minimum_stirs
+		required_homogeneity = step.minimum_homogeneity
+		allowed_overheat_duration = step.maximum_overheat_duration
+		target_sensory_cue = step.sensory_cue
+		return
 
 
 func add_water(amount: float) -> bool:
@@ -86,7 +118,8 @@ func stir() -> bool:
 	if not ingredient_loaded or water_amount <= 0.0:
 		return false
 	stir_count += 1
-	homogeneity = clampf(homogeneity + (0.38 if temperature >= 45.0 else 0.22), 0.0, 1.0)
+	var hot_contribution := maxf(0.38, required_homogeneity / float(maxi(required_stirs, 1)))
+	homogeneity = clampf(homogeneity + (hot_contribution if temperature >= 45.0 else 0.22), 0.0, 1.0)
 	return true
 
 
@@ -114,20 +147,27 @@ func simulate(delta: float) -> void:
 	if not ingredient_loaded:
 		return
 	process_elapsed += delta
-	if temperature >= TARGET_MIN and temperature <= TARGET_MAX:
-		effective_target_duration += delta * 3.0
-	if temperature > OVERHEAT_THRESHOLD:
+	if temperature >= target_temperature_min and temperature <= target_temperature_max:
+		effective_target_duration += delta
+	if temperature >= target_temperature_min:
+		controlled_temperature_sum += temperature * delta
+		controlled_temperature_time += delta
+	if temperature > target_temperature_max + 6.0:
 		overheat_duration += delta
-	if process_elapsed - float(stir_count) * 4.0 > 10.0:
-		homogeneity = maxf(0.0, homogeneity - delta * 0.025)
 
 
 func is_ready() -> bool:
-	return ingredient_loaded and effective_target_duration >= 18.0 and homogeneity >= 0.65
+	return ingredient_loaded and effective_target_duration >= required_effective_duration and stir_count >= required_stirs and homogeneity >= required_homogeneity
 
 
 func is_ruined() -> bool:
-	return overheat_duration >= 4.0
+	return overheat_duration >= allowed_overheat_duration
+
+
+func get_controlled_temperature() -> float:
+	if controlled_temperature_time <= 0.001:
+		return peak_temperature
+	return controlled_temperature_sum / controlled_temperature_time
 
 
 func get_stage_text() -> String:
@@ -140,13 +180,14 @@ func get_stage_text() -> String:
 	if is_ruined():
 		return "СМЕСЬ ПЕРЕГРЕТА · запах гари"
 	if is_ready():
-		return "%s · %d обор. часов · можно завершать" % [get_sensory_cue(), completed_hourglass_turns]
-	if temperature < TARGET_MIN:
-		return "%s · НАГРЕВ %d°C · однородность %d%%" % [position_title, roundi(temperature), roundi(homogeneity * 100.0)]
-	if temperature <= TARGET_MAX:
+		return "%s · %d обор. часов · можно завершать" % [get_recipe_cue_title(), completed_hourglass_turns]
+	if temperature < target_temperature_min:
+		return "%s · НАГРЕВ %d°C → %d–%d°C · мешать %d/%d" % [position_title, roundi(temperature), roundi(target_temperature_min), roundi(target_temperature_max), stir_count, required_stirs]
+	if temperature <= target_temperature_max:
 		var timer := "часы %d%%" % roundi(hourglass_elapsed / HOURGLASS_TURN_SECONDS * 100.0) if hourglass_running else "%d обор. часов" % completed_hourglass_turns
-		return "%s · %d°C · %s" % [get_sensory_cue(), roundi(temperature), timer]
-	return "СЛИШКОМ ГОРЯЧО %d°C · убавить огонь" % roundi(temperature)
+		var cue := get_recipe_cue_title() if effective_target_duration >= required_effective_duration * 0.65 else get_sensory_cue()
+		return "%s · %d°C В ОКНЕ · выдержка %d/%d · %s" % [cue, roundi(temperature), roundi(effective_target_duration), roundi(required_effective_duration), timer]
+	return "ВЫШЕ ОКНА %d°C > %d°C · поднять котёл или убавить огонь" % [roundi(temperature), roundi(target_temperature_max)]
 
 
 func get_base_title() -> String:
@@ -160,6 +201,23 @@ func get_sensory_cue() -> String:
 		HeatRegime.SIMMER: return "РЕДКИЕ ПУЗЫРИ"
 		HeatRegime.BOIL: return "РОВНОЕ КИПЕНИЕ"
 		_: return "БУРНОЕ КИПЕНИЕ"
+
+
+func get_recipe_cue_title() -> String:
+	return cue_title(target_sensory_cue) if target_sensory_cue != &"" else get_sensory_cue()
+
+
+static func cue_title(cue: StringName) -> String:
+	return {
+		&"silver_steam": "СЕРЕБРИСТЫЙ ПАР",
+		&"dark_red_steam": "ТЁМНО-КРАСНЫЙ ПАР",
+		&"iron_thump": "ГЛУХОЙ ЖЕЛЕЗНЫЙ УДАР",
+		&"rim_crystal": "КРИСТАЛЛ НА КРОМКЕ",
+		&"fading_chime": "ЗАТИХАЮЩИЙ ЗВОН",
+		&"mirror_steam": "ПАР ПОВТОРЯЕТ ДВИЖЕНИЕ",
+		&"heavy_bubble": "ТЯЖЁЛЫЙ ПУЗЫРЬ",
+		&"double_steam_pulse": "ДВОЙНОЙ ПУЛЬС ПАРА",
+	}.get(cue, String(cue).replace("_", " ").to_upper())
 
 
 func get_heat_regime() -> HeatRegime:
@@ -191,6 +249,8 @@ func reset() -> void:
 	stir_count = 0
 	homogeneity = 0.0
 	peak_temperature = 20.0
+	controlled_temperature_sum = 0.0
+	controlled_temperature_time = 0.0
 
 
 func to_save_data() -> Dictionary:
@@ -215,6 +275,8 @@ func to_save_data() -> Dictionary:
 		"stir_count": stir_count,
 		"homogeneity": homogeneity,
 		"peak_temperature": peak_temperature,
+		"controlled_temperature_sum": controlled_temperature_sum,
+		"controlled_temperature_time": controlled_temperature_time,
 	}
 
 
@@ -241,3 +303,5 @@ func apply_save_data(data: Dictionary) -> void:
 	stir_count = maxi(0, int(data.get("stir_count", 0)))
 	homogeneity = clampf(float(data.get("homogeneity", 0.0)), 0.0, 1.0)
 	peak_temperature = maxf(temperature, float(data.get("peak_temperature", temperature)))
+	controlled_temperature_sum = maxf(0.0, float(data.get("controlled_temperature_sum", 0.0)))
+	controlled_temperature_time = maxf(0.0, float(data.get("controlled_temperature_time", 0.0)))

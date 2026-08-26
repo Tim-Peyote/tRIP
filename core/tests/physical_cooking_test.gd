@@ -25,6 +25,7 @@ func _run() -> void:
 	_expect(_grind_cap(cooking, player), "Clean cap could not be ground.")
 	_expect(cooking.add_water(), "Water could not be added.")
 	_expect(cooking.transfer_prepared_ingredient(), "Ground cap could not be transferred.")
+	_expect(is_equal_approx(cooking.vessel.target_temperature_min, cooking.active_recipe.steps[-1].minimum_temperature), "Physical vessel was not configured from the active recipe.")
 	cooking.cycle_heat()
 	cooking.flip_hourglass()
 	while cooking.vessel.temperature < 50.0:
@@ -63,6 +64,11 @@ func _run() -> void:
 	cooking.bottle_result(player)
 	_expect(_result_quality == -1, "Ruined mixture created a valid result.")
 	_expect(player.inventory.count(&"item.spore_sight_brew") == 0.0, "Ruined mixture entered inventory.")
+	_add_clean_cap(player)
+	_expect(_grind_cap(cooking, player), "Discard test cap could not be ground.")
+	_expect(cooking.add_water(), "Discard test water could not be added.")
+	_expect(cooking.discard_batch(), "Active batch could not be discarded.")
+	_expect(cooking.process.events.is_empty() and cooking.vessel.water_amount == 0.0, "Discard did not reset process and vessel.")
 	level.free()
 	_finish()
 

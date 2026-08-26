@@ -198,6 +198,7 @@ func setup_cooking(cooking: CookingOrchestrator) -> void:
 	_cooking = cooking
 	cooking.action_recorded.connect(_on_cooking_action_recorded)
 	cooking.action_rejected.connect(show_notice)
+	cooking.process_warning.connect(show_notice)
 	cooking.result_created.connect(_on_cooking_result_created)
 	cooking.vessel_state_changed.connect(_on_vessel_state_changed)
 	cooking.physical_action_recorded.connect(_on_physical_cooking_action)
@@ -207,6 +208,7 @@ func setup_cooking(cooking: CookingOrchestrator) -> void:
 func setup_recipe_knowledge(recipe_knowledge: RecipeKnowledgeOrchestrator) -> void:
 	_recipe_knowledge = recipe_knowledge
 	recipe_knowledge.recipe_learned.connect(_on_recipe_learned)
+	recipe_knowledge.recipe_observation_added.connect(_on_recipe_observation_added)
 	_update_journal()
 
 
@@ -401,6 +403,8 @@ func _on_consumable_used(_effect_ids: Array[StringName], display_name: String) -
 
 func _on_cooking_action_recorded(operation: StringName, step_count: int) -> void:
 	var verbs: Dictionary = {
+		&"wash": "Образец промыт",
+		&"slice": "Образец разделён",
 		&"grind": "Образец измельчён и готов к переносу",
 		&"heat": "Смесь выдержана на слабом огне",
 	}
@@ -432,6 +436,7 @@ func _on_physical_cooking_action(action: StringName) -> void:
 		&"lower_vessel": "Котёл опущен к огню",
 		&"raise_vessel": "Котёл снят с прямого жара",
 		&"station_upgrade": "ПОЛЕВАЯ ЛАБОРАТОРИЯ УЛУЧШЕНА · открыта новая точность",
+		&"discard": "Состав вылит · рабочее место очищено",
 	}
 	if messages.has(action):
 		show_notice(messages[action])
@@ -1227,7 +1232,8 @@ func _update_journal() -> void:
 			if _recipe_knowledge != null:
 				_journal_entries = _recipe_knowledge.get_entries()
 			for entry: Dictionary in _journal_entries:
-				journal_entry_list.add_item("%s  ·  %s" % [String(entry["title"]), "ОСВОЕНО" if bool(entry["learned"]) else "ГИПОТЕЗА"])
+				var state := "ОСВОЕНО" if bool(entry["learned"]) else "ГИПОТЕЗА · %d ПРОБ" % int(entry.get("attempt_count", 0))
+				journal_entry_list.add_item("%s  ·  %s" % [String(entry["title"]), state])
 		_:
 			if _knowledge != null:
 				for definition_id: StringName in _knowledge.get_known_definition_ids():
@@ -1323,7 +1329,7 @@ func _show_recipe_entry(entry: Dictionary) -> void:
 	var base_names: Dictionary = {&"base.water": "РОДНИКОВАЯ ВОДА", &"base.kvass": "КИСЛЫЙ КВАС", &"base.spirit": "ХЛЕБНЫЙ СПИРТ"}
 	var finish_names := ["РАЗЛИВ", "ПЕРЕГОНКА", "ПОРЦИЯ"]
 	journal_detail_meta.text = "%s   ·   %s   ·   ЛАБОРАТОРИЯ %d" % [base_names.get(StringName(entry["base_id"]), String(entry["base_id"])), finish_names[int(entry["finish_method"])], int(entry["station_tier"])]
-	journal_progress.value = 1.0 if bool(entry["learned"]) else 0.35
+	journal_progress.value = 1.0 if bool(entry["learned"]) else minf(0.8, 0.25 + float(entry.get("attempt_count", 0)) * 0.1)
 	var operation_names: Dictionary = {&"wash": "ПРОМЫТЬ", &"slice": "РАЗДЕЛИТЬ", &"grind": "РАСТОЛОЧЬ", &"heat": "ВЫДЕРЖАТЬ"}
 	var body := "[color=#99a395]ПОЛЕВАЯ ЗАПИСЬ[/color]\n%s\n\n%s\n\n[color=#99a395]ПОРЯДОК РАБОТЫ[/color]\n" % [String(entry.get("description", "")), String(entry["field_notes"])]
 	var index := 1
@@ -1331,9 +1337,22 @@ func _show_recipe_entry(entry: Dictionary) -> void:
 		body += "%d. [color=#c6d98a]%s[/color]  %s\n" % [index, operation_names.get(StringName(step["operation"]), String(step["operation"]).to_upper()), String(step["hint"])]
 		if StringName(step["operation"]) == &"heat":
 			body += "   %d–%d°C · %d–%d c · часы %d–%d\n" % [roundi(step["temperature_min"]), roundi(step["temperature_max"]), roundi(step["duration_min"]), roundi(step["duration_max"]), int(step["turns_min"]), int(step["turns_max"])]
+			var cue := StringName(step.get("sensory_cue", &""))
+			if cue != &"":
+				body += "   Признак готовности: [color=#c6d98a]%s[/color]\n" % ThermalVesselState.cue_title(cue).capitalize()
 		index += 1
+	var observations := entry.get("observations", []) as Array
+	if not observations.is_empty():
+		body += "\n[color=#99a395]НАБЛЮДЕНИЯ ПОСЛЕ ПРОБ[/color]\n"
+		for observation: Variant in observations:
+			body += "• %s\n" % String(observation)
 	body += "\n[color=#99a395]ОЖИДАЕМЫЙ РЕЗУЛЬТАТ[/color]\n%s · базовый выход ×%d" % [result.display_name if result != null else String(entry["result_item_id"]), int(entry["base_yield"])]
 	journal_detail_body.text = body
+
+
+func _on_recipe_observation_added(_recipe_id: StringName, message: String) -> void:
+	show_notice("ЛАБОРАТОРНАЯ ЗАПИСЬ · %s" % message)
+	_update_journal()
 
 
 func _show_empty_journal() -> void:
