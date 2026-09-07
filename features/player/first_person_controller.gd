@@ -108,6 +108,7 @@ func _ready() -> void:
 		&"tool.spore_vial": vial_viewmodel,
 	})
 	toolbelt.tool_changed.connect(_on_tool_changed)
+	_on_tool_changed(toolbelt.active_tool_id, toolbelt.is_equipped)
 	distraction_thrower.projectile_created.connect(distraction_created.emit)
 	distraction_thrower.count_changed.connect(distraction_count_changed.emit)
 	_last_position = global_position
@@ -417,7 +418,7 @@ func _on_physical_hold_changed(active: bool) -> void:
 	# Generic grabbed objects have arbitrary scale and grip points. Until an
 	# interaction supplies an authored hand target, showing a guessed wrist pose
 	# creates intersections and broken-looking anatomy.
-	first_person_arm_rig.visible = not active
+	first_person_arm_rig.visible = not active and toolbelt.has_hand_visual()
 	if active:
 		knife_viewmodel.visible = false
 		vial_viewmodel.visible = false
@@ -573,7 +574,7 @@ func _update_viewmodel(delta: float, input_strength: float) -> void:
 		cos(_bob_time * 0.5) * viewmodel_bob_amount,
 		-sin(_bob_time) * viewmodel_bob_amount * 0.45,
 		0.0
-	) * movement_weight
+	) * movement_weight * (0.35 if sprint_weight > 0.0 else 0.55)
 	var inertia := Vector3(-_viewmodel_look_offset.x, _viewmodel_look_offset.y, 0.0)
 	var sprint_lower := Vector3(0.015, -0.035, 0.035) * sprint_weight
 	var crouch_lower := Vector3(0.0, -0.012, 0.012) if _is_crouched else Vector3.ZERO
@@ -620,4 +621,5 @@ func _push_rigid_bodies() -> void:
 
 
 func _on_tool_changed(_tool_id: StringName, is_equipped: bool) -> void:
+	first_person_arm_rig.visible = toolbelt.has_hand_visual() and not interactor.is_holding_body()
 	tool_state_changed.emit(toolbelt.get_display_name(), is_equipped)

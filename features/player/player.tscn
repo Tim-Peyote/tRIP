@@ -181,7 +181,7 @@ scale = Vector3(0.8, 0.8, 0.8)
 
 [node name="RiggedFirstPersonArms" parent="CameraRig/Camera3D/ViewModel" instance=ExtResource("11_fps_arms")]
 unique_name_in_owner = true
-position = Vector3(0, -1.03, -0.15)
+position = Vector3(0.06, -1.62, -0.05)
 rotation = Vector3(0, 3.14159265, 0)
 script = ExtResource("12_fps_arm_driver")
 
@@ -362,6 +362,8 @@ unique_name_in_owner = true
 bone_name = "mixamorig_RightHand"
 
 [node name="AuthoredKnife" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/KnifeViewModel" instance=ExtResource("13_knife")]
+position = Vector3(3.740289, 6.750924, 0.15039)
+rotation = Vector3(0.017947, -1.130745, -0.107627)
 scale = Vector3(2.28, 2.28, 2.28)
 
 [node name="VialViewModel" type="BoneAttachment3D" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D"]

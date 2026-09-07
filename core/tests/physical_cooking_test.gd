@@ -41,9 +41,24 @@ func _run() -> void:
 		safety += 1
 	_expect(cooking.vessel.is_ready(), "Low heat never reached a valid ready state.")
 	_expect(not cooking.vessel.is_ruined(), "Low heat ruined a correctly managed brew.")
+	var capacity := player.inventory.maximum_mass
+	player.inventory.maximum_mass = player.inventory.current_mass()
+	_expect(not cooking.bottle_result(player), "Full bag incorrectly accepted a finished batch.")
+	_expect(cooking.pending_result != null, "Finished batch was lost when the bag was full.")
+	var event_count := cooking.process.events.size()
+	var pending_id := cooking.pending_result.instance_id
+	_expect(not cooking.bottle_result(player), "Repeated collection bypassed bag capacity.")
+	_expect(cooking.process.events.size() == event_count, "Retry appended another heating event.")
+	var saved_batch := cooking.to_save_data()
+	cooking.apply_save_data(saved_batch)
+	_expect(cooking.pending_result != null and cooking.pending_result.instance_id == pending_id, "Save/load lost the waiting result.")
+	player.inventory.maximum_mass = capacity
 	_expect(cooking.bottle_result(player), "Ready brew could not be bottled.")
 	_expect(_result_quality == RecipeResolution.Quality.PURE, "Managed physical brew was not PURE.")
 	_expect(player.inventory.count(&"item.spore_sight_brew") >= 1.0, "Physical cooking did not create a brew item.")
+	_expect(not cooking.bottle_result(player), "Collected batch could be duplicated.")
+	var brewed := player.inventory.get_specimens(&"item.spore_sight_brew")[0]
+	_expect(player.inventory.use_consumable_instance(brewed.instance_id), "Collected brew could not be used from the inventory.")
 
 	while player.inventory.count(&"item.spore_sight_brew") > 0.0:
 		player.inventory.remove_one(&"item.spore_sight_brew")

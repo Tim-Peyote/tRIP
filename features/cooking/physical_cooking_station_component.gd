@@ -69,7 +69,7 @@ func _update_prompt(state: ThermalVesselState) -> void:
 		"stir":
 			interactable.primary_verb = "Помешать состав (%d раз)" % state.stir_count
 		"bottle":
-			interactable.primary_verb = "Разлить готовый состав"
+			interactable.primary_verb = "Забрать готовый состав" if orchestrator.pending_result != null else "Разлить готовый состав"
 		"distill":
 			interactable.primary_verb = "Перегнать через змеевик"
 		"serve":

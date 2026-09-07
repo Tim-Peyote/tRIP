@@ -13,6 +13,7 @@ extends Node3D
 var _time: float = 0.0
 var _result_latched: bool = false
 var _tool_tween: Tween
+var _tool_tweens: Dictionary = {}
 var _pestle_rest: Transform3D
 var _jug_rest: Transform3D
 var _ladle_rest: Transform3D
@@ -37,6 +38,8 @@ func refresh_rest_transforms() -> void:
 	_cauldron = get_parent().get_node_or_null("Cauldron") as Node3D
 	_hourglass = get_parent().get_node_or_null("Hourglass") as Node3D
 	_bellows = get_parent().get_node_or_null("Bellows") as Node3D
+	if _bellows != null and _bellows.has_node("AuthoredBellows"):
+		_bellows = _bellows.get_node("AuthoredBellows") as Node3D
 	if _cauldron != null:
 		_cauldron_rest = _cauldron.transform
 		_liquid_offset = active_liquid.position - _cauldron.position
@@ -51,6 +54,11 @@ func setup(orchestrator: CookingOrchestrator) -> void:
 	orchestrator.result_created.connect(_on_result_created)
 	orchestrator.vessel_state_changed.connect(_on_vessel_state_changed)
 	orchestrator.physical_action_recorded.connect(_on_physical_action_recorded)
+	orchestrator.process_reset.connect(func() -> void:
+		_result_latched = false
+		mortar_contents.visible = false
+		_on_vessel_state_changed(orchestrator.vessel)
+	)
 	_on_vessel_state_changed(orchestrator.vessel)
 
 
@@ -81,7 +89,8 @@ func _on_action_recorded(operation: StringName, _step_count: int) -> void:
 
 
 func _on_action_rejected(_reason: String) -> void:
-	steam.visible = false
+	# Rejected input must not change the physical appearance of a hot vessel.
+	pass
 
 
 func _on_result_created(_result: RecipeResolution, _display_name: String) -> void:
@@ -91,8 +100,6 @@ func _on_result_created(_result: RecipeResolution, _display_name: String) -> voi
 
 
 func _on_vessel_state_changed(state: ThermalVesselState) -> void:
-	if _result_latched and state.water_amount <= 0.0:
-		return
 	active_liquid.visible = state.water_amount > 0.0
 	steam.visible = state.ingredient_loaded and state.temperature >= 58.0
 	fire_mesh.visible = state.heat_level != ThermalVesselState.HeatLevel.OFF
@@ -119,9 +126,13 @@ func _on_physical_action_recorded(action: StringName) -> void:
 
 
 func _animate_tool(action: StringName) -> void:
-	if _tool_tween != null and _tool_tween.is_valid():
-		_tool_tween.kill()
+	var channel := action
+	if action in [&"add_water", &"add_kvass", &"add_spirit"]: channel = &"jug"
+	if action in [&"lower_vessel", &"raise_vessel"]: channel = &"vessel"
+	var previous := _tool_tweens.get(channel) as Tween
+	if previous != null and previous.is_valid(): previous.kill()
 	_tool_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_tool_tweens[channel] = _tool_tween
 	match action:
 		&"add_water", &"add_kvass", &"add_spirit":
 			_tool_tween.tween_property(water_jug, "rotation:z", -0.9, 0.22)
@@ -138,12 +149,11 @@ func _animate_tool(action: StringName) -> void:
 				_tool_tween.tween_property(_cauldron, "position:y", _cauldron_rest.origin.y + offset, 0.32)
 		&"bellows":
 			if _bellows != null:
-				_tool_tween.tween_property(_bellows, "scale:z", 0.55, 0.14)
+				_tool_tween.tween_property(_bellows, "scale:z", _bellows_rest.basis.get_scale().z * 0.55, 0.14)
 				_tool_tween.tween_property(_bellows, "scale:z", _bellows_rest.basis.get_scale().z, 0.22)
 		&"hourglass":
 			if _hourglass != null:
-				_tool_tween.tween_property(_hourglass, "rotation:z", _hourglass_rest.basis.get_euler().z + PI, 0.35)
-				_tool_tween.tween_property(_hourglass, "rotation:z", _hourglass_rest.basis.get_euler().z, 0.01)
+				_tool_tween.tween_property(_hourglass, "rotation:z", _hourglass.rotation.z + PI, 0.35)
 		_:
-			_tool_tween.tween_property(pestle, "rotation:z", -1.05, 0.16)
-			_tool_tween.tween_property(pestle, "rotation:z", _pestle_rest.basis.get_euler().z, 0.24)
+			# Fire/collection notifications are not mortar strokes.
+			_tool_tween.kill()

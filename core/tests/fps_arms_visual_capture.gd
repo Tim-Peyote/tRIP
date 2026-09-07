@@ -11,6 +11,7 @@ func _ready() -> void:
 	player.global_position = Vector3(0.0, 0.05, 0.0)
 	player.set_gameplay_input_override_for_testing(true)
 	await get_tree().process_frame
+	player.toolbelt.equip(&"tool.field_knife")
 	if "--vial" in capture_args:
 		player.toolbelt.cycle_active_tool()
 	if "--open" in capture_args:
@@ -46,6 +47,8 @@ func _ready() -> void:
 	if hand >= 0:
 		print("FPS wrist camera position: ", player.camera.to_local(skeleton.global_transform * skeleton.get_bone_global_pose(hand).origin))
 	print("FPS tool parent scale: ", player.knife_viewmodel.global_basis.get_scale())
+	for mesh: Node in player.knife_viewmodel.find_children("*", "MeshInstance3D", true, false):
+		print("Knife bounds: ", mesh.name, " ", (mesh as MeshInstance3D).get_aabb(), " transform ", (mesh as MeshInstance3D).transform)
 	var image := get_viewport().get_texture().get_image()
 	var output_path := "/tmp/trip_fps_arms_hold_capture.png" if "--hold" in capture_args else ("/tmp/trip_fps_arms_open_capture.png" if "--open" in capture_args else OUTPUT_PATH)
 	var error := image.save_png(output_path)

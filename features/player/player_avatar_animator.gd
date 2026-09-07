@@ -39,6 +39,16 @@ func _ready() -> void:
 		_configure_animation_loops()
 		_animation_player.animation_finished.connect(_on_animation_finished)
 		_play(&"idle", 1.0)
+	_controller.jumped.connect(_on_takeoff)
+
+
+func _on_takeoff() -> void:
+	_work_locked = false
+	_jump_locked = true
+	_play(&"jump", 1.0, true)
+	# The source clip has 24 anticipation frames before its actual takeoff.
+	_animation_player.seek(0.8, true)
+	_animation_player.speed_scale = 0.0
 
 
 func set_third_person_visible(value: bool) -> void:
@@ -64,12 +74,14 @@ func _process(delta: float) -> void:
 		return
 	if _jump_locked:
 		if not _controller.is_grounded():
+			_sync_airborne_pose()
 			return
 		_jump_locked = false
 		_current_animation = &""
 	if not _controller.is_grounded():
 		_play(&"jump", 1.0)
 		_jump_locked = true
+		_sync_airborne_pose()
 		return
 	var speed := _controller.get_planar_speed()
 	if _controller.is_crouched():
@@ -98,6 +110,13 @@ func _update_movement_facing(delta: float) -> void:
 	rotation.y = lerp_angle(rotation.y, target_yaw, clampf(delta * turn_speed, 0.0, 1.0))
 
 
+func _sync_airborne_pose() -> void:
+	# Physics determines ascent/descent; do not replay takeoff on long falls.
+	var phase := clampf((1.0 - _controller.velocity.y / _controller.jump_velocity) * 0.5, 0.0, 1.0)
+	_animation_player.seek(lerpf(0.8, 1.25, phase), true)
+	_animation_player.speed_scale = 0.0
+
+
 func play_work_action() -> void:
 	_jump_locked = false
 	_work_locked = _animation_player != null and _animation_player.has_animation(ANIMATIONS[&"work"])
@@ -122,7 +141,16 @@ func _play(state: StringName, speed: float, force: bool = false) -> void:
 	if not _animation_player.has_animation(animation):
 		return
 	_current_animation = state
-	_animation_player.play(animation, transition_time, speed)
+	if state == &"jump":
+		# Airborne motion is sampled manually. A paused AnimationPlayer also
+		# freezes its crossfade, leaving the previous grounded pose on screen.
+		# Discard that blend and apply the takeoff pose in the impulse frame.
+		_animation_player.stop()
+		_animation_player.speed_scale = 1.0
+		_animation_player.play(animation, 0.0, speed)
+	else:
+		_animation_player.speed_scale = speed
+		_animation_player.play(animation, transition_time, 1.0)
 
 
 func _configure_animation_loops() -> void:

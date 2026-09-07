@@ -10,7 +10,8 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if not data is Dictionary or StringName(data.get("kind", &"")) != &"inventory_item":
 		return false
 	if inventory_action == "consume":
-		return bool(data.get("consumable", false))
+		var definition := ContentDB.get_definition(StringName(data.get("definition_id", &"")))
+		return bool(data.get("consumable", false)) or definition is ToolDefinition or definition is IngredientDefinition
 	return inventory_action == "drop"
 
 

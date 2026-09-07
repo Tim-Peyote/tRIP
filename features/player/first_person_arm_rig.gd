@@ -20,9 +20,7 @@ func _ready() -> void:
 func _apply_idle_grip() -> void:
 	if _skeleton == null:
 		return
-	var wrist := _skeleton.find_bone("mixamorig_RightHand")
-	if wrist >= 0:
-		_skeleton.set_bone_pose_rotation(wrist, Quaternion.from_euler(Vector3(0.0, tool_wrist_twist, 0.0)))
+	# Preserve the authored pose; arbitrary wrist resets are not an item grip.
 
 
 func set_physical_interaction_pose(active: bool) -> void:

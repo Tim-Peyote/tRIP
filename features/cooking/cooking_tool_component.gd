@@ -43,22 +43,16 @@ func _on_interaction_completed(actor: Node, _action: StringName) -> void:
 		selected_ingredient_id = prepared.ingredient_id
 		selected_required_id = &""
 		selected_tags.assign(prepared.ingredient_tags)
-	elif not candidate_ingredient_ids.is_empty():
+	else:
 		var inventory := actor.find_child("InventoryComponent", true, false) as InventoryComponent
-		selected_ingredient_id = &""
-		if inventory != null:
-			for candidate_id: StringName in candidate_ingredient_ids:
-				if inventory.count(candidate_id) <= 0.0:
-					continue
-				selected_ingredient_id = candidate_id
-				selected_required_id = candidate_id
-				var definition := ContentDB.get_definition(candidate_id) as IngredientDefinition
-				if definition != null:
-					selected_tags.assign(definition.tags)
-				break
-		if selected_ingredient_id == &"":
-			orchestrator.action_rejected.emit("В сумке нет подходящего свежего образца.")
+		var selected := inventory.get_item(orchestrator.selected_instance_id) if inventory != null else null
+		if selected == null:
+			orchestrator.action_rejected.emit("Открой сумку [I], выбери образец и нажми «Для лаборатории».")
 			return
+		selected_ingredient_id = selected.definition_id
+		selected_required_id = selected.definition_id
+		var definition := ContentDB.get_definition(selected.definition_id) as IngredientDefinition
+		if definition != null: selected_tags.assign(definition.tags)
 	if orchestrator.perform_action(
 		actor,
 		operation,

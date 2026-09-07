@@ -1,10 +1,22 @@
 """Camera representation using the downloaded Mixamo rig and Holding motion pose."""
 import bpy,bmesh
+from mathutils import Vector
 from pathlib import Path
 ROOT=Path('/Users/shaman/Desktop/Projects/Godot/TRIP')
 source=bpy.data.objects['GEO Mixamo Rig'];scene=source.users_scene[0];bpy.context.window.scene=scene
 for t in source.animation_data.nla_tracks:t.mute=t.name!='Human Armature|Holding'
 scene.frame_set(15);bpy.context.view_layer.update()
+# Bend the forearm at its real elbow instead of stretching skinned vertices.
+for side in ['Right','Left']:
+    bone=source.pose.bones['mixamorig:'+side+'ForeArm']
+    direction=source.matrix_world.to_3x3() @ (bone.tail-bone.head)
+    target=Vector((0,-.85,.45))
+    world=source.matrix_world @ bone.matrix
+    rotation=direction.rotation_difference(target).to_matrix().to_4x4()
+    rotated=rotation @ world
+    rotated.translation=world.translation
+    bone.matrix=source.matrix_world.inverted() @ rotated
+    bpy.context.view_layer.update()
 pose={p.name:p.matrix.copy() for p in source.pose.bones}
 fps=bpy.data.scenes.new('TRIP • Mixamo FPS');bpy.context.window.scene=fps
 if bpy.data.objects.get('arms'):bpy.data.objects['arms'].name='Archived camera rig'
@@ -25,10 +37,6 @@ for ob in objects:
     ob.select_set(True);bpy.context.view_layer.objects.active=ob
     for m in list(ob.modifiers):
         if m.type=='ARMATURE':bpy.ops.object.modifier_apply(modifier=m.name)
-    upper={g.index for g in ob.vertex_groups if g.name.endswith(('LeftForeArm','RightForeArm'))}
-    # Vertex coordinates can be metres even though the armature uses cm.
-    local_down=ob.matrix_world.inverted().to_3x3() @ __import__('mathutils').Vector((0,0,-.4))
-    for v in ob.data.vertices:v.co+=local_down*sum(g.weight for g in v.groups if g.group in upper)
     ob.select_set(False)
 rig.select_set(True);bpy.context.view_layer.objects.active=rig;bpy.ops.object.mode_set(mode='POSE');bpy.ops.pose.armature_apply(selected=False);bpy.ops.object.mode_set(mode='OBJECT')
 for ob in objects:m=ob.modifiers.new('Mixamo skin','ARMATURE');m.object=rig;ob.select_set(True)

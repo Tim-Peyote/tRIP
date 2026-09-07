@@ -991,6 +991,12 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 		_selected_inventory_instance_id = specimens[0].instance_id
 	inventory_use_button.disabled = not definition is ConsumableDefinition
 	inventory_use_button.text = "Принять" if definition is ConsumableDefinition else "Не употребляется"
+	if definition is IngredientDefinition and _cooking != null:
+		inventory_use_button.disabled = specimens.is_empty()
+		inventory_use_button.text = "Для лаборатории"
+	if definition is ToolDefinition:
+		inventory_use_button.disabled = specimens.is_empty()
+		inventory_use_button.text = "Убрать из рук" if _player.toolbelt.is_equipped and _player.toolbelt.active_tool_id == definition_id else "Взять в руки"
 	inventory_drop_button.disabled = specimens.is_empty()
 	inventory_drop_button.text = "Выложить в мир"
 
@@ -1019,6 +1025,17 @@ func _consumable_profile_text(definition: ConsumableDefinition) -> String:
 
 func _use_selected_inventory_item() -> void:
 	if _player == null or _selected_inventory_instance_id == &"":
+		return
+	if ContentDB.get_definition(_selected_inventory_id) is IngredientDefinition and _cooking != null:
+		if _cooking.select_inventory_specimen(_player.inventory, _selected_inventory_instance_id):
+			show_notice("Образец выбран. Подойди к рабочему инструменту лаборатории.")
+		return
+	if ContentDB.get_definition(_selected_inventory_id) is ToolDefinition:
+		if _player.toolbelt.is_equipped and _player.toolbelt.active_tool_id == _selected_inventory_id:
+			_player.toolbelt.unequip()
+		else:
+			_player.toolbelt.equip(_selected_inventory_id)
+		_update_inventory_panel()
 		return
 	if _player.inventory.use_consumable_instance(_selected_inventory_instance_id):
 		audio_cue_requested.emit(&"confirm")

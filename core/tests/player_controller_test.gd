@@ -62,6 +62,8 @@ func _run() -> void:
 	_expect(_player.viewmodel.visible and not _player.avatar_animator.is_third_person_visible(), "First-person body/arms representation was not restored.")
 	var legacy_grip := _player.get_node("CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel/GripHand") as MeshInstance3D
 	var knife_attachment := _player.knife_viewmodel as BoneAttachment3D
+	_expect(not _player.toolbelt.is_equipped and not first_person_arms.visible, "New session must start with empty hands.")
+	_expect(_player.toolbelt.equip(&"tool.field_knife"), "Owned knife could not be equipped.")
 	_expect(not legacy_grip.visible, "Legacy primitive grip hand is still visible.")
 	_expect(knife_attachment != null and knife_attachment.bone_name == "mixamorig_RightHand", "Authored knife is not attached to the Mixamo right hand.")
 	_expect(knife_attachment.find_child("AuthoredKnife", true, false) != null, "Authored CC0 knife is missing from the viewmodel.")
@@ -146,6 +148,23 @@ func _run() -> void:
 
 	# Buffered jump, airborne animation and landing response are one locomotion contract.
 	var takeoff_y := _player.global_position.y
+	var takeoff_checked := [false]
+	_player.jumped.connect(func() -> void:
+		var skeleton := _player.avatar_animator.find_child("Skeleton3D", true, false) as Skeleton3D
+		var clip := avatar_animation_player.get_animation(&"Human Armature|Jump")
+		for track: int in clip.get_track_count():
+			if clip.track_get_type(track) != Animation.TYPE_ROTATION_3D:
+				continue
+			var path := clip.track_get_path(track)
+			if path.get_subname_count() == 0:
+				continue
+			var bone := skeleton.find_bone(path.get_subname(path.get_subname_count() - 1))
+			if bone < 0:
+				continue
+			var expected := clip.rotation_track_interpolate(track, 0.8)
+			_expect(skeleton.get_bone_pose_rotation(bone).angle_to(expected) < 0.02, "Takeoff skeleton is still blended with grounded pose: " + skeleton.get_bone_name(bone))
+			takeoff_checked[0] = true
+	, CONNECT_ONE_SHOT)
 	for event: InputEvent in InputMap.action_get_events(&"jump"):
 		if event is InputEventKey:
 			InputMap.action_erase_event(&"jump", event)
@@ -155,7 +174,9 @@ func _run() -> void:
 	await _physics_frames(8)
 	_expect(_player.global_position.y > takeoff_y + 0.35, "Raw physical Space did not lift the player without InputMap.")
 	InputBootstrap.ensure_defaults()
+	_expect(takeoff_checked[0], "Immediate takeoff bone pose was not checked.")
 	_expect(_player.avatar_animator.get_current_state() == &"jump", "Rigged avatar did not enter jump animation.")
+	_expect(avatar_animation_player.current_animation_position >= 0.8, "Airborne avatar is still playing grounded jump anticipation.")
 	for _frame: int in 100:
 		await get_tree().physics_frame
 		if _player.is_grounded() and not _landed_impacts.is_empty(): break

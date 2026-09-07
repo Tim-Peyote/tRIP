@@ -19,6 +19,21 @@ var vessel := ThermalVesselState.new()
 var active_recipe: RecipeDefinition
 var batches_completed: int = 0
 var station_tier: int = 0
+var pending_result: ItemInstance
+var _pending_resolution: RecipeResolution
+var selected_instance_id: StringName
+
+
+func select_inventory_specimen(inventory: InventoryComponent, instance_id: StringName) -> bool:
+	var item := inventory.get_item(instance_id)
+	if item == null or _find_recipe(item.definition_id) == null:
+		action_rejected.emit("Для этого предмета нет доступной обработки на станции.")
+		return false
+	if not process.events.is_empty() or _result_waiting():
+		action_rejected.emit("Сначала заверши текущую партию.")
+		return false
+	selected_instance_id = instance_id
+	return true
 
 
 func _ready() -> void:
@@ -30,6 +45,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if pending_result != null:
+		return
 	if vessel.water_amount <= 0.0 and vessel.heat_level == ThermalVesselState.HeatLevel.OFF:
 		return
 	vessel.simulate(delta)
@@ -41,6 +58,7 @@ func add_water() -> bool:
 
 
 func add_base(base_id: StringName) -> bool:
+	if _result_waiting(): return false
 	if not vessel.add_base(base_id, 1.0):
 		action_rejected.emit("Котёл уже заполнен другой основой.")
 		return false
@@ -50,6 +68,7 @@ func add_base(base_id: StringName) -> bool:
 
 
 func transfer_prepared_ingredient() -> bool:
+	if _result_waiting(): return false
 	var source: CookingProcessEvent
 	for event: CookingProcessEvent in process.events:
 		if event.operation == &"grind":
@@ -67,6 +86,7 @@ func transfer_prepared_ingredient() -> bool:
 
 
 func cycle_heat() -> bool:
+	if _result_waiting(): return false
 	var level := vessel.cycle_heat()
 	physical_action_recorded.emit(StringName("heat_%d" % level))
 	vessel_state_changed.emit(vessel)
@@ -74,6 +94,7 @@ func cycle_heat() -> bool:
 
 
 func stir_vessel() -> bool:
+	if _result_waiting(): return false
 	if not vessel.stir():
 		action_rejected.emit("Нечего перемешивать.")
 		return false
@@ -90,6 +111,7 @@ func toggle_vessel_position() -> bool:
 
 
 func pump_bellows() -> bool:
+	if _result_waiting(): return false
 	if not vessel.pump_bellows():
 		action_rejected.emit("Сначала разожги очаг.")
 		return false
@@ -120,6 +142,9 @@ func serve_result(actor: Node) -> bool:
 
 
 func finish_result(actor: Node, finish_method: RecipeDefinition.FinishMethod) -> bool:
+	if pending_result != null:
+		var target := actor.find_child("InventoryComponent", true, false) as InventoryComponent
+		return _collect_result(target) if target != null else false
 	if not vessel.ingredient_loaded:
 		action_rejected.emit("В котле нет состава.")
 		return false
@@ -146,8 +171,7 @@ func finish_result(actor: Node, finish_method: RecipeDefinition.FinishMethod) ->
 	process.append_event(event)
 	action_recorded.emit(&"heat", process.events.size())
 	physical_action_recorded.emit(StringName(RecipeDefinition.FinishMethod.keys()[finish_method].to_lower()))
-	_resolve(inventory, finish_method)
-	return true
+	return _resolve(inventory, finish_method)
 
 
 func perform_action(
@@ -160,6 +184,7 @@ func perform_action(
 	duration: float,
 	required_item_id: StringName = &""
 ) -> bool:
+	if _result_waiting(): return false
 	if process.events.is_empty():
 		active_recipe = _find_recipe(ingredient_id)
 		_configure_vessel_for_active_recipe()
@@ -187,7 +212,14 @@ func perform_action(
 	var consumed_item: ItemInstance
 	var actual_tags := ingredient_tags.duplicate()
 	if required_item_id != &"":
-		consumed_item = inventory.remove_one(required_item_id)
+		if selected_instance_id != &"":
+			var selected := inventory.get_item(selected_instance_id)
+			if selected == null or selected.definition_id != required_item_id:
+				action_rejected.emit("Выбранный образец больше не в сумке. Выбери другой.")
+				return false
+			consumed_item = inventory.remove_instance(selected_instance_id)
+		else:
+			consumed_item = inventory.remove_one(required_item_id)
 		if consumed_item == null:
 			action_rejected.emit("Ингредиент исчез до начала обработки.")
 			return false
@@ -202,7 +234,7 @@ func perform_action(
 		Time.get_ticks_msec() / 1000.0
 	)
 	event.ingredient_tags = actual_tags
-	event.source_quality = consumed_item.quality if consumed_item != null else 1.0
+	event.source_quality = consumed_item.quality if consumed_item != null else (process.events[0].source_quality if not process.events.is_empty() else 1.0)
 	process.append_event(event)
 	action_recorded.emit(operation, process.events.size())
 	if process.events.size() == current_recipe.steps.size():
@@ -211,6 +243,9 @@ func perform_action(
 
 
 func reset_process() -> void:
+	selected_instance_id = &""
+	pending_result = null
+	_pending_resolution = null
 	process.clear()
 	vessel.reset()
 	_configure_vessel_for_active_recipe()
@@ -234,10 +269,22 @@ func to_save_data() -> Dictionary:
 		"active_recipe_id": String(active_recipe.id) if active_recipe != null else "",
 		"batches_completed": batches_completed,
 		"station_tier": station_tier,
+		"pending_result": pending_result.to_save_data() if pending_result != null else {},
+		"pending_quality": _pending_resolution.quality if _pending_resolution != null else 0,
 	}
 
 
 func apply_save_data(data: Dictionary) -> void:
+	pending_result = null
+	_pending_resolution = null
+	var saved_result: Dictionary = data.get("pending_result", {})
+	if not saved_result.is_empty():
+		pending_result = ItemInstance.from_save_data(saved_result)
+		_pending_resolution = RecipeResolution.new()
+		_pending_resolution.result_item_id = pending_result.definition_id
+		_pending_resolution.score = pending_result.quality
+		_pending_resolution.yield_count = int(pending_result.quantity)
+		_pending_resolution.quality = clampi(int(data.get("pending_quality", 2)), 0, 4) as RecipeResolution.Quality
 	process.apply_save_data(data.get("process", []) as Array)
 	vessel.apply_save_data(data.get("vessel", {}) as Dictionary)
 	var saved_recipe_id := StringName(data.get("active_recipe_id", ""))
@@ -251,7 +298,7 @@ func apply_save_data(data: Dictionary) -> void:
 	vessel_state_changed.emit(vessel)
 
 
-func _resolve(inventory: InventoryComponent, finish_method: RecipeDefinition.FinishMethod = RecipeDefinition.FinishMethod.BOTTLE) -> void:
+func _resolve(inventory: InventoryComponent, finish_method: RecipeDefinition.FinishMethod = RecipeDefinition.FinishMethod.BOTTLE) -> bool:
 	var current_recipe := active_recipe if active_recipe != null else recipe
 	var physical_batch := vessel.ingredient_loaded
 	var resolved_base := vessel.base_id if vessel.base_id != &"" else current_recipe.required_base_id
@@ -278,19 +325,33 @@ func _resolve(inventory: InventoryComponent, finish_method: RecipeDefinition.Fin
 	batch_evaluated.emit(current_recipe.id, resolution)
 	if not physical_batch:
 		resolution.yield_count = current_recipe.base_yield
-	var result_definition := ContentDB.get_definition(resolution.result_item_id)
-	var result_name := result_definition.display_name if result_definition != null else String(resolution.result_item_id)
 	if resolution.quality < RecipeResolution.Quality.WORKING:
 		action_rejected.emit(_build_resolution_message(resolution))
 		reset_process()
-		return
+		return false
 	var result_item := ItemInstance.new(resolution.result_item_id, float(resolution.yield_count))
 	result_item.quality = clampf(resolution.score, 0.0, 1.0)
 	result_item.processing_state[&"batch_quality"] = RecipeResolution.Quality.keys()[resolution.quality].to_lower()
 	result_item.processing_state[&"finish_method"] = RecipeDefinition.FinishMethod.keys()[finish_method].to_lower()
-	if not inventory.add_item(result_item):
-		action_rejected.emit("В сумке нет места для готового состава.")
-		return
+	pending_result = result_item
+	_pending_resolution = resolution
+	vessel_state_changed.emit(vessel)
+	return _collect_result(inventory)
+
+
+func _result_waiting() -> bool:
+	if pending_result == null: return false
+	action_rejected.emit("Готовый состав ждёт получения. Освободи место в сумке и забери его.")
+	return true
+
+
+func _collect_result(inventory: InventoryComponent) -> bool:
+	if pending_result == null or not inventory.add_item(pending_result):
+		action_rejected.emit("В сумке нет места. Готовый состав останется на станции — освободи место и забери его.")
+		return false
+	var resolution := _pending_resolution
+	var definition := ContentDB.get_definition(pending_result.definition_id)
+	var result_name := definition.display_name if definition != null else String(pending_result.definition_id)
 	batches_completed += 1
 	var previous_tier := station_tier
 	station_tier = _tier_for_batches(batches_completed)
@@ -299,6 +360,7 @@ func _resolve(inventory: InventoryComponent, finish_method: RecipeDefinition.Fin
 	mastery_changed.emit(station_tier, batches_completed)
 	result_created.emit(resolution, result_name)
 	reset_process()
+	return true
 
 
 func _tier_for_batches(value: int) -> int:
