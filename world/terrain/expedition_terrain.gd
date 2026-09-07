@@ -56,6 +56,7 @@ var _biome_ambience: AudioStreamPlayer
 var _decor_exclusion_centers: Array[Vector2] = []
 var _collected_biome_ingredient_spawns: Dictionary[StringName, bool] = {}
 var _discovered_mystery_ids: Dictionary[StringName, bool] = {}
+var _interactive_world_states: Dictionary[StringName, Dictionary] = {}
 var _last_safe_target_position := Vector3(0.0, 1.0, 15.0)
 var _safe_position_tick: float = 0.0
 
@@ -225,6 +226,42 @@ func apply_collected_biome_ingredient_spawns(values: Array) -> void:
 		var sample := node as GeneratedBiomeIngredient
 		if _collected_biome_ingredient_spawns.has(sample.spawn_id):
 			sample.queue_free()
+
+
+func get_interactive_world_states() -> Dictionary:
+	var result: Dictionary = {}
+	for state_id: StringName in _interactive_world_states:
+		result[String(state_id)] = (_interactive_world_states[state_id] as Dictionary).duplicate(true)
+	return result
+
+
+func apply_interactive_world_states(values: Dictionary) -> void:
+	_interactive_world_states.clear()
+	for raw_id: Variant in values:
+		_interactive_world_states[StringName(raw_id)] = (values[raw_id] as Dictionary).duplicate(true)
+	for node: Node in find_children("*", "WorldLootContainer", true, false):
+		var container := node as WorldLootContainer
+		if _interactive_world_states.has(container.container_id):
+			container.apply_save_data(_interactive_world_states[container.container_id])
+	for node: Node in find_children("*", "ExcavationSite", true, false):
+		var site := node as ExcavationSite
+		if _interactive_world_states.has(site.site_id):
+			site.apply_save_data(_interactive_world_states[site.site_id])
+
+
+func register_interactive_world_object(node: Node) -> void:
+	if node is WorldLootContainer:
+		var container := node as WorldLootContainer
+		if not container.state_changed.is_connected(_on_interactive_world_state_changed):
+			container.state_changed.connect(_on_interactive_world_state_changed)
+		if _interactive_world_states.has(container.container_id):
+			container.apply_save_data(_interactive_world_states[container.container_id])
+	elif node is ExcavationSite:
+		var site := node as ExcavationSite
+		if not site.state_changed.is_connected(_on_interactive_world_state_changed):
+			site.state_changed.connect(_on_interactive_world_state_changed)
+		if _interactive_world_states.has(site.site_id):
+			site.apply_save_data(_interactive_world_states[site.site_id])
 
 
 func apply_discovered_mysteries(values: Array) -> void:
@@ -1678,6 +1715,17 @@ func _configure_generated_poi_content(
 		root.event_progressed.connect(func(definition: WorldMysteryDefinition, progress: float, pressure: float) -> void: mystery_event_progressed.emit(definition, progress, pressure))
 	if pack == null or pack.local_ingredient_ids.is_empty():
 		return
+	var cache_id := StringName("cache.%s.%d.%d" % [String(_phase_definition.id if _phase_definition != null else &"phase.ordinary"), coordinate.x, coordinate.y])
+	var cache := WorldLootContainer.new()
+	cache.name = "RevealedFieldCache"
+	cache.configure(cache_id, _build_cache_loot_table(pack, false), int(_chunk_seed(coordinate)) + 771, "Спрятанный дорожный ящик")
+	var cache_angle := float(abs(int(_chunk_seed(coordinate) + 91)) % 628) * 0.01
+	var cache_point := center + Vector2(cos(cache_angle), sin(cache_angle)) * 5.1
+	cache.position = Vector3(cache_point.x, _height_at(cache_point.x, cache_point.y) + 0.04, cache_point.y)
+	cache.rotation.y = cache_angle + PI * 0.5
+	root.add_child(cache)
+	register_interactive_world_object(cache)
+	root.register_reveal_node(cache)
 	var ingredient_id := pack.local_ingredient_ids[abs(int(_chunk_seed(coordinate) + 17)) % pack.local_ingredient_ids.size()]
 	var spawn_id := StringName("generated.%d.%d.%s" % [coordinate.x, coordinate.y, ingredient_id])
 	if _collected_biome_ingredient_spawns.has(spawn_id):
@@ -1803,6 +1851,39 @@ func _add_cave_feature(body: Node3D, coordinate: Vector2i, rng: RandomNumberGene
 		cave.add_child(rib)
 	cave.set_meta(&"poi_kind", &"cave_%s" % pack.id)
 	body.add_child(cave)
+	var site_id := StringName("excavation.%s.%d.%d" % [String(_phase_definition.id if _phase_definition != null else &"phase.ordinary"), coordinate.x, coordinate.y])
+	var site := ExcavationSite.new()
+	site.name = "CaveExcavation"
+	site.configure(site_id, _build_cache_loot_table(pack, true), int(_chunk_seed(coordinate)) + 1907)
+	var site_point := center + Vector2(0.0, 2.7)
+	site.position = Vector3(site_point.x, _height_at(site_point.x, site_point.y) + 0.03, site_point.y)
+	site.rotation.y = rng.randf_range(-0.35, 0.35)
+	body.add_child(site)
+	register_interactive_world_object(site)
+
+
+func _build_cache_loot_table(pack: BiomeContentPack, excavation: bool) -> LootTableDefinition:
+	var table := LootTableDefinition.new()
+	table.id = &"generated.cave" if excavation else &"generated.cache"
+	table.rolls = 2 if not excavation else 3
+	var base_entry := LootEntryDefinition.new()
+	base_entry.definition_id = &"ingredient.mooncap" if pack.local_ingredient_ids.is_empty() else pack.local_ingredient_ids[0]
+	base_entry.guaranteed = true
+	base_entry.chance = 1.0
+	base_entry.minimum_quality = 0.42 if excavation else 0.58
+	base_entry.maximum_quality = 0.82 if excavation else 0.94
+	table.entries.append(base_entry)
+	var utility_entry := LootEntryDefinition.new()
+	utility_entry.definition_id = &"tool.spore_vial"
+	utility_entry.chance = 0.55 if excavation else 0.34
+	utility_entry.minimum_quality = 0.55
+	utility_entry.maximum_quality = 0.88
+	table.entries.append(utility_entry)
+	return table
+
+
+func _on_interactive_world_state_changed(state_id: StringName, state: Dictionary) -> void:
+	_interactive_world_states[state_id] = state.duplicate(true)
 
 
 func _add_mycelial_beacon(body: Node3D, coordinate: Vector2i, rng: RandomNumberGenerator) -> void:

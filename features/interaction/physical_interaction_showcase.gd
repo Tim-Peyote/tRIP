@@ -6,10 +6,34 @@ var _terrain: ExpeditionTerrain
 
 func setup(terrain: ExpeditionTerrain) -> void:
 	_terrain = terrain
-	_build_prop("Полевой ящик", &"wood", Vector3(-2.0, 0, 13.0), Vector3(0.72, 0.48, 0.54), 4.2, Color("5a3620"), true)
+	_build_supply_cache()
 	_build_prop("Берестяной короб", &"organic", Vector3(-1.0, 0, 13.5), Vector3(0.42, 0.36, 0.42), 1.1, Color("a56a37"), true)
 	_build_prop("Камень обряда", &"stone", Vector3(1.05, 0, 13.4), Vector3(0.46, 0.34, 0.52), 7.5, Color("3c4742"), false)
 	_build_prop("Медный котелок", &"metal", Vector3(2.0, 0, 13.0), Vector3(0.46, 0.3, 0.46), 2.6, Color("8b5130"), false)
+
+
+func _build_supply_cache() -> void:
+	var sample := LootEntryDefinition.new()
+	sample.definition_id = &"ingredient.mooncap"
+	sample.guaranteed = true
+	sample.minimum_quality = 0.62
+	sample.maximum_quality = 0.78
+	var vial := LootEntryDefinition.new()
+	vial.definition_id = &"tool.spore_vial"
+	vial.chance = 1.0
+	var table := LootTableDefinition.new()
+	table.id = &"loot.starting_field_cache"
+	table.rolls = 1
+	table.entries = [sample, vial]
+	var cache := WorldLootContainer.new()
+	cache.name = "FieldSupplyCache"
+	cache.configure(&"cache.starting_field_crate", table, 61937, "Полевой ящик Ильи")
+	var world_position := Vector3(-2.0, 0.0, 13.0)
+	world_position.y = _terrain.get_height_at_global(world_position) + 0.04
+	cache.position = world_position
+	cache.rotation.y = -0.12
+	add_child(cache)
+	_terrain.register_interactive_world_object(cache)
 
 
 func _build_prop(

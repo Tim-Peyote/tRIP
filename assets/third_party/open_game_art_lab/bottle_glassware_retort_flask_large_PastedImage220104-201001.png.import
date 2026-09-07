@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdrpqigwaero6"
-path="res://.godot/imported/bottle_glassware_retort_flask_large_PastedImage220104-201001.png-ed3b71d9fbc02305e844407f2813bc15.ctex"
+path.s3tc="res://.godot/imported/bottle_glassware_retort_flask_large_PastedImage220104-201001.png-ed3b71d9fbc02305e844407f2813bc15.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "cfdf22194a924e5900332229e0b857bb"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/third_party/open_game_art_lab/bottle_glassware_retort_flask_large_PastedImage220104-201001.png"
-dest_files=["res://.godot/imported/bottle_glassware_retort_flask_large_PastedImage220104-201001.png-ed3b71d9fbc02305e844407f2813bc15.ctex"]
+dest_files=["res://.godot/imported/bottle_glassware_retort_flask_large_PastedImage220104-201001.png-ed3b71d9fbc02305e844407f2813bc15.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

@@ -84,6 +84,7 @@ func to_save_data() -> Dictionary:
 		"discovered_mysteries": _discovered_mysteries.keys().map(func(value: Variant) -> String: return String(value)),
 		"story_phase_id": String(_phases.get_story_phase_id()) if _phases != null else "phase.ordinary",
 		"collected_biome_ingredients": _terrain.get_collected_biome_ingredient_spawns() if _terrain != null else [],
+		"interactive_world_states": _terrain.get_interactive_world_states() if _terrain != null else {},
 	}
 
 
@@ -93,6 +94,7 @@ func apply_save_data(data: Dictionary) -> void:
 		_discovered_mysteries[StringName(raw_id)] = true
 	_terrain.apply_discovered_mysteries(data.get("discovered_mysteries", []) as Array)
 	_terrain.apply_collected_biome_ingredient_spawns(data.get("collected_biome_ingredients", []) as Array)
+	_terrain.apply_interactive_world_states(data.get("interactive_world_states", {}) as Dictionary)
 	_phases.set_story_phase(StringName(data.get("story_phase_id", "phase.ordinary")))
 	_emit_contract()
 

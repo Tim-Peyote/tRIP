@@ -392,7 +392,7 @@ script = ExtResource("4_noise")
 [node name="ToolbeltComponent" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("5_toolbelt")
-starter_tool_ids = Array[StringName]([&"tool.field_knife", &"tool.spore_vial"])
+starter_tool_ids = Array[StringName]([&"tool.field_knife", &"tool.spore_vial", &"tool.field_shovel"])
 
 [node name="DistractionThrowerComponent" type="Node" parent="."]
 unique_name_in_owner = true

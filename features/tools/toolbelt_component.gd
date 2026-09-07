@@ -3,7 +3,7 @@ extends Node
 
 signal tool_changed(tool_id: StringName, is_equipped: bool)
 
-@export var starter_tool_ids: Array[StringName] = [&"tool.field_knife", &"tool.spore_vial"]
+@export var starter_tool_ids: Array[StringName] = [&"tool.field_knife", &"tool.spore_vial", &"tool.field_shovel"]
 
 var active_tool_id: StringName
 var is_equipped: bool = true

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ToolDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/tool_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"tool.field_shovel"
+display_name = "Складная сапёрная лопата"
+description = "Короткая складная лопата для мягкого грунта, снежных наносов и неглубоких тайников."
+tags = Array[StringName]([&"tool", &"field", &"digging"])
+mass = 0.82
+volume = 0.62
+max_stack = 1
+capabilities = Array[StringName]([&"dig", &"clear_snow", &"loosen_soil"])
+base_precision = 0.88
