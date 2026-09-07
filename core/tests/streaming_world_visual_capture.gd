@@ -17,7 +17,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 117, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	# The comparison camera sits on the seed-specific route after it has left the
@@ -74,7 +74,7 @@ func _ready() -> void:
 	get_tree().quit(final_error)
 
 
-func _capture_phase(level: ShelterLevel, terrain: ExpeditionTerrain, phase_id: StringName, path: String) -> Error:
+func _capture_phase(level: SessionController, terrain: ExpeditionTerrain, phase_id: StringName, path: String) -> Error:
 	level.world_phase_orchestrator.set_developer_phase(phase_id)
 	terrain.call("_set_phase_amount", 1.0)
 	level.biome_visual_controller.apply_profile(level.world_phase_orchestrator.get_current().visual_profile, true)
@@ -84,7 +84,7 @@ func _capture_phase(level: ShelterLevel, terrain: ExpeditionTerrain, phase_id: S
 	return get_viewport().get_texture().get_image().save_png(path)
 
 
-func _reground_viewpoint(level: ShelterLevel, terrain: ExpeditionTerrain) -> void:
+func _reground_viewpoint(level: SessionController, terrain: ExpeditionTerrain) -> void:
 	var viewpoint := level.player.global_position
 	viewpoint.y = terrain.get_height_at_global(viewpoint) + 0.12
 	terrain.ensure_area_at(viewpoint)

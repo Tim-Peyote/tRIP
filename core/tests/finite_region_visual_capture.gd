@@ -10,7 +10,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 1701, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	level.get_weather().automatic = false
 	level.get_weather().set_weather(WeatherOrchestrator.State.CLEAR, 0.18, true)
@@ -28,7 +28,7 @@ func _ready() -> void:
 	get_tree().quit(error)
 
 
-func _capture_rim(level: ShelterLevel, terrain: ExpeditionTerrain, path: String) -> Error:
+func _capture_rim(level: SessionController, terrain: ExpeditionTerrain, path: String) -> Error:
 	var pack := level.world_phase_orchestrator.get_current().content_pack
 	var center_z := pack.region_south + pack.region_length * 0.5
 	var viewpoint := Vector3(pack.region_half_width * 0.58, 0.0, center_z)

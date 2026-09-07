@@ -10,12 +10,13 @@ func _ready() -> void:
 func _run() -> void:
 	var packed := load("res://app/main/main.tscn") as PackedScene
 	var main := packed.instantiate() as TripMain
+	main.session_scene = load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene
 	add_child(main)
 	await get_tree().process_frame
 	main.call("_on_game_requested", 90, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
-	_expect(level != null, "Main flow did not create ShelterLevel.")
+	var level := main.find_child("LegacyExpeditionFixture", true, false) as LegacyExpeditionFixture
+	_expect(level != null, "Main flow did not create SessionController.")
 	if level == null:
 		_finish(main)
 		return

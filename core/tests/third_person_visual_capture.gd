@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 731, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.player.set_third_person_enabled(true, false)
 	level.player.set_gameplay_input_override_for_testing(true)
 	level.player.rotation.y = 0.18

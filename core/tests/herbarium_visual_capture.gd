@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 821, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.knowledge_orchestrator.observe(&"ingredient.mooncap")
 	level.knowledge_orchestrator.record_clue(&"ingredient.mooncap", &"observation.mooncap.silver_veins", 3)
 	level.knowledge_orchestrator.record_clue(&"ingredient.mooncap", &"observation.mooncap.stem_ring", 3)

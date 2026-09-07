@@ -1,36 +1,55 @@
 class_name AuthoredNatureAssetLibrary
 extends RefCounted
 
-const ROOT := "res://assets/third_party/kenney_nature_kit/models/"
+const ROOT := "res://assets/models/taiga/"
 const TALL_PINES := [
-	"tree_pineTallA.fbx", "tree_pineTallB.fbx", "tree_pineTallC.fbx", "tree_pineTallD.fbx",
-	"tree_pineDefaultA.fbx", "tree_pineDefaultB.fbx",
+	"fir.glb", "cedar.glb", "wind_cedar.glb",
 ]
 const ROUND_PINES := [
-	"tree_pineRoundA.fbx", "tree_pineRoundB.fbx", "tree_pineRoundC.fbx",
-	"tree_pineRoundD.fbx", "tree_pineRoundE.fbx", "tree_pineRoundF.fbx",
+	"cedar.glb", "wind_cedar.glb",
 ]
 const YOUNG_PINES := [
-	"tree_pineSmallA.fbx", "tree_pineSmallB.fbx", "tree_pineSmallC.fbx", "tree_pineSmallD.fbx",
+	"young_fir.glb",
 ]
 const ROCKS := [
-	"rock_largeA.fbx", "rock_largeB.fbx", "rock_largeC.fbx",
-	"rock_largeD.fbx", "rock_largeE.fbx", "rock_largeF.fbx",
-	"rock_smallA.fbx", "rock_smallB.fbx", "rock_smallC.fbx", "rock_smallD.fbx", "rock_smallE.fbx",
-	"rock_smallF.fbx", "rock_smallG.fbx", "rock_smallH.fbx", "rock_smallI.fbx",
+	"granite_round.glb", "granite_split.glb", "granite_moss.glb",
 ]
 const FOREST_FLOOR := [
-	"log.fbx", "log_large.fbx", "stump_old.fbx", "stump_oldTall.fbx",
-	"stump_round.fbx", "stump_roundDetailed.fbx", "plant_bush.fbx",
-	"plant_bushDetailed.fbx", "plant_bushLarge.fbx", "plant_bushSmall.fbx",
+	"deadfall.glb", "stump.glb", "berry_shrub.glb",
 ]
 const FUNGI := [
-	"mushroom_red.fbx", "mushroom_redGroup.fbx",
-	"mushroom_tan.fbx", "mushroom_tanGroup.fbx",
+	"fungi.glb",
 ]
-const GRASS_CLUSTERS := ["grass.fbx", "grass_large.fbx", "grass_leafs.fbx"]
+const GRASS_CLUSTERS := ["fern.glb", "sedge.glb"]
 
 var _scene_cache: Dictionary[String, PackedScene] = {}
+var _mesh_cache: Dictionary[String, Mesh] = {}
+
+
+func get_runtime_mesh(file_name: String) -> Mesh:
+	if _mesh_cache.has(file_name):
+		return _mesh_cache[file_name]
+	var packed := load(ROOT + file_name) as PackedScene
+	if packed == null:
+		return null
+	var instance := packed.instantiate() as Node3D
+	var combined := ArrayMesh.new()
+	for node: Node in instance.find_children("*", "MeshInstance3D", true, false):
+		var part := node as MeshInstance3D
+		var transform := part.transform
+		var ancestor := part.get_parent() as Node3D
+		while ancestor != null:
+			transform = ancestor.transform * transform
+			ancestor = ancestor.get_parent() as Node3D
+		for surface in part.mesh.get_surface_count():
+			var builder := SurfaceTool.new()
+			builder.begin(Mesh.PRIMITIVE_TRIANGLES)
+			builder.append_from(part.mesh, surface, transform)
+			builder.set_material(part.mesh.surface_get_material(surface))
+			builder.commit(combined)
+	instance.free()
+	_mesh_cache[file_name] = combined
+	return combined
 
 
 func instantiate_variant(family: StringName, variant: int) -> Node3D:
@@ -50,7 +69,7 @@ func instantiate_variant(family: StringName, variant: int) -> Node3D:
 	instance.name = "AuthoredNature_%s_%02d" % [family, posmod(variant, files.size())]
 	instance.scale = Vector3.ONE * _base_scale_for_family(family)
 	instance.set_meta(&"authored_nature", true)
-	instance.set_meta(&"asset_source", &"kenney_nature_kit")
+	instance.set_meta(&"asset_source", &"trip_blender_taiga")
 	# Imported model scenes are visual ingredients, never self-contained levels.
 	# Strip exporter cameras and lights before the instance enters SceneTree so an
 	# asset cannot take over the gameplay viewport or alter the authored lighting.
@@ -68,22 +87,8 @@ func instantiate_variant(family: StringName, variant: int) -> Node3D:
 	return instance
 
 
-func _base_scale_for_family(family: StringName) -> float:
-	match family:
-		&"tall_pine":
-			return 4.6
-		&"round_pine":
-			return 4.0
-		&"young_pine":
-			return 3.3
-		&"rock":
-			return 1.45
-		&"forest_floor":
-			return 2.8
-		&"fungi":
-			return 2.1
-		&"grass_cluster":
-			return 2.4
+func _base_scale_for_family(_family: StringName) -> float:
+	# All authored replacements use metres; no kit-specific scale correction.
 	return 1.0
 
 

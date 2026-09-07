@@ -1,0 +1,654 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://presentation/ui/trip_theme.tres" id="1_scg3s"]
+[ext_resource type="Script" path="res://features/inventory/inventory_specimen_list.gd" id="2_vcsgd"]
+[ext_resource type="Script" path="res://features/inventory/inventory_action_button.gd" id="3_r7pit"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w4rts"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(0.045, 0.057, 0.049, 0.96)
+border_width_left = 1
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.72, 0.8, 0.59, 0.18)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.62)
+shadow_size = 24
+shadow_offset = Vector2(0, 10)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_553v3"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.06, 0.075, 0.064, 0)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0rdc1"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mohoh"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.15, 0.18, 0.15, 0.48)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bqbed"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1ufe"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qxhjq"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.06, 0.075, 0.064, 0)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_57p6r"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lw1p5"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.15, 0.18, 0.15, 0.48)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trr7b"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_afmm3"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_168hg"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.06, 0.075, 0.064, 0)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mj2ny"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_72afu"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.15, 0.18, 0.15, 0.48)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vii0s"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sjf2y"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_73mbe"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.06, 0.075, 0.064, 0)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t3q32"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_33kp2"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.15, 0.18, 0.15, 0.48)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a3mi4"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cja26"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+border_width_bottom = 2
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wscy2"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.075, 0.091, 0.078, 0.72)
+border_width_left = 2
+border_color = Color(0.62, 0.69, 0.52, 0.16)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.32)
+
+[node name="InventoryPanel" type="PanelContainer" unique_id=966258872]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -220.0
+offset_right = 300.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_scg3s")
+theme_override_styles/panel = SubResource("StyleBoxFlat_w4rts")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1621676457]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 18
+
+[node name="Layout" type="VBoxContainer" parent="Margin" unique_id=523452709]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Margin/Layout" unique_id=865719804]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleStack" type="VBoxContainer" parent="Margin/Layout/Header" unique_id=1388738617]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Title" type="Label" parent="Margin/Layout/Header/TitleStack" unique_id=289772396]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.86, 0.61, 1)
+theme_override_font_sizes/font_size = 23
+text = "ПОЛЕВАЯ СУМКА"
+
+[node name="Subtitle" type="Label" parent="Margin/Layout/Header/TitleStack" unique_id=333137283]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.69, 0.63, 1)
+theme_override_font_sizes/font_size = 11
+text = "ЭКСПЕДИЦИЯ · ОБРАЗЦЫ И СНАРЯЖЕНИЕ"
+
+[node name="HeaderSpacer" type="Control" parent="Margin/Layout/Header" unique_id=2063357714]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventoryItemCount" type="Label" parent="Margin/Layout/Header" unique_id=65499808]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 12
+text = "0 ВИДОВ · 0 ПРЕДМЕТОВ"
+vertical_alignment = 1
+
+[node name="FilterBar" type="HBoxContainer" parent="Margin/Layout" unique_id=906605337]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="InventoryFilterAll" type="Button" parent="Margin/Layout/FilterBar" unique_id=1414042585]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 32)
+layout_mode = 2
+theme_override_colors/font_pressed_color = Color(0.78, 0.85, 0.57, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.88, 0.94, 0.72, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_553v3")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_0rdc1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mohoh")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_bqbed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_e1ufe")
+toggle_mode = true
+button_pressed = true
+text = "ВСЁ"
+
+[node name="InventoryFilterIngredients" type="Button" parent="Margin/Layout/FilterBar" unique_id=1924004664]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(82, 32)
+layout_mode = 2
+theme_override_colors/font_pressed_color = Color(0.78, 0.85, 0.57, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.88, 0.94, 0.72, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_qxhjq")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_57p6r")
+theme_override_styles/hover = SubResource("StyleBoxFlat_lw1p5")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_trr7b")
+theme_override_styles/focus = SubResource("StyleBoxFlat_afmm3")
+toggle_mode = true
+text = "СЫРЬЁ"
+
+[node name="InventoryFilterConsumables" type="Button" parent="Margin/Layout/FilterBar" unique_id=1735796301]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(92, 32)
+layout_mode = 2
+theme_override_colors/font_pressed_color = Color(0.78, 0.85, 0.57, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.88, 0.94, 0.72, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_168hg")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mj2ny")
+theme_override_styles/hover = SubResource("StyleBoxFlat_72afu")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_vii0s")
+theme_override_styles/focus = SubResource("StyleBoxFlat_sjf2y")
+toggle_mode = true
+text = "СОСТАВЫ"
+
+[node name="InventoryFilterTools" type="Button" parent="Margin/Layout/FilterBar" unique_id=356014229]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 32)
+layout_mode = 2
+theme_override_colors/font_pressed_color = Color(0.78, 0.85, 0.57, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.88, 0.94, 0.72, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_73mbe")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_t3q32")
+theme_override_styles/hover = SubResource("StyleBoxFlat_33kp2")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_a3mi4")
+theme_override_styles/focus = SubResource("StyleBoxFlat_cja26")
+toggle_mode = true
+text = "СНАРЯЖЕНИЕ"
+
+[node name="FilterSpacer" type="Control" parent="Margin/Layout/FilterBar" unique_id=20176406]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventorySortLabel" type="Label" parent="Margin/Layout/FilterBar" unique_id=1048883855]
+visible = false
+layout_mode = 2
+text = "СОРТИРОВКА"
+vertical_alignment = 1
+
+[node name="InventorySort" type="OptionButton" parent="Margin/Layout/FilterBar" unique_id=1202658617]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(142, 32)
+layout_mode = 2
+selected = 0
+item_count = 4
+popup/item_0/text = "По названию"
+popup/item_0/id = 0
+popup/item_1/text = "По качеству"
+popup/item_1/id = 1
+popup/item_2/text = "По количеству"
+popup/item_2/id = 2
+popup/item_3/text = "По свежести"
+popup/item_3/id = 3
+
+[node name="InventoryCapacityLabel" type="Label" parent="Margin/Layout" unique_id=1177266332]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "НАГРУЗКА  0 / 12 кг     ·     ОБЪЁМ  0 / 8 л"
+
+[node name="CapacityBars" type="HBoxContainer" parent="Margin/Layout" unique_id=555824509]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="MassCapacity" type="VBoxContainer" parent="Margin/Layout/CapacityBars" unique_id=553041442]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="InventoryMassCaption" type="Label" parent="Margin/Layout/CapacityBars/MassCapacity" unique_id=1645190706]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.61, 0.68, 0.57, 1)
+theme_override_font_sizes/font_size = 11
+text = "ВЕС  0 / 12 КГ"
+
+[node name="InventoryMassBar" type="ProgressBar" parent="Margin/Layout/CapacityBars/MassCapacity" unique_id=1369749682]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="VolumeCapacity" type="VBoxContainer" parent="Margin/Layout/CapacityBars" unique_id=2107091647]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="InventoryVolumeCaption" type="Label" parent="Margin/Layout/CapacityBars/VolumeCapacity" unique_id=2012149437]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.61, 0.68, 0.57, 1)
+theme_override_font_sizes/font_size = 11
+text = "ОБЪЁМ  0 / 8 Л"
+
+[node name="InventoryVolumeBar" type="ProgressBar" parent="Margin/Layout/CapacityBars/VolumeCapacity" unique_id=1512924460]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="Body" type="HBoxContainer" parent="Margin/Layout" unique_id=1484716252]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="ListScroll" type="ScrollContainer" parent="Margin/Layout/Body" unique_id=473283491]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="InventoryList" type="GridContainer" parent="Margin/Layout/Body/ListScroll" unique_id=1619938424]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 16
+
+[node name="Detail" type="PanelContainer" parent="Margin/Layout/Body" unique_id=1038149747]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_wscy2")
+
+[node name="DetailMargin" type="MarginContainer" parent="Margin/Layout/Body/Detail" unique_id=241784933]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="DetailLayout" type="VBoxContainer" parent="Margin/Layout/Body/Detail/DetailMargin" unique_id=1278637135]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DetailScroll" type="ScrollContainer" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout" unique_id=1028975357]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DetailContent" type="VBoxContainer" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll" unique_id=6080243]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="InventoryDetailCategory" type="Label" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=2063658708]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 12
+text = "КАТЕГОРИЯ"
+
+[node name="InventoryDetailIcon" type="TextureRect" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=234758911]
+unique_name_in_owner = true
+texture_filter = 1
+custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="InventoryDetailTitle" type="Label" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=214656633]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.76, 0.83, 0.66, 1)
+theme_override_font_sizes/font_size = 21
+text = "Образец"
+
+[node name="DetailRule" type="HSeparator" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=1339312973]
+layout_mode = 2
+
+[node name="InventoryDetailBody" type="Label" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=667290882]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Выберите предмет слева."
+autowrap_mode = 2
+
+[node name="QualityTitle" type="Label" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=1393132501]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "ЛУЧШЕЕ КАЧЕСТВО"
+
+[node name="InventoryQualityBar" type="ProgressBar" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=1578821712]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 1.0
+show_percentage = false
+
+[node name="FreshnessTitle" type="Label" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=1616701444]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.66, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "СРЕДНЯЯ СВЕЖЕСТЬ"
+
+[node name="InventoryFreshnessBar" type="ProgressBar" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=776971002]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 1.0
+show_percentage = false
+
+[node name="SpecimenTitle" type="Label" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=1777038711]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 11
+text = "ОБРАЗЦЫ В СУМКЕ"
+
+[node name="InventorySpecimenList" type="ItemList" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=2035438765]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+script = ExtResource("2_vcsgd")
+
+[node name="InventoryActions" type="HBoxContainer" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout" unique_id=471006760]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="InventoryUseButton" type="Button" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/InventoryActions" unique_id=1041126141]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Нельзя применить напрямую"
+script = ExtResource("3_r7pit")
+inventory_action = "consume"
+
+[node name="InventoryDropButton" type="Button" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/InventoryActions" unique_id=200874586]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Выложить"
+script = ExtResource("3_r7pit")
+
+[node name="Hint" type="Label" parent="Margin/Layout" unique_id=101452064]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.61, 0.65, 0.58, 1)
+theme_override_font_sizes/font_size = 13
+text = "[I] закрыть  ·  перетащи образец на действие или используй кнопки  ·  выброшенное можно поднять обратно"

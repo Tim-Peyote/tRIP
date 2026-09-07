@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://presentation/ui/trip_theme.tres" id="1_1qs5a"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oe07o"]
+content_margin_left = 18.0
+content_margin_top = 9.0
+content_margin_right = 18.0
+content_margin_bottom = 9.0
+bg_color = Color(0.09, 0.105, 0.092, 0.7052)
+border_width_left = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56078434, 0.72156864, 0.65882355, 0.2)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+shadow_color = Color(0, 0, 0, 0.32)
+
+[node name="InspectionPanel" type="PanelContainer" unique_id=511058147]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -382.0
+offset_top = 54.0
+offset_right = -28.0
+offset_bottom = 196.0
+grow_horizontal = 0
+theme = ExtResource("1_1qs5a")
+theme_override_styles/panel = SubResource("StyleBoxFlat_oe07o")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=368630208]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Text" type="VBoxContainer" parent="Margin" unique_id=1797284144]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InspectionTitle" type="Label" parent="Margin/Text" unique_id=431872522]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
+theme_override_font_sizes/font_size = 19
+text = "Неизвестный образец"
+
+[node name="InspectionDescription" type="Label" parent="Margin/Text" unique_id=405851496]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Описание"
+autowrap_mode = 2

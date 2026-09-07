@@ -61,9 +61,9 @@ func _test_weather() -> void:
 	var weather := WeatherOrchestrator.new()
 	add_child(weather)
 	weather.setup(world_environment, player)
-	var rain_audio := weather.get_node("RecordedRain") as AudioStreamPlayer
-	var wind_audio := weather.get_node("RecordedWind") as AudioStreamPlayer
-	var thunder_audio := weather.get_node("SpatialThunder") as AudioStreamPlayer3D
+	var rain_audio := weather.get_node("WeatherRig/RecordedRain") as AudioStreamPlayer
+	var wind_audio := weather.get_node("WeatherRig/RecordedWind") as AudioStreamPlayer
+	var thunder_audio := weather.get_node("WeatherRig/SpatialThunder") as AudioStreamPlayer3D
 	_expect(not rain_audio.playing, "Clear weather started the rain loop during setup.")
 	_expect(thunder_audio.stream is AudioStreamWAV and (thunder_audio.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_DISABLED, "Thunder one-shot is configured as a loop.")
 	weather.set_weather(WeatherOrchestrator.State.STORM, 1.0, true)
@@ -71,8 +71,8 @@ func _test_weather() -> void:
 	_expect(weather.state == WeatherOrchestrator.State.STORM, "Developer weather switching failed.")
 	_expect(weather.wind.length() > 1.0, "Storm has no systemic wind.")
 	_expect(weather.wetness > 0.0, "Storm did not begin wetting the world.")
-	var precipitation := weather.get_node("LocalPrecipitation") as GPUParticles3D
-	var depth_precipitation := weather.get_node("WeatherDepthLayer") as GPUParticles3D
+	var precipitation := weather.get_node("WeatherRig/LocalPrecipitation") as GPUParticles3D
+	var depth_precipitation := weather.get_node("WeatherRig/WeatherDepthLayer") as GPUParticles3D
 	_expect(precipitation != null and precipitation.emitting, "Storm precipitation is not visible.")
 	_expect(depth_precipitation != null and depth_precipitation.emitting, "Storm has no distant spatial precipitation layer.")
 	_expect(precipitation.draw_pass_1 is SphereMesh, "Storm still renders precipitation as screen-facing stripe quads.")

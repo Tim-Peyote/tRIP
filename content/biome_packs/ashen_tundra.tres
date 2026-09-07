@@ -3,8 +3,11 @@
 [ext_resource type="Script" path="res://core/resources/biome_content_pack.gd" id="1"]
 [ext_resource type="WorldMysteryDefinition" path="res://content/mysteries/camp_erasure.tres" id="2"]
 
+[ext_resource type="PackedScene" path="res://world/poi/vanishing_camp_visual.tscn" id="landmark"]
+
 [resource]
 script = ExtResource("1")
+landmark_scene = ExtResource("landmark")
 id = &"biome_pack.ashen_tundra"
 ecology_family = 4
 vegetation_family = 4

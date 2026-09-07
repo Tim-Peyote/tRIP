@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Theme" path="res://presentation/ui/trip_theme.tres" id="1"]
+[node name="InventoryEmptyState" type="MarginContainer"]
+custom_minimum_size = Vector2(380, 210)
+size_flags_horizontal = 3
+theme = ExtResource("1")
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 2
+[node name="Content" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+alignment = 1
+[node name="Sigil" type="Label" parent="Center/Content"]
+layout_mode = 2
+text = "⌁"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.7216, 0.7765, 0.549, 1)
+theme_override_font_sizes/font_size = 34
+[node name="Title" type="Label" parent="Center/Content"]
+layout_mode = 2
+text = "СУМКА ПОКА ПУСТА"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+[node name="Body" type="Label" parent="Center/Content"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+text = "Исследуй низины, корни и тайники. Первый найденный образец появится здесь."
+horizontal_alignment = 1
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14

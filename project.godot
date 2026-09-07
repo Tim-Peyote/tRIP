@@ -21,6 +21,7 @@ SceneRouter="*res://app/services/scene_router.gd"
 SaveService="*res://app/services/save_service.gd"
 SettingsService="*res://app/services/settings_service.gd"
 ContentDB="*res://app/services/content_db.gd"
+MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 
 [display]
 
@@ -29,6 +30,10 @@ window/size/viewport_height=720
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_mcp_toolkit/plugin.cfg")
 
 [input]
 
@@ -100,39 +105,48 @@ pause={
 }
 look_left={
 "deadzone": 0.15,
-"events": [Object(InputEventJoypadMotion,"axis":2,"axis_value":-1.0)]
+"events": [Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":2,"axis_value":-1.0,"script":null)
+]
 }
 look_right={
 "deadzone": 0.15,
-"events": [Object(InputEventJoypadMotion,"axis":2,"axis_value":1.0)]
+"events": [Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":2,"axis_value":1.0,"script":null)
+]
 }
 look_up={
 "deadzone": 0.15,
-"events": [Object(InputEventJoypadMotion,"axis":3,"axis_value":-1.0)]
+"events": [Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":3,"axis_value":-1.0,"script":null)
+]
 }
 look_down={
 "deadzone": 0.15,
-"events": [Object(InputEventJoypadMotion,"axis":3,"axis_value":1.0)]
+"events": [Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":3,"axis_value":1.0,"script":null)
+]
 }
 quick_use={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":49)]
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":49,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
 }
 quick_tool={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":81)]
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":81,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
 }
 throw_distraction={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":71)]
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":71,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
 }
 alternate={
 "deadzone": 0.5,
-"events": [Object(InputEventMouseButton,"button_index":2)]
+"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":32,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":2,"canceled":false,"pressed":false,"double_click":false,"script":null)
+]
 }
 road_laboratory={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":76)]
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":76,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
 }
 toggle_view={
 "deadzone": 0.5,
@@ -153,11 +167,15 @@ locale/fallback="ru"
 3d_physics/layer_5="Trigger"
 3d_physics/layer_6="GameplayNoise"
 
+[mcp_toolkit]
+
+status="No .mcp.json found — use Project > Tools > MCP Toolkit > Write .mcp.json to create one."
+
 [rendering]
 
-environment/defaults/default_clear_color=Color(0.011, 0.016, 0.014, 1)
 environment/volumetric_fog/volume_size=48
 environment/volumetric_fog/volume_depth=24
+environment/defaults/default_clear_color=Color(0.011, 0.016, 0.014, 1)
 
 [shader_globals]
 
@@ -177,7 +195,6 @@ trip_cloud_storm={
 "type": "float",
 "value": 0.0
 }
-
 trip_visual_intensity={
 "type": "float",
 "value": 1.0

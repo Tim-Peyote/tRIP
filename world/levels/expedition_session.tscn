@@ -1,0 +1,128 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/levels/expedition_session.gd" id="1_sofpb"]
+[ext_resource type="Script" path="res://features/herbarium/knowledge_orchestrator.gd" id="2_5ynw3"]
+[ext_resource type="Script" path="res://features/objectives/expedition_objective_orchestrator.gd" id="3_e3p67"]
+[ext_resource type="Script" path="res://features/expedition/expedition_clock.gd" id="4_fc54d"]
+[ext_resource type="Script" path="res://features/stealth/stealth_orchestrator.gd" id="5_th52e"]
+[ext_resource type="Script" path="res://features/hypotheses/hypothesis_orchestrator.gd" id="6_ydjqm"]
+[ext_resource type="Script" path="res://features/game_loop/game_loop_orchestrator.gd" id="7_7jd4b"]
+[ext_resource type="Script" path="res://features/persistence/session_persistence_orchestrator.gd" id="8_wwur2"]
+[ext_resource type="Script" path="res://features/environment/biome_visual_controller.gd" id="9_nc1da"]
+[ext_resource type="Resource" path="res://presentation/biomes/shelter_visual_profile.tres" id="10_l28rm"]
+[ext_resource type="Resource" path="res://presentation/biomes/forest_visual_profile.tres" id="11_qjjku"]
+[ext_resource type="Resource" path="res://presentation/biomes/mycelial_visual_profile.tres" id="12_lsyeh"]
+[ext_resource type="Script" path="res://features/environment/world_phase_orchestrator.gd" id="13_cjytj"]
+[ext_resource type="Script" path="res://features/developer/world_phase_developer_panel.gd" id="14_fts0k"]
+[ext_resource type="Script" path="res://features/cooking/cooking_orchestrator.gd" id="15_i23bn"]
+[ext_resource type="Resource" path="res://content/recipes/spore_sight_brew.tres" id="16_d3iw2"]
+[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="17_upft6"]
+[ext_resource type="Resource" path="res://content/recipes/emberberry_tonic.tres" id="18_ma35q"]
+[ext_resource type="Resource" path="res://content/recipes/crimson_marrow_stew.tres" id="19_r5de7"]
+[ext_resource type="Script" path="res://features/cooking/recipe_knowledge_orchestrator.gd" id="20_qqjfs"]
+[ext_resource type="PackedScene" path="res://features/player/player.tscn" id="21_o8g6v"]
+[ext_resource type="Script" path="res://features/player/first_person_controller.gd" id="22_lpc22"]
+[ext_resource type="Script" path="res://world/terrain/expedition_terrain.gd" id="23_4bijr"]
+[ext_resource type="PackedScene" path="res://features/road_laboratory/portable_laboratory.tscn" id="24_xalky"]
+[ext_resource type="Script" path="res://features/hazards/spore_tide_orchestrator.gd" id="25_3nchf"]
+[ext_resource type="Script" path="res://features/hazards/root_pressure_orchestrator.gd" id="26_c3ec2"]
+
+[ext_resource type="PackedScene" path="res://features/environment/environment_rig.tscn" id="environment_scene"]
+[ext_resource type="PackedScene" path="res://features/weather/weather_orchestrator.tscn" id="weather_scene"]
+
+[node name="ExpeditionSession" type="Node3D" unique_id=1345052416]
+script = ExtResource("1_sofpb")
+
+[node name="KnowledgeOrchestrator" type="Node" parent="." unique_id=1470923081]
+unique_name_in_owner = true
+script = ExtResource("2_5ynw3")
+
+[node name="ObjectiveOrchestrator" type="Node" parent="." unique_id=1183092]
+unique_name_in_owner = true
+script = ExtResource("3_e3p67")
+
+[node name="ExpeditionClock" type="Node" parent="." unique_id=726619003]
+unique_name_in_owner = true
+script = ExtResource("4_fc54d")
+
+[node name="StealthOrchestrator" type="Node" parent="." unique_id=479017482]
+unique_name_in_owner = true
+script = ExtResource("5_th52e")
+
+[node name="HypothesisOrchestrator" type="Node" parent="." unique_id=501967925]
+unique_name_in_owner = true
+script = ExtResource("6_ydjqm")
+
+[node name="GameLoopOrchestrator" type="Node" parent="." unique_id=1013779449]
+unique_name_in_owner = true
+script = ExtResource("7_7jd4b")
+
+[node name="SessionPersistenceOrchestrator" type="Node" parent="." unique_id=1709617388]
+unique_name_in_owner = true
+script = ExtResource("8_wwur2")
+
+[node name="BiomeVisualController" type="Node" parent="." unique_id=798954566]
+unique_name_in_owner = true
+script = ExtResource("9_nc1da")
+shelter_profile = ExtResource("10_l28rm")
+forest_profile = ExtResource("11_qjjku")
+mycelial_profile = ExtResource("12_lsyeh")
+
+[node name="WorldPhaseOrchestrator" type="Node" parent="." unique_id=153766731]
+unique_name_in_owner = true
+script = ExtResource("13_cjytj")
+
+[node name="WorldPhaseDeveloperPanel" type="Node" parent="." unique_id=867479053]
+unique_name_in_owner = true
+script = ExtResource("14_fts0k")
+
+[node name="CookingOrchestrator" type="Node" parent="." unique_id=1352350086]
+unique_name_in_owner = true
+script = ExtResource("15_i23bn")
+recipe = ExtResource("16_d3iw2")
+recipes = Array[ExtResource("17_upft6")]([ExtResource("16_d3iw2"), ExtResource("18_ma35q"), ExtResource("19_r5de7")])
+
+[node name="RecipeKnowledgeOrchestrator" type="Node" parent="." unique_id=2046986865]
+unique_name_in_owner = true
+script = ExtResource("20_qqjfs")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=399803814 instance=ExtResource("21_o8g6v")]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0.4)
+collision_layer = 2
+collision_mask = 25
+floor_max_angle = 0.837758
+floor_snap_length = 0.32
+safe_margin = 0.035
+script = ExtResource("22_lpc22")
+
+[node name="Lighting" type="Node3D" parent="." unique_id=2007954880]
+
+[node name="MoonLight" type="DirectionalLight3D" parent="Lighting" unique_id=1431340225]
+transform = Transform3D(0.9130889, 0.23692314, -0.33186746, 0, 0.8138785, 0.58103514, 0.40776044, -0.5305368, 0.74314344, 0, 0, 0)
+light_color = Color(0.32, 0.5, 0.47, 1)
+light_energy = 0.72
+light_angular_distance = 0.55
+shadow_enabled = true
+shadow_opacity = 0.94
+directional_shadow_blend_splits = true
+directional_shadow_fade_start = 0.86
+directional_shadow_max_distance = 110.0
+
+[node name="ExpeditionTerrain" type="StaticBody3D" parent="." unique_id=1313588083]
+collision_mask = 0
+script = ExtResource("23_4bijr")
+
+[node name="PortableLaboratory" type="Node3D" parent="." unique_id=1155369126 instance=ExtResource("24_xalky")]
+
+[node name="SporeTideOrchestrator" type="Node" parent="." unique_id=1852045933]
+process_mode = 4
+script = ExtResource("25_3nchf")
+
+[node name="RootPressureOrchestrator" type="Node" parent="." unique_id=2134408120]
+process_mode = 4
+script = ExtResource("26_c3ec2")
+
+[node name="WorldEnvironment" parent="." instance=ExtResource("environment_scene")]
+
+[node name="WeatherOrchestrator" parent="." instance=ExtResource("weather_scene")]

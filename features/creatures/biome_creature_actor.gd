@@ -135,10 +135,10 @@ func _build_character() -> void:
 	_visual_root.scale = Vector3.ONE * scale_factor
 	var collision := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
-	shape.radius = 0.38 * scale_factor
-	shape.height = 1.4 * scale_factor
+	shape.radius = definition.collision_radius * scale_factor
+	shape.height = maxf(definition.collision_height * scale_factor, shape.radius * 2.0)
 	collision.shape = shape
-	collision.position.y = 0.7 * scale_factor
+	collision.position.y = shape.height * 0.5
 	add_child(collision)
 
 
@@ -157,6 +157,10 @@ func _build_rigged_character() -> void:
 	imported.rotation_degrees.y = definition.visual_scene_yaw
 	_visual_root.add_child(imported)
 	_animation_player = imported.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if _animation_player != null:
+		for animation_name in _animation_player.get_animation_list():
+			if animation_name != &"RESET":
+				_animation_player.get_animation(animation_name).loop_mode = Animation.LOOP_LINEAR
 	for mesh: Node in imported.find_children("*", "MeshInstance3D", true, false):
 		(mesh as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 

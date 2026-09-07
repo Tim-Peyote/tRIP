@@ -6,46 +6,46 @@ signal main_menu_requested
 signal overlay_state_changed(is_open: bool)
 signal audio_cue_requested(cue_id: StringName)
 
-@onready var prompt_label: Label = %PromptLabel
-@onready var hold_progress: ProgressBar = %HoldProgress
-@onready var notice_label: Label = %NoticeLabel
-@onready var inventory_label: Label = %InventoryLabel
-@onready var pause_panel: PanelContainer = %PausePanel
-@onready var notice_timer: Timer = %NoticeTimer
-@onready var inspection_panel: PanelContainer = %InspectionPanel
-@onready var inventory_panel: PanelContainer = %InventoryPanel
-@onready var inventory_scrim: ColorRect = %InventoryScrim
-@onready var inventory_list: GridContainer = %InventoryList
-@onready var inventory_detail_panel: PanelContainer = %Detail
-@onready var inventory_detail_category: Label = %InventoryDetailCategory
-@onready var inventory_detail_icon: TextureRect = %InventoryDetailIcon
-@onready var inventory_detail_title: Label = %InventoryDetailTitle
-@onready var inventory_detail_body: Label = %InventoryDetailBody
-@onready var inventory_mass_bar: ProgressBar = %InventoryMassBar
-@onready var inventory_volume_bar: ProgressBar = %InventoryVolumeBar
-@onready var inventory_capacity_label: Label = %InventoryCapacityLabel
-@onready var inventory_mass_caption: Label = %InventoryMassCaption
-@onready var inventory_volume_caption: Label = %InventoryVolumeCaption
-@onready var inventory_use_button: Button = %InventoryUseButton
-@onready var inventory_drop_button: Button = %InventoryDropButton
-@onready var inventory_sort: OptionButton = %InventorySort
-@onready var inventory_item_count: Label = %InventoryItemCount
-@onready var inventory_quality_bar: ProgressBar = %InventoryQualityBar
-@onready var inventory_freshness_bar: ProgressBar = %InventoryFreshnessBar
-@onready var inventory_specimen_list: ItemList = %InventorySpecimenList
-@onready var journal_entry_list: ItemList = %JournalEntryList
-@onready var journal_detail_kicker: Label = %JournalDetailKicker
-@onready var journal_detail_title: Label = %JournalDetailTitle
-@onready var journal_detail_meta: Label = %JournalDetailMeta
-@onready var journal_progress: ProgressBar = %JournalProgress
-@onready var journal_detail_body: RichTextLabel = %JournalDetailBody
-@onready var journal_counter: Label = %JournalCounter
-@onready var inspection_view: SampleInspectionView = %SampleInspectionView
-@onready var focus_card: PanelContainer = %FocusCard
-@onready var focus_key: Label = %FocusKey
-@onready var focus_title: Label = %FocusTitle
-@onready var focus_action: Label = %FocusAction
-@onready var pause_settings_panel: SettingsPanel = %PauseSettingsPanel
+@onready var prompt_label: Label = $"PromptLabel"
+@onready var hold_progress: ProgressBar = $"HoldProgress"
+@onready var notice_label: Label = $"NoticeLabel"
+@onready var inventory_label: Label = $"InventoryLabel"
+@onready var pause_panel: PanelContainer = $"PausePanel"
+@onready var notice_timer: Timer = $"NoticeTimer"
+@onready var inspection_panel: PanelContainer = $"InspectionPanel"
+@onready var inventory_panel: PanelContainer = $"InventoryPanel"
+@onready var inventory_scrim: ColorRect = $"InventoryScrim"
+@onready var inventory_list: GridContainer = $"InventoryPanel/Margin/Layout/Body/ListScroll/InventoryList"
+@onready var inventory_detail_panel: PanelContainer = $"InventoryPanel/Margin/Layout/Body/Detail"
+@onready var inventory_detail_category: Label = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent/InventoryDetailCategory"
+@onready var inventory_detail_icon: TextureRect = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent/InventoryDetailIcon"
+@onready var inventory_detail_title: Label = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent/InventoryDetailTitle"
+@onready var inventory_detail_body: Label = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent/InventoryDetailBody"
+@onready var inventory_mass_bar: ProgressBar = $"InventoryPanel/Margin/Layout/CapacityBars/MassCapacity/InventoryMassBar"
+@onready var inventory_volume_bar: ProgressBar = $"InventoryPanel/Margin/Layout/CapacityBars/VolumeCapacity/InventoryVolumeBar"
+@onready var inventory_capacity_label: Label = $"InventoryPanel/Margin/Layout/InventoryCapacityLabel"
+@onready var inventory_mass_caption: Label = $"InventoryPanel/Margin/Layout/CapacityBars/MassCapacity/InventoryMassCaption"
+@onready var inventory_volume_caption: Label = $"InventoryPanel/Margin/Layout/CapacityBars/VolumeCapacity/InventoryVolumeCaption"
+@onready var inventory_use_button: Button = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/InventoryActions/InventoryUseButton"
+@onready var inventory_drop_button: Button = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/InventoryActions/InventoryDropButton"
+@onready var inventory_sort: OptionButton = $"InventoryPanel/Margin/Layout/FilterBar/InventorySort"
+@onready var inventory_item_count: Label = $"InventoryPanel/Margin/Layout/Header/InventoryItemCount"
+@onready var inventory_quality_bar: ProgressBar = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent/InventoryQualityBar"
+@onready var inventory_freshness_bar: ProgressBar = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent/InventoryFreshnessBar"
+@onready var inventory_specimen_list: ItemList = $"InventoryPanel/Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent/InventorySpecimenList"
+@onready var journal_entry_list: ItemList = $"JournalPanel/Margin/Layout/JournalBody/JournalSidebar/JournalEntryList"
+@onready var journal_detail_kicker: Label = $"JournalPanel/Margin/Layout/JournalBody/JournalDetail/JournalDetailKicker"
+@onready var journal_detail_title: Label = $"JournalPanel/Margin/Layout/JournalBody/JournalDetail/JournalDetailTitle"
+@onready var journal_detail_meta: Label = $"JournalPanel/Margin/Layout/JournalBody/JournalDetail/JournalDetailMeta"
+@onready var journal_progress: ProgressBar = $"JournalPanel/Margin/Layout/JournalBody/JournalDetail/JournalProgress"
+@onready var journal_detail_body: RichTextLabel = $"JournalPanel/Margin/Layout/JournalBody/JournalDetail/JournalDetailScroll/JournalDetailBody"
+@onready var journal_counter: Label = $"JournalPanel/Margin/Layout/JournalTabs/JournalCounter"
+@onready var inspection_view: SampleInspectionView = $"SampleInspectionView"
+@onready var focus_card: PanelContainer = $"FocusCard"
+@onready var focus_key: Label = $"FocusCard/Margin/Row/FocusKey"
+@onready var focus_title: Label = $"FocusCard/Margin/Row/Text/FocusTitle"
+@onready var focus_action: Label = $"FocusCard/Margin/Row/Text/FocusAction"
+@onready var pause_settings_panel: SettingsPanel = $"PauseSettingsPanel"
 
 var _player: FirstPersonController
 var _cooking: CookingOrchestrator
@@ -78,21 +78,22 @@ var _map_view: ExpeditionMapView
 
 
 func _ready() -> void:
-	theme = TripUITheme.build()
+	if theme == null:
+		theme = preload("res://presentation/ui/trip_theme.tres")
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	%ResumeButton.pressed.connect(func() -> void: resume_requested.emit())
-	%MainMenuButton.pressed.connect(func() -> void: main_menu_requested.emit())
-	%PauseSettingsButton.pressed.connect(_show_pause_settings)
+	$"PausePanel/Margin/Buttons/ResumeButton".pressed.connect(func() -> void: resume_requested.emit())
+	$"PausePanel/Margin/Buttons/MainMenuButton".pressed.connect(func() -> void: main_menu_requested.emit())
+	$"PausePanel/Margin/Buttons/PauseSettingsButton".pressed.connect(_show_pause_settings)
 	pause_settings_panel.closed.connect(_hide_pause_settings)
-	%ContinueCycleButton.pressed.connect(_acknowledge_cycle_result)
+	$"CycleResultPanel/Margin/Layout/ContinueCycleButton".pressed.connect(_acknowledge_cycle_result)
 	inventory_use_button.pressed.connect(_use_selected_inventory_item)
 	inventory_drop_button.pressed.connect(_drop_selected_inventory_item)
 	(inventory_use_button as InventoryActionButton).inventory_payload_dropped.connect(_on_inventory_payload_dropped)
 	(inventory_drop_button as InventoryActionButton).inventory_payload_dropped.connect(_on_inventory_payload_dropped)
-	%InventoryFilterAll.pressed.connect(_set_inventory_filter.bind(&"all"))
-	%InventoryFilterIngredients.pressed.connect(_set_inventory_filter.bind(&"ingredients"))
-	%InventoryFilterConsumables.pressed.connect(_set_inventory_filter.bind(&"consumables"))
-	%InventoryFilterTools.pressed.connect(_set_inventory_filter.bind(&"tools"))
+	$"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterAll".pressed.connect(_set_inventory_filter.bind(&"all"))
+	$"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterIngredients".pressed.connect(_set_inventory_filter.bind(&"ingredients"))
+	$"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterConsumables".pressed.connect(_set_inventory_filter.bind(&"consumables"))
+	$"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterTools".pressed.connect(_set_inventory_filter.bind(&"tools"))
 	inventory_sort.add_item("По названию")
 	inventory_sort.add_item("По качеству")
 	inventory_sort.add_item("По количеству")
@@ -100,44 +101,19 @@ func _ready() -> void:
 	inventory_sort.item_selected.connect(_set_inventory_sort)
 	inventory_specimen_list.item_selected.connect(_on_inventory_specimen_selected)
 	journal_entry_list.item_selected.connect(_select_journal_entry)
-	%JournalTabSpecies.pressed.connect(_set_journal_mode.bind(&"species"))
-	%JournalTabHypotheses.pressed.connect(_set_journal_mode.bind(&"hypotheses"))
-	%JournalTabRecipes.pressed.connect(_set_journal_mode.bind(&"recipes"))
+	$"JournalPanel/Margin/Layout/JournalTabs/JournalTabSpecies".pressed.connect(_set_journal_mode.bind(&"species"))
+	$"JournalPanel/Margin/Layout/JournalTabs/JournalTabHypotheses".pressed.connect(_set_journal_mode.bind(&"hypotheses"))
+	$"JournalPanel/Margin/Layout/JournalTabs/JournalTabRecipes".pressed.connect(_set_journal_mode.bind(&"recipes"))
 	notice_timer.timeout.connect(func() -> void: notice_label.visible = false)
 	_notice_rest_y = notice_label.position.y
-	focus_card.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel())
-	focus_key.add_theme_stylebox_override("normal", TripUITheme.make_key_chip())
-	inventory_panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_panel())
-	inventory_detail_panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_detail_panel(Color(0.62, 0.69, 0.52)))
-	%JournalPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
-	%PausePanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
-	pause_settings_panel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
-	%CycleResultPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(TripUITheme.EMBER))
-	inspection_panel.add_theme_stylebox_override("panel", TripUITheme.make_content_panel(Color("8fb8a8"), 0.86))
-	%ObjectiveLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate())
-	%ClockLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("9bb6b1"), true))
-	inventory_label.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("9dbd78")))
-	%ToolLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("d49a68"), true))
-	%DistractionLabel.add_theme_stylebox_override("normal", TripUITheme.make_hud_plate(Color("a7aaa1"), true))
-	%VitalsPanel.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel(Color("c6d98a"), 0.72))
-	%HealthBar.add_theme_stylebox_override("fill", _make_vitals_fill(Color("d96759")))
-	%StaminaBar.add_theme_stylebox_override("fill", _make_vitals_fill(Color("d8bf66")))
-	for filter_button: Button in [%InventoryFilterAll, %InventoryFilterIngredients, %InventoryFilterConsumables, %InventoryFilterTools]:
-		filter_button.toggle_mode = true
-		filter_button.add_theme_font_size_override("font_size", 13)
-		filter_button.add_theme_stylebox_override("normal", TripUITheme.make_inventory_tab(&"normal"))
-		filter_button.add_theme_stylebox_override("hover", TripUITheme.make_inventory_tab(&"hover"))
-		filter_button.add_theme_stylebox_override("focus", TripUITheme.make_inventory_tab(&"focus"))
-		filter_button.add_theme_stylebox_override("pressed", TripUITheme.make_inventory_tab(&"selected"))
-		filter_button.add_theme_stylebox_override("hover_pressed", TripUITheme.make_inventory_tab(&"selected"))
-	for journal_tab: Button in [%JournalTabSpecies, %JournalTabHypotheses, %JournalTabRecipes]:
+	for journal_tab: Button in [$"JournalPanel/Margin/Layout/JournalTabs/JournalTabSpecies", $"JournalPanel/Margin/Layout/JournalTabs/JournalTabHypotheses", $"JournalPanel/Margin/Layout/JournalTabs/JournalTabRecipes"]:
 		journal_tab.toggle_mode = true
 	get_viewport().size_changed.connect(_update_inventory_responsive_layout)
 	get_viewport().size_changed.connect(_update_hud_responsive_layout)
 	_update_inventory_responsive_layout()
 	_update_hud_responsive_layout()
 	_refresh_inventory_filter_buttons()
-	_map_view = ExpeditionMapView.new()
+	_map_view = (preload("res://presentation/ui/map_screen.tscn") as PackedScene).instantiate() as ExpeditionMapView
 	_map_view.name = "ExpeditionMapView"
 	add_child(_map_view)
 	_map_view.full_map_changed.connect(_on_full_map_changed)
@@ -164,7 +140,7 @@ func setup(player: FirstPersonController) -> void:
 	set_paused(false)
 	player.set_gameplay_enabled(true)
 	_update_inventory_label()
-	%ToolLabel.text = player.toolbelt.get_display_name() + "  [Q]"
+	$"ToolLabel".text = player.toolbelt.get_display_name() + "  [Q]"
 	_on_distraction_count_changed(player.distraction_thrower.remaining)
 	_on_interaction_context_changed({})
 
@@ -307,22 +283,22 @@ func clear() -> void:
 	inspection_panel.visible = false
 	inspection_view.visible = false
 	inventory_panel.visible = false
-	%JournalPanel.visible = false
-	%CycleResultPanel.visible = false
+	$"JournalPanel".visible = false
+	$"CycleResultPanel".visible = false
 	visible = false
 
 
 func set_paused(is_paused: bool) -> void:
 	if is_paused:
 		close_top_overlay()
-	%PauseScrim.visible = is_paused
+	$"PauseScrim".visible = is_paused
 	pause_panel.visible = is_paused
 	if not is_paused:
 		pause_settings_panel.visible = false
 	if _player != null:
 		_player.set_viewmodel_interface_hidden(is_paused)
 	if is_paused:
-		%ResumeButton.grab_focus()
+		$"PausePanel/Margin/Buttons/ResumeButton".grab_focus()
 
 
 func is_pause_settings_visible() -> bool:
@@ -345,7 +321,7 @@ func _show_pause_settings() -> void:
 func _hide_pause_settings() -> void:
 	pause_settings_panel.visible = false
 	pause_panel.visible = true
-	%PauseSettingsButton.grab_focus()
+	$"PausePanel/Margin/Buttons/PauseSettingsButton".grab_focus()
 
 
 func _on_prompt_changed(text: String) -> void:
@@ -417,8 +393,8 @@ func _on_cooking_result_created(result: RecipeResolution, display_name: String) 
 
 
 func _on_vessel_state_changed(state: ThermalVesselState) -> void:
-	%CookingStatusLabel.text = state.get_stage_text()
-	%CookingStatusLabel.visible = state.water_amount > 0.0 or state.heat_level != ThermalVesselState.HeatLevel.OFF
+	$"CookingStatusLabel".text = state.get_stage_text()
+	$"CookingStatusLabel".visible = state.water_amount > 0.0 or state.heat_level != ThermalVesselState.HeatLevel.OFF
 
 
 func _on_physical_cooking_action(action: StringName) -> void:
@@ -443,7 +419,7 @@ func _on_physical_cooking_action(action: StringName) -> void:
 
 
 func _on_tool_state_changed(display_name: String, _is_equipped: bool) -> void:
-	%ToolLabel.text = display_name + "  [Q]"
+	$"ToolLabel".text = display_name + "  [Q]"
 	show_notice(display_name)
 
 
@@ -463,9 +439,9 @@ func _toggle_inventory() -> void:
 
 
 func _toggle_journal() -> void:
-	var should_open: bool = not bool(%JournalPanel.visible)
+	var should_open: bool = not bool($"JournalPanel".visible)
 	_close_field_panels()
-	%JournalPanel.visible = should_open
+	$"JournalPanel".visible = should_open
 	audio_cue_requested.emit(&"open" if should_open else &"close")
 	_update_journal()
 	_apply_field_overlay_state()
@@ -500,11 +476,11 @@ func _on_recipe_learned(_recipe_id: StringName, display_name: String) -> void:
 
 
 func _on_objective_updated(text: String) -> void:
-	%ObjectiveLabel.text = text
+	$"ObjectiveLabel".text = text
 
 
 func _on_loop_stage_changed(_stage: int, objective_text: String) -> void:
-	%ObjectiveLabel.text = objective_text
+	$"ObjectiveLabel".text = objective_text
 
 
 func _on_narrative_notice_requested(title: String, text: String) -> void:
@@ -512,8 +488,8 @@ func _on_narrative_notice_requested(title: String, text: String) -> void:
 
 
 func _on_cycle_result_ready(summary: Dictionary) -> void:
-	%CycleResultTitle.text = String(summary.get("title", "ЦИКЛ ЗАВЕРШЁН"))
-	%CycleResultBody.text = "Качество состава: %s\nТочность процесса: %d%%\nВремя вылазки: %02d:%02d\nИзучено признаков: %d\n\nНАГРАДА\n%s" % [
+	$"CycleResultPanel/Margin/Layout/CycleResultTitle".text = String(summary.get("title", "ЦИКЛ ЗАВЕРШЁН"))
+	$"CycleResultPanel/Margin/Layout/CycleResultBody".text = "Качество состава: %s\nТочность процесса: %d%%\nВремя вылазки: %02d:%02d\nИзучено признаков: %d\n\nНАГРАДА\n%s" % [
 		String(summary.get("quality", "—")),
 		int(summary.get("score", 0)),
 		int(summary.get("expedition_seconds", 0)) / 60,
@@ -521,13 +497,13 @@ func _on_cycle_result_ready(summary: Dictionary) -> void:
 		int(summary.get("knowledge", 0)),
 		String(summary.get("reward", "—")),
 	]
-	%CycleResultPanel.visible = true
+	$"CycleResultPanel".visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	%ContinueCycleButton.grab_focus()
+	$"CycleResultPanel/Margin/Layout/ContinueCycleButton".grab_focus()
 
 
 func _acknowledge_cycle_result() -> void:
-	%CycleResultPanel.visible = false
+	$"CycleResultPanel".visible = false
 	if _game_loop != null:
 		_game_loop.acknowledge_reward()
 	if _player != null:
@@ -535,80 +511,80 @@ func _acknowledge_cycle_result() -> void:
 
 
 func _on_session_saved(_slot_id: int, _reason: StringName) -> void:
-	%SaveIndicator.visible = true
-	%SaveIndicatorTimer.start()
+	$"SaveIndicator".visible = true
+	$"SaveIndicatorTimer".start()
 
 
 func _on_clock_changed(_progress: float) -> void:
 	if _clock != null:
-		%ClockLabel.text = _clock.get_display_text()
+		$"ClockLabel".text = _clock.get_display_text()
 
 
 func _on_threat_changed(value: float, state_text: String) -> void:
-	%ThreatBar.value = value * 100.0
-	%ThreatBar.visible = value > 0.01
-	%ThreatLabel.text = state_text
-	%ThreatLabel.modulate = Color(0.9, 0.32, 0.2) if value >= 0.55 else Color(0.68, 0.76, 0.54)
+	$"ThreatBar".value = value * 100.0
+	$"ThreatBar".visible = value > 0.01
+	$"ThreatLabel".text = state_text
+	$"ThreatLabel".modulate = Color(0.9, 0.32, 0.2) if value >= 0.55 else Color(0.68, 0.76, 0.54)
 
 
 func _on_distraction_count_changed(remaining: int) -> void:
-	%DistractionLabel.text = "КАМНИ  %d  [G]" % remaining
+	$"DistractionLabel".text = "КАМНИ  %d  [G]" % remaining
 
 
 func _on_spore_tide_state_changed(state: int, label: String) -> void:
-	%SporeTideLabel.text = label
-	%SporeTideLabel.visible = state != SporeTideOrchestrator.State.CALM
+	$"SporeTideLabel".text = label
+	$"SporeTideLabel".visible = state != SporeTideOrchestrator.State.CALM
 
 
 func _on_spore_exposure_changed(value: float) -> void:
-	%SporeTideBar.value = value * 100.0
-	%SporeTideBar.visible = value > 0.01
+	$"SporeTideBar".value = value * 100.0
+	$"SporeTideBar".visible = value > 0.01
 
 
 func _on_spore_shelter_changed(is_sheltered: bool, shelter_name: String) -> void:
-	%SporeShelterLabel.visible = is_sheltered
-	%SporeShelterLabel.text = "УКРЫТИЕ · %s" % shelter_name.to_upper()
+	$"SporeShelterLabel".visible = is_sheltered
+	$"SporeShelterLabel".text = "УКРЫТИЕ · %s" % shelter_name.to_upper()
 
 
 func _on_root_area_changed(is_inside: bool) -> void:
 	_inside_root_well = is_inside
-	%RootPressureLabel.visible = is_inside
-	%RootPressureBar.visible = is_inside
+	$"RootPressureLabel".visible = is_inside
+	$"RootPressureBar".visible = is_inside
 	if not is_inside:
-		%RootWardLabel.visible = false
+		$"RootWardLabel".visible = false
 
 
 func _on_root_pressure_state_changed(_state: int, label: String) -> void:
-	%RootPressureLabel.text = label
-	%RootPressureLabel.visible = _inside_root_well
+	$"RootPressureLabel".text = label
+	$"RootPressureLabel".visible = _inside_root_well
 
 
 func _on_root_pressure_changed(value: float) -> void:
-	%RootPressureBar.value = value * 100.0
-	%RootPressureBar.visible = _inside_root_well
+	$"RootPressureBar".value = value * 100.0
+	$"RootPressureBar".visible = _inside_root_well
 
 
 func _on_root_ward_changed(is_warded: bool, ward_name: String) -> void:
-	%RootWardLabel.visible = _inside_root_well and is_warded
-	%RootWardLabel.text = "МЕМБРАНА · %s" % ward_name.to_upper()
+	$"RootWardLabel".visible = _inside_root_well and is_warded
+	$"RootWardLabel".text = "МЕМБРАНА · %s" % ward_name.to_upper()
 
 
 func _on_biome_hazard_state_changed(state: int, title: String, instruction: String) -> void:
-	%BiomeHazardLabel.visible = state != BiomeHazardOrchestrator.State.CALM
-	%BiomeHazardInstruction.visible = state != BiomeHazardOrchestrator.State.CALM
-	%BiomeHazardLabel.text = title
-	%BiomeHazardInstruction.text = instruction
-	%BiomeHazardLabel.modulate = Color(0.96, 0.74, 0.28) if state == BiomeHazardOrchestrator.State.WARNING else Color(0.98, 0.32, 0.22)
+	$"BiomeHazardLabel".visible = state != BiomeHazardOrchestrator.State.CALM
+	$"BiomeHazardInstruction".visible = state != BiomeHazardOrchestrator.State.CALM
+	$"BiomeHazardLabel".text = title
+	$"BiomeHazardInstruction".text = instruction
+	$"BiomeHazardLabel".modulate = Color(0.96, 0.74, 0.28) if state == BiomeHazardOrchestrator.State.WARNING else Color(0.98, 0.32, 0.22)
 
 
 func _on_biome_hazard_exposure_changed(value: float) -> void:
-	%BiomeHazardBar.value = value * 100.0
-	%BiomeHazardBar.visible = value > 0.01
+	$"BiomeHazardBar".value = value * 100.0
+	$"BiomeHazardBar".visible = value > 0.01
 
 
 func _on_inspection_requested(title: String, description: String) -> void:
-	%InspectionTitle.text = title
-	%InspectionDescription.text = description
+	$"InspectionPanel/Margin/Text/InspectionTitle".text = title
+	$"InspectionPanel/Margin/Text/InspectionDescription".text = description
 	inspection_panel.visible = not inspection_panel.visible
 	audio_cue_requested.emit(&"open" if inspection_panel.visible else &"close")
 
@@ -639,14 +615,14 @@ func _on_inspection_closed() -> void:
 
 
 func has_modal_overlay() -> bool:
-	return inventory_panel.visible or %JournalPanel.visible or inspection_view.visible or _map_view.is_full_map_open()
+	return inventory_panel.visible or $"JournalPanel".visible or inspection_view.visible or _map_view.is_full_map_open()
 
 
 func close_top_overlay() -> bool:
 	if inspection_view.visible:
 		inspection_view.close()
 		return true
-	if inventory_panel.visible or %JournalPanel.visible:
+	if inventory_panel.visible or $"JournalPanel".visible:
 		_close_field_panels()
 		_apply_field_overlay_state()
 		return true
@@ -659,13 +635,13 @@ func close_top_overlay() -> bool:
 func _close_field_panels() -> void:
 	inventory_panel.visible = false
 	inventory_scrim.visible = false
-	%JournalPanel.visible = false
+	$"JournalPanel".visible = false
 	if _map_view != null:
 		_map_view.set_full_map_open(false)
 
 
 func _apply_field_overlay_state() -> void:
-	var is_open: bool = inventory_panel.visible or bool(%JournalPanel.visible) or (_map_view != null and _map_view.is_full_map_open())
+	var is_open: bool = inventory_panel.visible or bool($"JournalPanel".visible) or (_map_view != null and _map_view.is_full_map_open())
 	if _map_view != null:
 		_map_view.set_minimap_suppressed(is_open and not _map_view.is_full_map_open())
 	if _player != null:
@@ -695,13 +671,13 @@ func show_notice(text: String) -> void:
 
 
 func _on_weather_state_changed(_state: int, title: String, value: float) -> void:
-	%WeatherLabel.text = title.to_upper()
-	%WeatherLabel.visible = _state != WeatherOrchestrator.State.CLEAR or value > 0.05
+	$"WeatherLabel".text = title.to_upper()
+	$"WeatherLabel".visible = _state != WeatherOrchestrator.State.CLEAR or value > 0.05
 
 
 func _on_weather_wetness_changed(value: float) -> void:
-	%WeatherBar.value = value * 100.0
-	%WeatherBar.visible = value > 0.04
+	$"WeatherBar".value = value * 100.0
+	$"WeatherBar".visible = value > 0.04
 
 
 func _on_vitals_state_changed(snapshot: Dictionary) -> void:
@@ -709,32 +685,32 @@ func _on_vitals_state_changed(snapshot: Dictionary) -> void:
 	var maximum_health := maxf(1.0, float(snapshot.get("maximum_health", 1.0)))
 	var stamina := float(snapshot.get("stamina", 0.0))
 	var maximum_stamina := maxf(1.0, float(snapshot.get("maximum_stamina", 1.0)))
-	%HealthBar.value = health / maximum_health * 100.0
-	%StaminaBar.value = stamina / maximum_stamina * 100.0
-	%HealthLabel.text = "ЗДОРОВЬЕ  %d / %d" % [ceili(health), ceili(maximum_health)]
-	%StaminaLabel.text = "ВЫНОСЛИВОСТЬ  %d / %d" % [ceili(stamina), ceili(maximum_stamina)]
+	$"VitalsPanel/Margin/Layout/HealthBar".value = health / maximum_health * 100.0
+	$"VitalsPanel/Margin/Layout/StaminaBar".value = stamina / maximum_stamina * 100.0
+	$"VitalsPanel/Margin/Layout/Top/HealthLabel".text = "ЗДОРОВЬЕ  %d / %d" % [ceili(health), ceili(maximum_health)]
+	$"VitalsPanel/Margin/Layout/StaminaLabel".text = "ВЫНОСЛИВОСТЬ  %d / %d" % [ceili(stamina), ceili(maximum_stamina)]
 	var temperature := float(snapshot.get("core_temperature", 36.7))
 	var wet := float(snapshot.get("wetness", 0.0))
 	var spores := float(snapshot.get("spore_load", 0.0))
 	var toxicity_value := float(snapshot.get("toxicity", 0.0))
-	%PhysiologyLabel.text = "ТЕЛО %.1f°C  ·  ВЛАГА %d%%  ·  СПОРЫ %d%%  ·  ТОКСИНЫ %d%%" % [temperature, roundi(wet * 100.0), roundi(spores * 100.0), roundi(toxicity_value * 100.0)]
+	$"VitalsPanel/Margin/Layout/PhysiologyLabel".text = "ТЕЛО %.1f°C  ·  ВЛАГА %d%%  ·  СПОРЫ %d%%  ·  ТОКСИНЫ %d%%" % [temperature, roundi(wet * 100.0), roundi(spores * 100.0), roundi(toxicity_value * 100.0)]
 	var slot_labels := PackedStringArray()
 	for slot: Dictionary in snapshot.get("food_slots", []):
 		var seconds := maxi(0, roundi(float(slot.get("remaining", 0.0))))
 		slot_labels.append("● %s  %d:%02d" % [String(slot.get("name", "СОСТАВ")).to_upper(), seconds / 60, seconds % 60])
 	while slot_labels.size() < PlayerVitalsComponent.MAX_FOOD_SLOTS:
 		slot_labels.append("○ ПУСТО")
-	%FoodSlotsLabel.text = "   ".join(slot_labels)
+	$"VitalsPanel/Margin/Layout/FoodSlotsLabel".text = "   ".join(slot_labels)
 	var condition := StringName(snapshot.get("condition", &"normal"))
 	var has_food := not (snapshot.get("food_slots", []) as Array).is_empty()
-	%PhysiologyLabel.visible = condition != &"normal" or wet > 0.04 or spores > 0.04 or toxicity_value > 0.04
-	%FoodSlotsLabel.visible = has_food
-	_update_vitals_compact_height(%PhysiologyLabel.visible, has_food)
-	%VitalsPanel.visible = true
+	$"VitalsPanel/Margin/Layout/PhysiologyLabel".visible = condition != &"normal" or wet > 0.04 or spores > 0.04 or toxicity_value > 0.04
+	$"VitalsPanel/Margin/Layout/FoodSlotsLabel".visible = has_food
+	_update_vitals_compact_height($"VitalsPanel/Margin/Layout/PhysiologyLabel".visible, has_food)
+	$"VitalsPanel".visible = true
 
 
 func _on_vitals_condition_changed(_condition_id: StringName, title: String) -> void:
-	%ConditionLabel.text = title
+	$"VitalsPanel/Margin/Layout/Top/ConditionLabel".text = title
 
 
 func _on_vitals_damaged(amount: float, source: StringName) -> void:
@@ -775,12 +751,9 @@ func _update_inventory_panel() -> void:
 		visible_entries.append(stack)
 		total_units += float(stack["quantity"])
 		var accent := _inventory_category_color(definition)
-		var card := VBoxContainer.new()
-		card.custom_minimum_size = Vector2(146.0, 172.0)
-		card.add_theme_constant_override("separation", 7)
+		var card := (preload("res://presentation/ui/inventory_item_card.tscn") as PackedScene).instantiate() as VBoxContainer
 		card.set_meta(&"definition_id", definition_id)
-		var button := InventoryDragButton.new()
-		button.custom_minimum_size = Vector2(146.0, 126.0)
+		var button := card.get_node("Button") as InventoryDragButton
 		button.toggle_mode = true
 		button.button_pressed = definition_id == _selected_inventory_id
 		button.set_meta(&"definition_id", definition_id)
@@ -810,19 +783,16 @@ func _update_inventory_panel() -> void:
 		button.pressed.connect(_select_inventory_stack.bind(definition_id))
 		button.focus_entered.connect(_select_inventory_stack.bind(definition_id, false))
 		button.mouse_entered.connect(_select_inventory_stack.bind(definition_id, false))
-		card.add_child(button)
-		var name_label := Label.new()
+		var name_label := card.get_node("Name") as Label
 		name_label.text = definition.display_name if definition != null else String(definition_id)
 		name_label.add_theme_font_size_override("font_size", 14)
 		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		card.add_child(name_label)
-		var meta_label := Label.new()
+		var meta_label := card.get_node("Metadata") as Label
 		meta_label.text = "×%.0f   ·   %d%%" % [float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0)]
 		meta_label.add_theme_font_size_override("font_size", 12)
 		meta_label.add_theme_color_override("font_color", accent)
 		meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		card.add_child(meta_label)
 		inventory_list.add_child(card)
 	_inventory_has_visible_entries = not visible_entries.is_empty()
 	inventory_item_count.text = "%d ВИДОВ  ·  %.0f ПРЕДМЕТОВ" % [visible_entries.size(), total_units]
@@ -850,41 +820,10 @@ func _update_inventory_panel() -> void:
 
 
 func _make_inventory_empty_state() -> Control:
-	var panel := MarginContainer.new()
-	panel.custom_minimum_size = Vector2(500.0, 210.0)
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.add_theme_constant_override("margin_left", 24)
-	panel.add_theme_constant_override("margin_top", 18)
-	var center := CenterContainer.new()
-	panel.add_child(center)
-	var content := VBoxContainer.new()
-	content.custom_minimum_size = Vector2(380.0, 0.0)
-	content.alignment = BoxContainer.ALIGNMENT_CENTER
-	content.add_theme_constant_override("separation", 10)
-	center.add_child(content)
-	var sigil := Label.new()
-	sigil.text = "⌁"
-	sigil.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sigil.add_theme_color_override("font_color", Color("b8c68c"))
-	sigil.add_theme_font_size_override("font_size", 34)
-	content.add_child(sigil)
-	var title := Label.new()
-	title.text = "СУМКА ПОКА ПУСТА" if _player.inventory.items.is_empty() else "В ЭТОМ РАЗДЕЛЕ ПУСТО"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", TripUITheme.PAPER)
-	title.add_theme_font_size_override("font_size", 18)
-	content.add_child(title)
-	var body := Label.new()
-	body.text = (
-		"Исследуй низины, корни и тайники. Первый найденный образец появится здесь."
-		if _player.inventory.items.is_empty()
-		else "Смени категорию или продолжай искать подходящие предметы в мире."
-	)
-	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.add_theme_color_override("font_color", TripUITheme.MUTED)
-	body.add_theme_font_size_override("font_size", 14)
-	content.add_child(body)
+	var panel := (preload("res://presentation/ui/inventory_empty_state.tscn") as PackedScene).instantiate() as Control
+	if not _player.inventory.items.is_empty():
+		panel.get_node("Center/Content/Title").text = "В ЭТОМ РАЗДЕЛЕ ПУСТО"
+		panel.get_node("Center/Content/Body").text = "Смени категорию или продолжай искать подходящие предметы в мире."
 	return panel
 
 
@@ -944,20 +883,20 @@ func _update_inventory_responsive_layout() -> void:
 func _update_hud_responsive_layout() -> void:
 	var viewport_size := get_viewport_rect().size
 	var safe_x := clampf(viewport_size.x * 0.019, 16.0, 34.0)
-	%ObjectiveLabel.offset_left = safe_x
-	%ObjectiveLabel.offset_right = minf(viewport_size.x * 0.48, safe_x + 520.0)
-	%ClockLabel.offset_left = -minf(190.0, viewport_size.x * 0.26)
-	%ClockLabel.offset_right = -safe_x
-	%InventoryLabel.offset_left = safe_x
-	%ToolLabel.offset_right = -safe_x
-	%DistractionLabel.offset_right = -safe_x
-	%VitalsPanel.offset_left = safe_x
-	%VitalsPanel.offset_right = safe_x + clampf(viewport_size.x * 0.27, 300.0, 350.0)
+	$"ObjectiveLabel".offset_left = safe_x
+	$"ObjectiveLabel".offset_right = minf(viewport_size.x * 0.48, safe_x + 520.0)
+	$"ClockLabel".offset_left = -minf(190.0, viewport_size.x * 0.26)
+	$"ClockLabel".offset_right = -safe_x
+	$"InventoryLabel".offset_left = safe_x
+	$"ToolLabel".offset_right = -safe_x
+	$"DistractionLabel".offset_right = -safe_x
+	$"VitalsPanel".offset_left = safe_x
+	$"VitalsPanel".offset_right = safe_x + clampf(viewport_size.x * 0.27, 300.0, 350.0)
 	var inventory_margin := clampf(viewport_size.x * 0.022, 20.0, 30.0)
 	var inventory_margin_node := $InventoryPanel/Margin as MarginContainer
 	for side: StringName in [&"margin_left", &"margin_right"]:
 		inventory_margin_node.add_theme_constant_override(side, roundi(inventory_margin))
-	var journal := %JournalPanel as PanelContainer
+	var journal := $"JournalPanel" as PanelContainer
 	var journal_half_width := minf(540.0, maxf(300.0, (viewport_size.x - 48.0) * 0.5))
 	var journal_half_height := minf(310.0, maxf(220.0, (viewport_size.y - 48.0) * 0.5))
 	journal.offset_left = -journal_half_width
@@ -972,8 +911,8 @@ func _update_vitals_compact_height(show_physiology: bool, show_food: bool) -> vo
 		height += 14.0
 	if show_food:
 		height += 14.0
-	%VitalsPanel.offset_bottom = -68.0
-	%VitalsPanel.offset_top = %VitalsPanel.offset_bottom - height
+	$"VitalsPanel".offset_bottom = -68.0
+	$"VitalsPanel".offset_top = $"VitalsPanel".offset_bottom - height
 
 
 func _show_empty_inventory_detail() -> void:
@@ -1164,10 +1103,10 @@ func _first_inventory_button() -> Button:
 
 func _refresh_inventory_filter_buttons() -> void:
 	var mapping: Dictionary[StringName, Button] = {
-		&"all": %InventoryFilterAll,
-		&"ingredients": %InventoryFilterIngredients,
-		&"consumables": %InventoryFilterConsumables,
-		&"tools": %InventoryFilterTools,
+		&"all": $"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterAll",
+		&"ingredients": $"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterIngredients",
+		&"consumables": $"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterConsumables",
+		&"tools": $"InventoryPanel/Margin/Layout/FilterBar/InventoryFilterTools",
 	}
 	for filter_id: StringName in mapping:
 		mapping[filter_id].button_pressed = filter_id == _inventory_filter
@@ -1258,9 +1197,9 @@ func _update_journal() -> void:
 func _set_journal_mode(mode: StringName) -> void:
 	_journal_mode = mode
 	_selected_journal_id = &""
-	%JournalTabSpecies.button_pressed = mode == &"species"
-	%JournalTabHypotheses.button_pressed = mode == &"hypotheses"
-	%JournalTabRecipes.button_pressed = mode == &"recipes"
+	$"JournalPanel/Margin/Layout/JournalTabs/JournalTabSpecies".button_pressed = mode == &"species"
+	$"JournalPanel/Margin/Layout/JournalTabs/JournalTabHypotheses".button_pressed = mode == &"hypotheses"
+	$"JournalPanel/Margin/Layout/JournalTabs/JournalTabRecipes".button_pressed = mode == &"recipes"
 	audio_cue_requested.emit(&"select")
 	_update_journal()
 

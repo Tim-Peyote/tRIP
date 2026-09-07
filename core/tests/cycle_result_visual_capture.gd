@@ -10,7 +10,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", TEST_SLOT, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	var cap := ItemInstance.new(&"ingredient.mooncap")
 	cap.quality = 1.0
 	cap.processing_state[&"part"] = &"cap"

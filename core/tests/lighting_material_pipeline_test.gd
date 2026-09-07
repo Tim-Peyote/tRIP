@@ -10,7 +10,7 @@ func _ready() -> void:
 	main.call("_on_game_requested", 2841, true)
 	for _frame: int in 8:
 		await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	_expect(level != null, "Gameplay level did not load for lighting QA.")
 	if level != null:
 		_test_environment(level)
@@ -27,7 +27,7 @@ func _ready() -> void:
 		get_tree().quit(1)
 
 
-func _test_environment(level: ShelterLevel) -> void:
+func _test_environment(level: SessionController) -> void:
 	var controller := level.biome_visual_controller
 	var environment := controller.get("_environment") as Environment
 	var probe := controller.get("_reflection_probe") as ReflectionProbe
@@ -49,7 +49,7 @@ func _test_environment(level: ShelterLevel) -> void:
 	controller.set_quality_preset(&"balanced")
 
 
-func _test_light_rig(level: ShelterLevel) -> void:
+func _test_light_rig(level: SessionController) -> void:
 	var controller := level.biome_visual_controller
 	var primary := controller.get_primary_light()
 	_expect(primary != null and primary.visible and primary.shadow_enabled, "The authored sun/moon key light is missing its shadows.")
@@ -64,7 +64,7 @@ func _test_light_rig(level: ShelterLevel) -> void:
 	_expect(shadowed_directionals == 1, "More than one shadow-casting directional light washes out or contradicts the landscape.")
 
 
-func _test_materials(level: ShelterLevel) -> void:
+func _test_materials(level: SessionController) -> void:
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	var terrain_material := terrain.get("_terrain_material") as ShaderMaterial
 	var terrain_code := terrain_material.shader.code if terrain_material != null and terrain_material.shader != null else ""
@@ -76,7 +76,7 @@ func _test_materials(level: ShelterLevel) -> void:
 	_expect("SPECULAR = 0.92" in water_code and "TIME" in water_code, "Water has no responsive Fresnel highlight or animated ripples.")
 
 
-func _test_day_cycle(level: ShelterLevel) -> void:
+func _test_day_cycle(level: SessionController) -> void:
 	var primary := level.biome_visual_controller.get_primary_light()
 	level.expedition_clock.set_progress(0.35)
 	var day_rotation := primary.rotation if primary != null else Vector3.ZERO

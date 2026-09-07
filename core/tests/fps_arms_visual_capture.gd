@@ -41,6 +41,11 @@ func _ready() -> void:
 	for _frame: int in 8:
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
+	var skeleton := player.first_person_arm_rig.find_child("Skeleton3D", true, false) as Skeleton3D
+	var hand := skeleton.find_bone("mixamorig_RightHand")
+	if hand >= 0:
+		print("FPS wrist camera position: ", player.camera.to_local(skeleton.global_transform * skeleton.get_bone_global_pose(hand).origin))
+	print("FPS tool parent scale: ", player.knife_viewmodel.global_basis.get_scale())
 	var image := get_viewport().get_texture().get_image()
 	var output_path := "/tmp/trip_fps_arms_hold_capture.png" if "--hold" in capture_args else ("/tmp/trip_fps_arms_open_capture.png" if "--open" in capture_args else OUTPUT_PATH)
 	var error := image.save_png(output_path)

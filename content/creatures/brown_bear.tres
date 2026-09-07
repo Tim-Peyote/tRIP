@@ -1,5 +1,7 @@
 [gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
 [ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/actors/bear.glb" id="trip_model"]
+
 [resource]
 script = ExtResource("1")
 id = &"creature.brown_bear"
@@ -20,10 +22,19 @@ natural_basis = "Реальный бурый медведь Алтая. Не р�
 silhouette_notes = "Массивные плечи выше крупа, короткая шея, тяжёлая голова; широкий разворот корпуса перед предупреждением."
 body_color = Color(0.2, 0.105, 0.055, 1)
 accent_color = Color(0.42, 0.25, 0.11, 1)
-visual_scale = 1.55
 animation_states = Array[StringName]([&"forage", &"sniff_air", &"stand_notice", &"bluff_charge", &"charge", &"withdraw"])
 behavior_traits = Array[String](["Защищает источник пищи", "Предупреждает до атаки", "Проверяет запах игрока"])
 gameplay_tells = Array[String](["Фырканье и щелчок челюстью — последняя граница", "Вставание на задние лапы означает проверку, а не атаку"])
 player_interactions = Array[StringName]([&"observe", &"avoid", &"distract"])
 world_layer_mutation = "В Корневом сне виден лишь движущийся горб земли; тело появляется, когда игрок нарушает ритм корней."
 lore_note = "Персонажи никогда не называют медведя духом или тотемом: сверхъестественен слой восприятия, а не реальное животное."
+
+visual_scene = ExtResource("trip_model")
+visual_scene_scale = 1.0
+visual_scene_yaw = 0.0
+visual_scale = 1.0
+idle_animation = &"Idle"
+walk_animation = &"Walk"
+run_animation = &"Run"
+forage_animation = &"Working"
+notice_animation = &"Idle"

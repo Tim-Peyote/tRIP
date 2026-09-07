@@ -151,81 +151,28 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _build_ui() -> void:
-	_canvas = CanvasLayer.new()
-	_canvas.name = "WorldPhaseDeveloperCanvas"
-	_canvas.layer = 90
+	_canvas = (load("res://features/developer/developer_panel.tscn") as PackedScene).instantiate() as CanvasLayer
 	add_child(_canvas)
-	_panel = Control.new()
-	_panel.name = "WorldPhaseDeveloperPanel"
-	_panel.visible = false
-	_panel.theme = TripUITheme.build()
-	_canvas.add_child(_panel)
-	var background := PanelContainer.new()
-	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	background.mouse_filter = Control.MOUSE_FILTER_STOP
-	background.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("a9c86d")))
-	_panel.add_child(background)
-	_header = HBoxContainer.new()
-	_header.add_theme_constant_override("separation", 12)
-	_panel.add_child(_header)
-	var title_stack := VBoxContainer.new()
-	title_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_header.add_child(title_stack)
-	var title := Label.new()
-	title.text = "ПУЛЬТ РАЗРАБОТЧИКА"
-	title.add_theme_font_size_override("font_size", 22)
-	title_stack.add_child(title)
-	var subtitle := Label.new()
-	subtitle.text = "МИР · СЦЕНАРИИ · ФИЗИОЛОГИЯ · ПОГОДА"
-	subtitle.modulate = Color(0.62, 0.71, 0.59)
-	subtitle.add_theme_font_size_override("font_size", 11)
-	title_stack.add_child(subtitle)
-	var close_button := Button.new()
-	close_button.text = "F10  ЗАКРЫТЬ"
-	close_button.custom_minimum_size = Vector2(118, 38)
-	close_button.pressed.connect(set_panel_visible.bind(false))
-	_header.add_child(close_button)
-	_status_panel = PanelContainer.new()
-	_status_panel.clip_contents = true
-	_status_panel.add_theme_stylebox_override("panel", TripUITheme.make_glass_panel(Color("9fbd72"), 0.74))
-	_panel.add_child(_status_panel)
-	var status_margin := MarginContainer.new()
-	status_margin.add_theme_constant_override("margin_left", 14)
-	status_margin.add_theme_constant_override("margin_right", 14)
-	status_margin.add_theme_constant_override("margin_top", 10)
-	status_margin.add_theme_constant_override("margin_bottom", 10)
-	_status_panel.add_child(status_margin)
-	var status_column := VBoxContainer.new()
-	status_column.add_theme_constant_override("separation", 4)
-	status_margin.add_child(status_column)
-	_status = Label.new()
-	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.add_theme_font_size_override("font_size", 12)
-	status_column.add_child(_status)
-	_seed_label = Label.new()
-	_seed_label.modulate = Color(0.67, 0.76, 0.62)
-	_seed_label.add_theme_font_size_override("font_size", 11)
-	status_column.add_child(_seed_label)
-	_scroll = DeveloperToolsScroll.new()
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_panel.add_child(_scroll)
-	_tools = VBoxContainer.new()
-	_tools.name = "DeveloperTools"
-	_tools.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_tools.add_theme_constant_override("separation", 12)
-	_scroll.add_child(_tools)
+	_panel = _canvas.get_node("Panel")
+	_header = _panel.get_node("Header")
+	_status_panel = _panel.get_node("StatusPanel")
+	_status = _status_panel.find_child("Status", true, false)
+	_seed_label = _status_panel.find_child("Seed", true, false)
+	_scroll = _panel.get_node("Scroll")
+	_tools = _scroll.get_node("DeveloperTools")
+	_help = _panel.get_node("Help")
+	(_header.get_node("CloseButton") as Button).pressed.connect(set_panel_visible.bind(false))
 	var world_grid := _add_section("МИРЫ", "1–8 · отдельная генерация и разведка для каждого слоя")
 	var definitions := _orchestrator.get_definitions()
 	for definition: WorldPhaseDefinition in definitions:
-		var button := Button.new()
-		button.text = "%d · %s" % [definition.order + 1, definition.display_name]
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.custom_minimum_size = Vector2(0, 36)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.toggle_mode = true
-		button.tooltip_text = String(definition.content_pack.landscape_statement) if definition.content_pack != null else definition.display_name
+		var button: Button
+		for candidate: Node in world_grid.get_children():
+			if candidate.get_meta("phase_id", &"") == definition.id:
+				button = candidate as Button
+				break
+		if button == null:
+			continue
 		button.pressed.connect(_orchestrator.set_developer_phase.bind(definition.id))
-		world_grid.add_child(button)
 		_phase_buttons[definition.id] = button
 	var action_grid := _add_section("СЦЕНАРИИ И НАВИГАЦИЯ", "Переходы, события, лаборатория и точки проверки")
 	if _progression != null:
@@ -260,11 +207,6 @@ func _build_ui() -> void:
 		_add_action_button(body_grid, "Истощение", _player.vitals.developer_set_condition.bind(&"exhausted"), &"body_exhausted")
 	var system_grid := _add_section("СИСТЕМА", "Возврат к сюжетному состоянию и диагностика")
 	_add_action_button(system_grid, "BACKSPACE  Вернуть сюжетный мир", _orchestrator.clear_developer_override, &"clear_override")
-	_help = Label.new()
-	_help.text = "PGUP / PGDN  соседний мир    ·    1–8  прямой выбор    ·    F10  закрыть"
-	_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_help.modulate = Color(0.68, 0.76, 0.62)
-	_panel.add_child(_help)
 	get_viewport().size_changed.connect(_apply_responsive_layout)
 	_apply_responsive_layout()
 
@@ -272,8 +214,7 @@ func _build_ui() -> void:
 func _rebuild_weather_controls() -> void:
 	if _panel == null or _weather == null:
 		return
-	var existing := _panel.find_child("WeatherDeveloperControls", true, false)
-	if existing != null:
+	if not _weather_buttons.is_empty():
 		return
 	if _tools == null:
 		return
@@ -285,43 +226,26 @@ func _rebuild_weather_controls() -> void:
 	_apply_responsive_layout()
 
 
-func _add_section(title_text: String, subtitle_text: String, node_name: String = "") -> GridContainer:
-	var section := VBoxContainer.new()
-	if not node_name.is_empty():
-		section.name = node_name
-	section.add_theme_constant_override("separation", 5)
-	_tools.add_child(section)
-	var title := Label.new()
-	title.text = title_text
-	title.modulate = Color(0.76, 0.86, 0.57)
-	title.add_theme_font_size_override("font_size", 13)
-	section.add_child(title)
-	var subtitle := Label.new()
-	subtitle.text = subtitle_text
-	subtitle.modulate = Color(0.55, 0.63, 0.54)
-	subtitle.add_theme_font_size_override("font_size", 11)
-	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	section.add_child(subtitle)
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 6)
-	section.add_child(grid)
-	_responsive_grids.append(grid)
-	return grid
+func _add_section(title_text: String, _subtitle_text: String, _node_name: String = "") -> GridContainer:
+	for section: Node in _tools.get_children():
+		if section.get_meta("section_title", "") == title_text:
+			for child: Node in section.get_children():
+				if child is GridContainer:
+					if child not in _responsive_grids:
+						_responsive_grids.append(child)
+					return child
+	push_error("Missing authored developer section: " + title_text)
+	return null
 
 
-func _add_action_button(parent: Control, text_value: String, callback: Callable, action_id: StringName = &"") -> Button:
-	var button := Button.new()
-	button.text = text_value
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.custom_minimum_size = Vector2(0, 34)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.set_meta(&"developer_action", action_id)
-	button.pressed.connect(callback)
-	parent.add_child(button)
-	return button
+func _add_action_button(parent: Control, _text_value: String, callback: Callable, action_id: StringName = &"") -> Button:
+	for child: Node in parent.get_children():
+		if child is Button and child.get_meta("developer_action", &"") == action_id:
+			if not child.pressed.is_connected(callback):
+				child.pressed.connect(callback)
+			return child
+	push_error("Missing authored developer action: " + String(action_id))
+	return null
 
 
 func _apply_responsive_layout() -> void:

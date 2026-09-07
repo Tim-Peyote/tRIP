@@ -25,7 +25,7 @@ func _build_supply_cache() -> void:
 	table.id = &"loot.starting_field_cache"
 	table.rolls = 1
 	table.entries = [sample, vial]
-	var cache := WorldLootContainer.new()
+	var cache := (load("res://world/interaction/world_loot_container.tscn") as PackedScene).instantiate() as WorldLootContainer
 	cache.name = "FieldSupplyCache"
 	cache.configure(&"cache.starting_field_crate", table, 61937, "Полевой ящик Ильи")
 	var world_position := Vector3(-2.0, 0.0, 13.0)

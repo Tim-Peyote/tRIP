@@ -15,7 +15,7 @@ func _run() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", TEST_SLOT, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	var phase_ids: Array[StringName] = [
 		&"phase.ordinary", &"phase.mycelial_choir", &"phase.crimson_hunt", &"phase.glass_frost",
@@ -104,7 +104,7 @@ func _run() -> void:
 	main.effect_orchestrator.clear()
 	await get_tree().process_frame
 	_expect(level.world_phase_orchestrator.get_current().id == &"phase.distant_heart", "Final story world collapsed when the acute consumable effect ended.")
-	var restored := (load("res://world/levels/shelter/shelter_level.tscn") as PackedScene).instantiate() as ShelterLevel
+	var restored := (load("res://world/levels/expedition_session.tscn") as PackedScene).instantiate() as SessionController
 	add_child(restored)
 	restored.expedition_clock.running = false
 	restored.session_persistence.setup(restored, restored.game_loop_orchestrator, TEST_SLOT)

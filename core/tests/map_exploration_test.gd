@@ -4,7 +4,7 @@ var _failures: Array[String] = []
 
 
 func _ready() -> void:
-	var level := (load("res://world/levels/shelter/shelter_level.tscn") as PackedScene).instantiate() as ShelterLevel
+	var level := (load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene).instantiate() as LegacyExpeditionFixture
 	add_child(level)
 	await get_tree().process_frame
 	var map := level.get_map_exploration()

@@ -25,6 +25,26 @@ var _metamorphosis_tween: Tween
 var _dressing: PortableLaboratoryDressing
 
 
+func get_laboratory_root() -> Node3D:
+	return _laboratory_root
+
+
+func setup_authored(player: FirstPersonController, terrain: ExpeditionTerrain, laboratory: Node3D) -> void:
+	_player = player
+	_terrain = terrain
+	_laboratory_root = laboratory
+	_proximity_area = laboratory.get_node("LaboratoryProximity") as Area3D
+	_proximity_area.body_entered.connect(func(body: Node3D) -> void: laboratory_entered.emit(body))
+	_metamorphosis_root = (load("res://features/road_laboratory/laboratory_metamorphosis.tscn") as PackedScene).instantiate() as Node3D
+	add_child(_metamorphosis_root)
+	_cairn = RitualCairn.new()
+	_cairn.name = "FirstRitualCairn"
+	add_child(_cairn)
+	_cairn.ritual_completed.connect(_on_first_ritual_completed)
+	_cairn.set_available(false)
+	_set_lab_active(false)
+
+
 func setup(player: FirstPersonController, terrain: ExpeditionTerrain, portable_nodes: Array[Node]) -> void:
 	_player = player
 	_terrain = terrain
@@ -49,6 +69,7 @@ func setup(player: FirstPersonController, terrain: ExpeditionTerrain, portable_n
 
 
 func initialize_new_run(start_position: Vector3, cairn_position: Vector3) -> void:
+	_terrain.clear_laboratory_site()
 	_session_active = true
 	unlocked = false
 	manifested = false
@@ -71,6 +92,7 @@ func manifest_near_player(animate: bool = true) -> void:
 	forward.y = 0.0
 	forward = forward.normalized()
 	laboratory_position = _find_camp_position(_player.global_position, forward)
+	laboratory_position = _terrain.prepare_laboratory_site(laboratory_position)
 	_laboratory_root.global_position = laboratory_position
 	_laboratory_root.rotation.y = _player.rotation.y
 	if animate:
@@ -112,6 +134,8 @@ func apply_save_data(data: Dictionary) -> void:
 	manifested = bool(data.get("manifested", false)) and unlocked
 	ritual_position = _array_to_vector(data.get("ritual_position", []) as Array, ritual_position)
 	laboratory_position = _array_to_vector(data.get("laboratory_position", []) as Array, laboratory_position)
+	if manifested:
+		laboratory_position = _terrain.prepare_laboratory_site(laboratory_position)
 	_cairn.global_position = ritual_position
 	_cairn.set_available(not unlocked)
 	_laboratory_root.global_position = laboratory_position

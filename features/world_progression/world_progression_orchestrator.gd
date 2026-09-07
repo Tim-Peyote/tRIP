@@ -46,6 +46,9 @@ func setup(
 	terrain.mystery_event_failed.connect(_on_mystery_event_failed)
 	terrain.mystery_event_progressed.connect(_on_mystery_event_progressed)
 	terrain.authored_encounter_completed.connect(_on_authored_encounter_completed)
+	terrain.authored_encounter_spawned.connect(_bind_authored_encounter)
+	for node: Node in terrain.find_children("*", "AuthoredNPCEncounter", true, false):
+		_bind_authored_encounter(node as AuthoredNPCEncounter)
 	cooking.result_created.connect(_on_result_created)
 	phases.phase_changed.connect(_on_phase_changed)
 	_emit_contract()
@@ -129,6 +132,10 @@ func _on_mystery_discovered(definition: WorldMysteryDefinition) -> void:
 		_loop.narrative_notice_requested.emit(definition.display_name, definition.discovery_text)
 	autosave_requested.emit(&"world_mystery_discovered")
 	_emit_contract()
+
+
+func _bind_authored_encounter(encounter: AuthoredNPCEncounter) -> void:
+	encounter.setup(_loop)
 
 
 func _on_authored_encounter_completed(clue_id: StringName, title: String, text: String) -> void:

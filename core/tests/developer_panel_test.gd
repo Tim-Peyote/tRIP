@@ -9,13 +9,13 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 941, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	var panel := level.world_phase_developer_panel
 	var player := level.player
 	panel.set_panel_visible(true)
 	_expect(panel.is_panel_visible(), "Developer panel did not open.")
 	_expect(not bool(player.get("_gameplay_enabled")), "Gameplay remained enabled behind the developer panel.")
-	var panel_control := panel.find_child("WorldPhaseDeveloperPanel", true, false) as Control
+	var panel_control := panel.get("_panel") as Control
 	var viewport_size := get_viewport().get_visible_rect().size
 	var panel_end := panel_control.position + panel_control.size
 	_expect(panel_control.position.x >= 0.0 and panel_control.position.y >= 0.0 and panel_end.x <= viewport_size.x + 0.5 and panel_end.y <= viewport_size.y + 0.5, "Developer panel exceeds the viewport: panel %s..%s, viewport %s." % [panel_control.position, panel_end, viewport_size])

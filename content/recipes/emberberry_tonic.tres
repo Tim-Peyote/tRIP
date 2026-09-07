@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3 uid="uid://wl0fpo1yg68t"]
 
-[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1"]
-[ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2"]
+[ext_resource type="Script" uid="uid://bw3vclllsgfrb" path="res://core/resources/recipe_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://hm2v26t7exny" path="res://core/resources/recipe_step_definition.gd" id="2"]
 
 [sub_resource type="Resource" id="Step_grind"]
 script = ExtResource("2")
@@ -35,16 +35,13 @@ player_hint = "Выдержать до тёмно-красного пара и �
 
 [resource]
 script = ExtResource("1")
-id = &"recipe.emberberry_tonic"
-display_name = "Тлеющий контрагент"
-description = "Защитный отвар по схеме из лагеря миколога."
-tags = Array[StringName]([&"brew", &"counteragent", &"deep_grove"])
 primary_ingredient_id = &"ingredient.emberberry"
 steps = Array[ExtResource("2")]([SubResource("Step_grind"), SubResource("Step_heat")])
 result_item_id = &"item.emberberry_tonic"
 effect_ids = Array[StringName]([&"effect.spore_quiet"])
 required_base_id = &"base.kvass"
-finish_method = 0
-base_yield = 1
-acceptable_error = 0.25
 field_notes = "Ягоды раздавить, но не дробить семена. Красный пар означает готовность."
+id = &"recipe.emberberry_tonic"
+display_name = "Тлеющий контрагент"
+description = "Защитный отвар по схеме из лагеря миколога."
+tags = Array[StringName]([&"brew", &"counteragent", &"deep_grove"])

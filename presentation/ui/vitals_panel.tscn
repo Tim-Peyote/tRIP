@@ -1,0 +1,113 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://presentation/ui/trip_theme.tres" id="1_8t4xl"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_05u2m"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.035, 0.047, 0.04, 0.5184)
+border_width_left = 2
+border_color = Color(0.7764706, 0.8509804, 0.5411765, 0.16)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hagfm"]
+bg_color = Color(0.8509804, 0.40392157, 0.34901962, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u8atq"]
+bg_color = Color(0.84705883, 0.7490196, 0.4, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="VitalsPanel" type="PanelContainer" unique_id=1682177109]
+unique_name_in_owner = true
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.32
+offset_top = -156.0
+offset_right = 369.92
+offset_bottom = -68.0
+grow_vertical = 0
+mouse_filter = 2
+theme = ExtResource("1_8t4xl")
+theme_override_styles/panel = SubResource("StyleBoxFlat_05u2m")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1541235876]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Layout" type="VBoxContainer" parent="Margin" unique_id=1209142126]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="Top" type="HBoxContainer" parent="Margin/Layout" unique_id=1521306558]
+layout_mode = 2
+
+[node name="HealthLabel" type="Label" parent="Margin/Layout/Top" unique_id=167222696]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.92, 0.72, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "ЗДОРОВЬЕ  35 / 35"
+
+[node name="ConditionLabel" type="Label" parent="Margin/Layout/Top" unique_id=1267755156]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.74, 0.82, 0.62, 0.9)
+theme_override_font_sizes/font_size = 10
+text = "СТАБИЛЬНО"
+horizontal_alignment = 2
+
+[node name="HealthBar" type="ProgressBar" parent="Margin/Layout" unique_id=635892207]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_hagfm")
+value = 100.0
+show_percentage = false
+
+[node name="StaminaLabel" type="Label" parent="Margin/Layout" unique_id=1733820450]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.81, 0.5, 1)
+theme_override_font_sizes/font_size = 11
+text = "ВЫНОСЛИВОСТЬ  60 / 60"
+
+[node name="StaminaBar" type="ProgressBar" parent="Margin/Layout" unique_id=1038905740]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_u8atq")
+value = 100.0
+show_percentage = false
+
+[node name="PhysiologyLabel" type="Label" parent="Margin/Layout" unique_id=1043906796]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.68, 0.61, 0.92)
+theme_override_font_sizes/font_size = 10
+text = "ТЕЛО 36.7°C  ·  ВЛАГА 0%  ·  СПОРЫ 0%  ·  ТОКСИНЫ 0%"
+
+[node name="FoodSlotsLabel" type="Label" parent="Margin/Layout" unique_id=2082765625]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.8, 0.58, 0.9)
+theme_override_font_sizes/font_size = 10
+text = "○ ПУСТО   ○ ПУСТО   ○ ПУСТО"
+text_overrun_behavior = 3

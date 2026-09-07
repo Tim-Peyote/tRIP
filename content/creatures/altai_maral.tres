@@ -2,6 +2,8 @@
 [ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
 [ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_animals/Stag.fbx" id="2_stag"]
 [ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_animals/Deer.fbx" id="3_deer"]
+[ext_resource type="PackedScene" path="res://assets/models/actors/maral.glb" id="trip_model"]
+
 [resource]
 script = ExtResource("1")
 id = &"creature.altai_maral"
@@ -24,14 +26,19 @@ natural_basis = "Марал — реальный крупный олень Ал�
 silhouette_notes = "Высокая холка, длинные ноги, вытянутая морда; у самца широкая, но читаемая корона рогов."
 body_color = Color(0.34, 0.16, 0.07, 1)
 accent_color = Color(0.72, 0.46, 0.2, 1)
-visual_scale = 1.35
-visual_scene = ExtResource("2_stag")
-visual_scene_variants = Array[PackedScene]([ExtResource("3_deer")])
-visual_scene_scale = 0.9
-visual_scene_yaw = 180.0
 animation_states = Array[StringName]([&"graze", &"ear_flick", &"notice", &"trot", &"bound", &"rut_display"])
 behavior_traits = Array[String](["Стадо выставляет одну наблюдающую самку", "Уходит поперёк ветра", "Замирает перед общим бегством"])
 gameplay_tells = Array[String](["Хруст ветки предупреждает о смене направления стада", "Рёв в багряном слое совпадает с ложным маршрутом"])
 player_interactions = Array[StringName]([&"observe", &"track", &"collect_shed_antler"])
 world_layer_mutation = "В Багряном гоне рога оставляют задержанный красный след, а стадо иногда пробегает по ещё не возникшей тропе."
 lore_note = "Брат использовал маршруты маралов как независимую проверку того, перестроился ли ландшафт на самом деле."
+
+visual_scene = ExtResource("trip_model")
+visual_scene_scale = 1.0
+visual_scene_yaw = 0.0
+visual_scale = 1.0
+idle_animation = &"Idle"
+walk_animation = &"Walk"
+run_animation = &"Run"
+forage_animation = &"Working"
+notice_animation = &"Idle"

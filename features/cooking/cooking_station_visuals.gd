@@ -18,6 +18,8 @@ var _jug_rest: Transform3D
 var _ladle_rest: Transform3D
 var _cauldron: Node3D
 var _cauldron_rest: Transform3D
+var _liquid_offset: Vector3
+var _steam_offset: Vector3
 var _hourglass: Node3D
 var _hourglass_rest: Transform3D
 var _bellows: Node3D
@@ -35,7 +37,10 @@ func refresh_rest_transforms() -> void:
 	_cauldron = get_parent().get_node_or_null("Cauldron") as Node3D
 	_hourglass = get_parent().get_node_or_null("Hourglass") as Node3D
 	_bellows = get_parent().get_node_or_null("Bellows") as Node3D
-	if _cauldron != null: _cauldron_rest = _cauldron.transform
+	if _cauldron != null:
+		_cauldron_rest = _cauldron.transform
+		_liquid_offset = active_liquid.position - _cauldron.position
+		_steam_offset = steam.position - _cauldron.position
 	if _hourglass != null: _hourglass_rest = _hourglass.transform
 	if _bellows != null: _bellows_rest = _bellows.transform
 
@@ -50,6 +55,10 @@ func setup(orchestrator: CookingOrchestrator) -> void:
 
 
 func _process(delta: float) -> void:
+	# Presentation nodes share the lab root, but must follow the crane's pot.
+	if is_instance_valid(_cauldron):
+		active_liquid.position = _cauldron.position + _liquid_offset
+		steam.position = _cauldron.position + _steam_offset
 	if not steam.visible:
 		return
 	_time += delta

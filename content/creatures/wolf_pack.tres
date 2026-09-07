@@ -1,6 +1,8 @@
 [gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=3 format=3]
 [ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
 [ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_animals/Wolf.fbx" id="2_wolf"]
+[ext_resource type="PackedScene" path="res://assets/models/actors/wolf.glb" id="trip_model"]
+
 [resource]
 script = ExtResource("1")
 id = &"creature.altai_wolf"
@@ -23,13 +25,19 @@ natural_basis = "Реальный серый волк; избегает чело
 silhouette_notes = "Глубокая грудь, длинные ноги, опущенный прямой хвост; стая держит разную дистанцию, не строится шеренгой."
 body_color = Color(0.28, 0.3, 0.29, 1)
 accent_color = Color(0.68, 0.72, 0.67, 1)
-visual_scale = 0.92
-visual_scene = ExtResource("2_wolf")
-visual_scene_scale = 0.9
-visual_scene_yaw = 180.0
 animation_states = Array[StringName]([&"trot", &"stop_listen", &"circle", &"stalk", &"feint", &"disengage"])
 behavior_traits = Array[String](["Сопровождает вне прямой видимости", "Проверяет отставшего", "Отступает от огня и группы звуков"])
 gameplay_tells = Array[String](["Один вой отмечает положение, второй — направление ветра", "В Багряном гоне тени бегут раньше тел"])
 player_interactions = Array[StringName]([&"observe", &"distract", &"repel_with_fire"])
 world_layer_mutation = "В Гоне стая атакует ритм движения: безопасно продолжать обычный шаг. В Пепле волки существуют главным образом как звуковой контур."
 lore_note = "Ни один волк не является злым духом; хищная логика рождается из препарата и страха игрока."
+
+visual_scene = ExtResource("trip_model")
+visual_scene_scale = 1.0
+visual_scene_yaw = 0.0
+visual_scale = 1.0
+idle_animation = &"Idle"
+walk_animation = &"Walk"
+run_animation = &"Run"
+forage_animation = &"Working"
+notice_animation = &"Idle"

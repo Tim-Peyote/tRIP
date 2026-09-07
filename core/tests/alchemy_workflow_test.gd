@@ -146,10 +146,10 @@ func _test_physical_vessel() -> void:
 
 
 func _test_station_and_persistence() -> void:
-	var level := (load("res://world/levels/shelter/shelter_level.tscn") as PackedScene).instantiate() as ShelterLevel
+	var level := (load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene).instantiate() as LegacyExpeditionFixture
 	add_child(level)
 	await get_tree().process_frame
-	var portable := level.road_laboratory.get_node("PortableLaboratory")
+	var portable := level.road_laboratory.get_laboratory_root()
 	for tool_name: String in ["KvassJug", "SpiritFlask", "PotCrane", "Bellows", "Hourglass", "Distiller", "ServingBowl"]:
 		_expect(portable.has_node(tool_name), "Portable laboratory is missing %s." % tool_name)
 	_expect(not (portable.get_node("Distiller") as Node3D).visible, "Distiller appeared before the first laboratory upgrade.")

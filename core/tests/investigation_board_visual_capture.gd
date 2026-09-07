@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 96, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	var loop := level.game_loop_orchestrator
 	loop.stage = GameLoopOrchestrator.Stage.DEEP_GROVE
 	loop.route_unlocked = true

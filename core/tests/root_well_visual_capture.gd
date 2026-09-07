@@ -5,11 +5,12 @@ const OUTPUT_PATH: String = "/tmp/trip_root_well_capture.png"
 
 func _ready() -> void:
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
+	main.session_scene = load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene
 	add_child(main)
 	await get_tree().process_frame
 	main.call("_on_game_requested", 95, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("LegacyExpeditionFixture", true, false) as LegacyExpeditionFixture
 	var loop := level.game_loop_orchestrator
 	loop.stage = GameLoopOrchestrator.Stage.DEEP_GROVE
 	loop.route_unlocked = true

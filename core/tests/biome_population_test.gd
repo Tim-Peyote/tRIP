@@ -59,7 +59,7 @@ func _run() -> void:
 	main.call("_on_game_requested", 517, true)
 	for _frame: int in 24:
 		await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	_expect(level != null and level.get_biome_population() != null, "Biome population was not installed in the expedition level.")
 	if level != null:
 		var population := level.get_biome_population()

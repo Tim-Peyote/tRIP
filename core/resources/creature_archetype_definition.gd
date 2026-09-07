@@ -27,6 +27,8 @@ enum ActivityWindow { DAY, NIGHT, CREPUSCULAR, ANY }
 @export_range(0.25, 3.0, 0.05) var visual_scale: float = 1.0
 @export var animation_states: Array[StringName] = [&"idle", &"notice", &"turn", &"walk", &"flee"]
 @export var visual_scene: PackedScene
+@export_range(0.05, 3.0, 0.01) var collision_radius: float = 0.38
+@export_range(0.1, 5.0, 0.01) var collision_height: float = 1.4
 @export var visual_scene_variants: Array[PackedScene] = []
 @export_range(0.05, 4.0, 0.01) var visual_scene_scale: float = 1.0
 @export_range(-180.0, 180.0, 1.0, "suffix:°") var visual_scene_yaw: float = 0.0

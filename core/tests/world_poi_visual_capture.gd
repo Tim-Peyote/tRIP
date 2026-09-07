@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 88, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.world_phase_orchestrator.set_developer_phase(&"phase.crimson_hunt")
 	await get_tree().create_timer(2.2).timeout
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain

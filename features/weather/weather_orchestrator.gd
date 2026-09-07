@@ -380,18 +380,12 @@ func _apply_to_reactive_objects() -> void:
 
 
 func _build_precipitation() -> void:
-	_precipitation = GPUParticles3D.new()
-	_precipitation.name = "LocalPrecipitation"
-	_precipitation.lifetime = 1.5
-	_precipitation.visibility_aabb = AABB(Vector3(-18, -14, -18), Vector3(36, 28, 36))
-	_precipitation.position = Vector3(0, 9, 0)
-	add_child(_precipitation)
-	_precipitation_depth = GPUParticles3D.new()
-	_precipitation_depth.name = "WeatherDepthLayer"
-	_precipitation_depth.lifetime = 2.25
-	_precipitation_depth.visibility_aabb = AABB(Vector3(-31, -18, -31), Vector3(62, 36, 62))
-	_precipitation_depth.position = Vector3(0, 11, 0)
-	add_child(_precipitation_depth)
+	var rig := get_node_or_null("WeatherRig")
+	if rig == null:
+		rig = (load("res://features/weather/weather_rig.tscn") as PackedScene).instantiate()
+		add_child(rig)
+	_precipitation = rig.get_node("LocalPrecipitation") as GPUParticles3D
+	_precipitation_depth = rig.get_node("WeatherDepthLayer") as GPUParticles3D
 
 
 func _configure_particles() -> void:
@@ -416,30 +410,11 @@ func _configure_particles() -> void:
 
 func _configure_particle_layer(layer: GPUParticles3D, depth_layer: bool, local_strength: float) -> void:
 	layer.amount = roundi(lerpf(120.0, 480.0, local_strength) if depth_layer else lerpf(240.0, 1050.0, local_strength))
-	var process := ParticleProcessMaterial.new()
-	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	process.emission_box_extents = Vector3(24.0, 2.5, 24.0) if depth_layer else Vector3(13.0, 1.5, 13.0)
+	var prefix := "res://features/weather/%s_%s" % ["snow" if state == State.SNOW else "rain", "far" if depth_layer else "near"]
+	var process := (load(prefix + "_process.tres") as ParticleProcessMaterial).duplicate() as ParticleProcessMaterial
 	process.direction = Vector3(wind.x * 0.065, -1.0, wind.z * 0.065).normalized() if state != State.SNOW else Vector3(wind.x * 0.12, -0.4, wind.z * 0.12).normalized()
-	process.spread = 11.0 if state != State.SNOW else 42.0
-	process.gravity = Vector3(0, -10.5, 0) if state != State.SNOW else Vector3(0, -0.8, 0)
-	process.initial_velocity_min = (8.5 if depth_layer else 7.0) if state != State.SNOW else (0.42 if depth_layer else 0.6)
-	process.initial_velocity_max = (13.5 if depth_layer else 12.0) if state != State.SNOW else (1.15 if depth_layer else 1.5)
-	process.scale_min = 0.42 if depth_layer else 0.68
-	process.scale_max = 0.82 if depth_layer else 1.22
 	layer.process_material = process
-	# Real spatial droplets replace the old camera-facing half-metre quads. Those
-	# quads read as graphic stripes glued to the screen during wind and storms.
-	var droplet := SphereMesh.new()
-	droplet.radius = (0.006 if depth_layer else 0.01) if state != State.SNOW else (0.022 if depth_layer else 0.036)
-	droplet.height = (0.065 if depth_layer else 0.11) if state != State.SNOW else (0.022 if depth_layer else 0.036)
-	droplet.radial_segments = 5
-	droplet.rings = 2
-	var material := StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = Color(0.52, 0.66, 0.72, 0.2 if depth_layer else 0.34) if state != State.SNOW else Color(0.88, 0.94, 1.0, 0.48 if depth_layer else 0.82)
-	droplet.material = material
-	layer.draw_pass_1 = droplet
+	layer.draw_pass_1 = load(prefix + "_mesh.tres") as Mesh
 
 
 func _apply_environment(immediate: bool) -> void:
@@ -555,13 +530,7 @@ func _apply_cloud_state() -> void:
 
 
 func _build_lightning() -> void:
-	_lightning = DirectionalLight3D.new()
-	_lightning.name = "LightningFlash"
-	_lightning.light_color = Color(0.68, 0.78, 1.0)
-	_lightning.light_energy = 0.0
-	_lightning.shadow_enabled = false
-	_lightning.rotation_degrees = Vector3(-62, -18, 0)
-	add_child(_lightning)
+	_lightning = $WeatherRig/LightningFlash
 
 
 func _update_lightning(delta: float) -> void:
@@ -621,33 +590,9 @@ func _spawn_lightning_bolt(strike_origin: Vector3, strength: float) -> void:
 
 
 func _build_audio() -> void:
-	_rain_audio = _make_weather_layer("RecordedRain", RAIN_AMBIENCE, -40.0)
-	_wind_audio = _make_weather_layer("RecordedWind", WIND_SOFT, -40.0)
-	_thunder_audio = AudioStreamPlayer3D.new()
-	_thunder_audio.name = "SpatialThunder"
-	_thunder_audio.stream = THUNDERCLAP
-	if _thunder_audio.stream is AudioStreamWAV:
-		(_thunder_audio.stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_DISABLED
-	_thunder_audio.bus = &"Ambience"
-	_thunder_audio.unit_size = 12.0
-	_thunder_audio.max_distance = 180.0
-	_thunder_audio.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-	_thunder_audio.top_level = true
-	add_child(_thunder_audio)
-
-
-func _make_weather_layer(layer_name: String, audio_stream: AudioStream, initial_db: float) -> AudioStreamPlayer:
-	var player := AudioStreamPlayer.new()
-	player.name = layer_name
-	player.bus = &"Ambience"
-	player.stream = audio_stream
-	if audio_stream is AudioStreamOggVorbis:
-		(audio_stream as AudioStreamOggVorbis).loop = true
-	elif audio_stream is AudioStreamMP3:
-		(audio_stream as AudioStreamMP3).loop = true
-	player.volume_db = initial_db
-	add_child(player)
-	return player
+	_rain_audio = $WeatherRig/RecordedRain
+	_wind_audio = $WeatherRig/RecordedWind
+	_thunder_audio = $WeatherRig/SpatialThunder
 
 
 func _update_audio(delta: float) -> void:

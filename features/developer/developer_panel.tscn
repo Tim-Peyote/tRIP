@@ -1,0 +1,869 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://features/developer/developer_tools_scroll.gd" id="1_1l6hl"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6llxe"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.065, 0.075, 0.067, 0.34)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.32, 0.28, 0.14)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h6ckx"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.15, 0.18, 0.145, 0.94)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5f7ni"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.13, 0.16, 0.135, 0.88)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 0.62)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tg3ed"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.77913725, 0.86541176, 0.5237647, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jsrys"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.075, 0.09, 0.078, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56, 0.62, 0.5, 0.2)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m8cf7"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.77913725, 0.86541176, 0.5237647, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_15r5y"]
+color = Color(0.72, 0.78, 0.63, 0.24)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ty2u7"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.12, 0.16, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.38, 0.31, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6mlv8"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.18, 0.25, 0.19, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pqd3t"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.16, 0.21, 0.17, 1)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kk267"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trx5k"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.055, 0.068, 0.058, 0.42)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.65, 0.7, 0.58, 0.14)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ovvu3"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.9)
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_673lp"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9254902, 0.96862745, 0.7764706, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0gssh"]
+content_margin_left = 18.0
+content_margin_top = 9.0
+content_margin_right = 18.0
+content_margin_bottom = 9.0
+bg_color = Color(0.09, 0.105, 0.092, 0.6724)
+border_width_left = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.58, 0.65, 0.5, 0.2)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_442ix"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.055, 0.07, 0.06, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.46, 0.39, 0.3)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ng88u"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="Theme" id="Theme_nrei2"]
+default_font_size = 15
+Button/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+Button/colors/font_disabled_color = Color(0.55, 0.58, 0.54, 0.48)
+Button/colors/font_focus_color = Color(1, 1, 1, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(0.03137255, 0.047058824, 0.039215688, 1)
+Button/constants/outline_size = 0
+Button/font_sizes/font_size = 16
+Button/styles/disabled = SubResource("StyleBoxFlat_6llxe")
+Button/styles/focus = SubResource("StyleBoxFlat_h6ckx")
+Button/styles/hover = SubResource("StyleBoxFlat_5f7ni")
+Button/styles/hover_pressed = SubResource("StyleBoxFlat_tg3ed")
+Button/styles/normal = SubResource("StyleBoxFlat_jsrys")
+Button/styles/pressed = SubResource("StyleBoxFlat_m8cf7")
+HSeparator/styles/separator = SubResource("StyleBoxLine_15r5y")
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_ty2u7")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_6mlv8")
+HSlider/styles/slider = SubResource("StyleBoxFlat_pqd3t")
+ItemList/colors/font_color = Color(0.8509804, 0.8666667, 0.7921569, 1)
+ItemList/colors/font_selected_color = Color(0.0627451, 0.08235294, 0.0627451, 1)
+ItemList/styles/focus = SubResource("StyleBoxEmpty_kk267")
+ItemList/styles/panel = SubResource("StyleBoxFlat_trx5k")
+ItemList/styles/selected = SubResource("StyleBoxFlat_ovvu3")
+ItemList/styles/selected_focus = SubResource("StyleBoxFlat_673lp")
+Label/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+Label/colors/font_shadow_color = Color(0, 0, 0, 0.62)
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 2
+OptionButton/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+OptionButton/font_sizes/font_size = 14
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_0gssh")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_442ix")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_ng88u")
+RichTextLabel/colors/default_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+RichTextLabel/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+RichTextLabel/colors/font_outline_color = Color(0, 0, 0, 0.7)
+RichTextLabel/constants/outline_size = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cf0mb"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(0.105, 0.12, 0.105, 0.95)
+border_width_left = 1
+border_width_top = 3
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6627451, 0.78431374, 0.42745098, 0.52)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.72)
+shadow_size = 18
+shadow_offset = Vector2(0, 8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4fqbo"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.035, 0.047, 0.04, 0.5328)
+border_width_left = 2
+border_color = Color(0.62352943, 0.7411765, 0.44705883, 0.16)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.32)
+
+[node name="WorldPhaseDeveloperCanvas" type="CanvasLayer" unique_id=1384253859]
+layer = 90
+
+[node name="Panel" type="Control" parent="." unique_id=601039638]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 12.0
+offset_right = 780.0
+offset_bottom = 708.0
+theme = SubResource("Theme_nrei2")
+
+[node name="@PanelContainer@26" type="PanelContainer" parent="Panel" unique_id=894476224]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_cf0mb")
+
+[node name="Header" type="HBoxContainer" parent="Panel" unique_id=273207379]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 18.0
+offset_right = 738.0
+offset_bottom = 72.0
+theme_override_constants/separation = 12
+
+[node name="@VBoxContainer@28" type="VBoxContainer" parent="Panel/Header" unique_id=1696665400]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="@Label@29" type="Label" parent="Panel/Header/@VBoxContainer@28" unique_id=659837151]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "ПУЛЬТ РАЗРАБОТЧИКА"
+
+[node name="@Label@30" type="Label" parent="Panel/Header/@VBoxContainer@28" unique_id=1054216043]
+modulate = Color(0.62, 0.71, 0.59, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "МИР · СЦЕНАРИИ · ФИЗИОЛОГИЯ · ПОГОДА"
+
+[node name="CloseButton" type="Button" parent="Panel/Header" unique_id=1780488669]
+custom_minimum_size = Vector2(118, 38)
+layout_mode = 2
+text = "F10  ЗАКРЫТЬ"
+
+[node name="StatusPanel" type="PanelContainer" parent="Panel" unique_id=1872937022]
+clip_contents = true
+layout_mode = 0
+offset_left = 22.0
+offset_top = 78.0
+offset_right = 738.0
+offset_bottom = 6946.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_4fqbo")
+
+[node name="@MarginContainer@33" type="MarginContainer" parent="Panel/StatusPanel" unique_id=2052004085]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="@VBoxContainer@34" type="VBoxContainer" parent="Panel/StatusPanel/@MarginContainer@33" unique_id=193767897]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Status" type="Label" parent="Panel/StatusPanel/@MarginContainer@33/@VBoxContainer@34" unique_id=2105317981]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Явь · Сырая тайга · Черневая пихтово-кедровая тайга в речной долине: крупный лес, мокрый бурелом, гранитные выходы и следы геологической партии.
+Локальный образец: Лунная шляпка
+Формула перехода: Настой спорозрения
+Следующий слой: Мицелиальный хор
+x 0.0 · y 0.1 · z 0.4 · 0.0 м/с
+Тело: HP 35/35 · ST 60/60 · 36.7°C · вода 0% · токсины 0% · споры 0%
+Лаба: не открыта · явление: 0 · 0%
+Фауна: 0 · 
+Погода: —"
+autowrap_mode = 3
+
+[node name="Seed" type="Label" parent="Panel/StatusPanel/@MarginContainer@33/@VBoxContainer@34" unique_id=519968668]
+modulate = Color(0.67, 0.76, 0.62, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Seed: 117 · чанков: 9 · время: ДЕНЬ 1 · 05:31
+Art field: пятно 0.50 · плодородие 0.56 · возраст 0.99 · плотность ×1.07 · форма 1.17/1.02"
+
+[node name="Scroll" type="ScrollContainer" parent="Panel" unique_id=165846994]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 318.0
+offset_right = 738.0
+offset_bottom = 654.0
+horizontal_scroll_mode = 0
+script = ExtResource("1_1l6hl")
+
+[node name="DeveloperTools" type="VBoxContainer" parent="Panel/Scroll" unique_id=70911395]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="@VBoxContainer@40" type="VBoxContainer" parent="Panel/Scroll/DeveloperTools" unique_id=685300938]
+layout_mode = 2
+theme_override_constants/separation = 5
+metadata/section_title = "МИРЫ"
+
+[node name="@Label@41" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40" unique_id=460919904]
+modulate = Color(0.76, 0.86, 0.57, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "МИРЫ"
+
+[node name="@Label@42" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40" unique_id=540487210]
+modulate = Color(0.55, 0.63, 0.54, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "1–8 · отдельная генерация и разведка для каждого слоя"
+autowrap_mode = 3
+
+[node name="@GridContainer@43" type="GridContainer" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40" unique_id=1736822185]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="@Button@44" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=1956752959]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Черневая пихтово-кедровая тайга в речной долине: крупный лес, мокрый бурелом, гранитные выходы и следы геологической партии."
+toggle_mode = true
+button_pressed = true
+text = "1 · Явь · Сырая тайга"
+alignment = 0
+metadata/phase_id = &"phase.ordinary"
+
+[node name="@Button@45" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=1201917175]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Сырая кедровая тайга проваливается в карст: гигантские плодовые тела, известняковые рёбра, споровые ложбины и дышащие входы."
+toggle_mode = true
+text = "2 · Мицелиальный хор"
+alignment = 0
+metadata/phase_id = &"phase.mycelial_choir"
+
+[node name="@Button@46" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=193158787]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Сухая межгорная степь и красная осыпь: редкие лиственницы вытягиваются в рога, ветер несёт движущиеся звериные следы."
+toggle_mode = true
+text = "3 · Багряный гон"
+alignment = 0
+metadata/phase_id = &"phase.crimson_hunt"
+
+[node name="@Button@47" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=1374308573]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Высокогорный кар с моренами и ледяными террасами: редкие лишайники, кристаллические гребни и замёрзшие архивы памяти."
+toggle_mode = true
+text = "4 · Стеклянная изморозь"
+alignment = 0
+metadata/phase_id = &"phase.glass_frost"
+
+[node name="@Button@48" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=1371508225]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Ветровая горная тундра после старого пожара: обугленные лиственницы, пепельные столбы, исчезающие стоянки и почти нулевая дальность."
+toggle_mode = true
+text = "5 · Пепельная тишина"
+alignment = 0
+metadata/phase_id = &"phase.ashen_silence"
+
+[node name="@Button@49" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=463295632]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Затопленная озёрная долина: тростниковые острова, слоистые берега, зеркальные протоки и двойники полевых стоянок."
+toggle_mode = true
+text = "6 · Зеркальный разлив"
+alignment = 0
+metadata/phase_id = &"phase.mirror_flood"
+
+[node name="@Button@50" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=1146732691]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Поверхность разрыта корневыми полостями: колонны-стволы, клубни размером с валуны, провалы и подземные русла."
+toggle_mode = true
+text = "7 · Корневой сон"
+alignment = 0
+metadata/phase_id = &"phase.root_dream"
+
+[node name="@Button@51" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@40/@GridContainer@43" unique_id=1018587455]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Высокое плато собирает освоенные слои в невозможную экосистему: парящие пласты, кольцевые рощи и финальная лаборатория."
+toggle_mode = true
+text = "8 · Сердце Дальнего леса"
+alignment = 0
+metadata/phase_id = &"phase.distant_heart"
+
+[node name="@VBoxContainer@52" type="VBoxContainer" parent="Panel/Scroll/DeveloperTools" unique_id=1412977635]
+layout_mode = 2
+theme_override_constants/separation = 5
+metadata/section_title = "СЦЕНАРИИ И НАВИГАЦИЯ"
+
+[node name="@Label@53" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52" unique_id=979354094]
+modulate = Color(0.76, 0.86, 0.57, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "СЦЕНАРИИ И НАВИГАЦИЯ"
+
+[node name="@Label@54" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52" unique_id=1129757258]
+modulate = Color(0.55, 0.63, 0.54, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Переходы, события, лаборатория и точки проверки"
+autowrap_mode = 3
+
+[node name="@GridContainer@55" type="GridContainer" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52" unique_id=1178942277]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="@Button@56" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=1763318902]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ENTER  Принять формулу"
+alignment = 0
+metadata/developer_action = &"transition_formula"
+
+[node name="@Button@57" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=450986969]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "P  Решить ближайшее таинство"
+alignment = 0
+metadata/developer_action = &"resolve_mystery"
+
+[node name="@Button@58" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=588167582]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "H  Запустить явление"
+alignment = 0
+metadata/developer_action = &"hazard_start"
+
+[node name="@Button@59" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=527863468]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "DEL  Очистить явление"
+alignment = 0
+metadata/developer_action = &"hazard_clear"
+
+[node name="@Button@60" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=1273486374]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "M  Лаборатория с метаморфозой"
+alignment = 0
+metadata/developer_action = &"laboratory_animated"
+
+[node name="@Button@61" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=1354371969]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SHIFT+M  Лаборатория мгновенно"
+alignment = 0
+metadata/developer_action = &"laboratory_instant"
+
+[node name="@Button@62" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=1404843171]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "T  Вперёд по маршруту +90 м"
+alignment = 0
+metadata/developer_action = &"teleport_route"
+
+[node name="@Button@63" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=439789226]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "O  К ближайшему таинству"
+alignment = 0
+metadata/developer_action = &"teleport_poi"
+
+[node name="@Button@64" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=670533526]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "C  К экокомпозиции"
+alignment = 0
+metadata/developer_action = &"teleport_composition"
+
+[node name="@Button@65" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=390959206]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "B  Физический стенд"
+alignment = 0
+metadata/developer_action = &"teleport_physics"
+
+[node name="@Button@66" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=1341175734]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "I  Выдать образец мира"
+alignment = 0
+metadata/developer_action = &"grant_sample"
+
+[node name="@Button@67" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=865006250]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Y  Следующее время суток"
+alignment = 0
+metadata/developer_action = &"cycle_time"
+
+[node name="@Button@68" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=907718573]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Сохранить состояние сейчас"
+alignment = 0
+metadata/developer_action = &"save"
+
+[node name="@Button@69" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=1784895527]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "K  Переселить живность"
+alignment = 0
+metadata/developer_action = &"fauna_respawn"
+
+[node name="@Button@70" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=636368998]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "N  Плотность фауны"
+alignment = 0
+metadata/developer_action = &"fauna_density"
+
+[node name="@Button@71" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@52/@GridContainer@55" unique_id=46543250]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "R  Новый seed генерации"
+alignment = 0
+metadata/developer_action = &"randomize_seed"
+
+[node name="@VBoxContainer@72" type="VBoxContainer" parent="Panel/Scroll/DeveloperTools" unique_id=1980746887]
+layout_mode = 2
+theme_override_constants/separation = 5
+metadata/section_title = "СОСТОЯНИЕ ПЕРСОНАЖА"
+
+[node name="@Label@73" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72" unique_id=409456310]
+modulate = Color(0.76, 0.86, 0.57, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "СОСТОЯНИЕ ПЕРСОНАЖА"
+
+[node name="@Label@74" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72" unique_id=1665401775]
+modulate = Color(0.55, 0.63, 0.54, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Быстрая проверка HUD, урона и побочных эффектов"
+autowrap_mode = 3
+
+[node name="@GridContainer@75" type="GridContainer" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72" unique_id=988310571]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="@Button@76" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72/@GridContainer@75" unique_id=437457731]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Восстановить показатели"
+alignment = 0
+metadata/developer_action = &"body_restore"
+
+[node name="@Button@77" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72/@GridContainer@75" unique_id=638622576]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Переохлаждение"
+alignment = 0
+metadata/developer_action = &"body_cold"
+
+[node name="@Button@78" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72/@GridContainer@75" unique_id=1379669174]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Замерзание"
+alignment = 0
+metadata/developer_action = &"body_freezing"
+
+[node name="@Button@79" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72/@GridContainer@75" unique_id=1878346021]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Отравление"
+alignment = 0
+metadata/developer_action = &"body_toxic"
+
+[node name="@Button@80" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72/@GridContainer@75" unique_id=1249942740]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Споровое заражение"
+alignment = 0
+metadata/developer_action = &"body_spores"
+
+[node name="@Button@81" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@72/@GridContainer@75" unique_id=173427362]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Истощение"
+alignment = 0
+metadata/developer_action = &"body_exhausted"
+
+[node name="@VBoxContainer@82" type="VBoxContainer" parent="Panel/Scroll/DeveloperTools" unique_id=706893402]
+layout_mode = 2
+theme_override_constants/separation = 5
+metadata/section_title = "СИСТЕМА"
+
+[node name="@Label@83" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@82" unique_id=1072810712]
+modulate = Color(0.76, 0.86, 0.57, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "СИСТЕМА"
+
+[node name="@Label@84" type="Label" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@82" unique_id=1953186583]
+modulate = Color(0.55, 0.63, 0.54, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Возврат к сюжетному состоянию и диагностика"
+autowrap_mode = 3
+
+[node name="@GridContainer@85" type="GridContainer" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@82" unique_id=399279491]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="@Button@86" type="Button" parent="Panel/Scroll/DeveloperTools/@VBoxContainer@82/@GridContainer@85" unique_id=395090657]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "BACKSPACE  Вернуть сюжетный мир"
+alignment = 0
+metadata/developer_action = &"clear_override"
+
+[node name="WeatherDeveloperControls" type="VBoxContainer" parent="Panel/Scroll/DeveloperTools" unique_id=1496580646]
+layout_mode = 2
+theme_override_constants/separation = 5
+metadata/section_title = "ПОГОДА"
+
+[node name="@Label@89" type="Label" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls" unique_id=1984697654]
+modulate = Color(0.76, 0.86, 0.57, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "ПОГОДА"
+
+[node name="@Label@90" type="Label" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls" unique_id=1844469732]
+modulate = Color(0.55, 0.63, 0.54, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "W переключает по кругу · кнопки задают состояние напрямую"
+autowrap_mode = 3
+
+[node name="@GridContainer@91" type="GridContainer" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls" unique_id=670990994]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="@Button@92" type="Button" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls/@GridContainer@91" unique_id=2095720128]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Ясно"
+alignment = 0
+metadata/developer_action = &"weather_0"
+
+[node name="@Button@93" type="Button" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls/@GridContainer@91" unique_id=649261360]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Дождь"
+alignment = 0
+metadata/developer_action = &"weather_1"
+
+[node name="@Button@94" type="Button" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls/@GridContainer@91" unique_id=1009696856]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Гроза"
+alignment = 0
+metadata/developer_action = &"weather_2"
+
+[node name="@Button@95" type="Button" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls/@GridContainer@91" unique_id=933061187]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Туман"
+alignment = 0
+metadata/developer_action = &"weather_3"
+
+[node name="@Button@96" type="Button" parent="Panel/Scroll/DeveloperTools/WeatherDeveloperControls/@GridContainer@91" unique_id=1162625504]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Снег"
+alignment = 0
+metadata/developer_action = &"weather_4"
+
+[node name="Help" type="Label" parent="Panel" unique_id=640990252]
+modulate = Color(0.68, 0.76, 0.62, 1)
+layout_mode = 0
+offset_left = 22.0
+offset_top = 668.0
+offset_right = 738.0
+offset_bottom = 1840.0
+text = "PGUP / PGDN  соседний мир    ·    1–8  прямой выбор    ·    F10  закрыть"
+autowrap_mode = 3

@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3 uid="uid://djuqx4c37nth3"]
 
-[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1"]
-[ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2"]
+[ext_resource type="Script" uid="uid://bw3vclllsgfrb" path="res://core/resources/recipe_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://hm2v26t7exny" path="res://core/resources/recipe_step_definition.gd" id="2"]
 
 [sub_resource type="Resource" id="Step_grind"]
 script = ExtResource("2")
@@ -35,10 +35,6 @@ player_hint = "Трижды перемешать против часовой с�
 
 [resource]
 script = ExtResource("1")
-id = &"recipe.crimson_marrow_stew"
-display_name = "Багряный костный отвар"
-description = "Формула перехода из Мицелиального хора в слой хищных следов."
-tags = Array[StringName]([&"brew", &"world_key", &"crimson"])
 primary_ingredient_id = &"ingredient.blood_antler"
 steps = Array[ExtResource("2")]([SubResource("Step_grind"), SubResource("Step_heat")])
 result_item_id = &"item.crimson_marrow_stew"
@@ -46,6 +42,9 @@ effect_ids = Array[StringName]([&"effect.crimson_drive"])
 required_base_id = &"base.kvass"
 finish_method = 2
 minimum_station_tier = 1
-base_yield = 1
 acceptable_error = 0.2
 field_notes = "Роговик виден только после настоя спорозрения. Красный пар не должен перейти в чёрный."
+id = &"recipe.crimson_marrow_stew"
+display_name = "Багряный костный отвар"
+description = "Формула перехода из Мицелиального хора в слой хищных следов."
+tags = Array[StringName]([&"brew", &"world_key", &"crimson"])

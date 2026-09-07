@@ -1,0 +1,467 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/actors/geo_researcher.glb" id="geo_actor"]
+[ext_resource type="PackedScene" path="res://assets/models/taiga/stump.glb" id="geo_seat"]
+
+[ext_resource type="Script" path="res://features/frontend/menu_camp_backdrop.gd" id="1_qyntl"]
+
+[ext_resource type="PackedScene" path="res://assets/models/menu_camp/cedar_clearing.glb" id="2_clearing"]
+[ext_resource type="Shader" path="res://features/frontend/camp_flame.gdshader" id="3_flame"]
+
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/drying_rack.glb" id="lab_drying_rack"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/spore_filter.glb" id="lab_spore_filter"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/distiller.glb" id="lab_distiller"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/root_resonator.glb" id="lab_root_resonator"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/mirror_separator.glb" id="lab_mirror_separator"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/concordance_coil.glb" id="lab_concordance_coil"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/workbench.glb" id="lab_workbench"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/mortar.glb" id="lab_mortar"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/water_jug.glb" id="lab_water_jug"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/basin.glb" id="lab_basin"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/prep_board.glb" id="lab_prep_board"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/cauldron.glb" id="lab_cauldron"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mdwad"]
+sky_top_color = Color(0.018, 0.032, 0.045, 1)
+sky_horizon_color = Color(0.14, 0.21, 0.22, 1)
+ground_bottom_color = Color(0.008, 0.012, 0.018, 1)
+ground_horizon_color = Color(0.11, 0.035, 0.06, 1)
+sun_angle_max = 5.0
+sun_curve = 0.12
+
+[sub_resource type="Sky" id="Sky_ef5ua"]
+sky_material = SubResource("ProceduralSkyMaterial_mdwad")
+
+[sub_resource type="Environment" id="Environment_2daqg"]
+background_mode = 2
+sky = SubResource("Sky_ef5ua")
+ambient_light_source = 2
+ambient_light_color = Color(0.30, 0.40, 0.40, 1)
+ambient_light_energy = 0.7
+tonemap_mode = 3
+tonemap_exposure = 1.24
+tonemap_white = 6.0
+ssao_enabled = true
+ssao_radius = 1.1
+ssao_intensity = 1.05
+ssao_power = 1.2
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.55
+glow_strength = 0.72
+glow_hdr_threshold = 1.1
+fog_enabled = true
+fog_density = 0.018
+fog_light_color = Color(0.08, 0.12, 0.16, 1)
+fog_light_energy = 0.65
+fog_aerial_perspective = 0.38
+fog_sky_affect = 0.42
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g7051"]
+albedo_color = Color(0.2, 0.075, 0.025, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="BoxMesh_xs1jm"]
+material = SubResource("StandardMaterial3D_g7051")
+size = Vector3(0.1, 2.5, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_86gp4"]
+albedo_color = Color(0.2, 0.075, 0.025, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="BoxMesh_lrryn"]
+material = SubResource("StandardMaterial3D_86gp4")
+size = Vector3(0.1, 2.5, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sm064"]
+albedo_color = Color(0.25, 0.09, 0.025, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="BoxMesh_vrkqd"]
+material = SubResource("StandardMaterial3D_sm064")
+size = Vector3(1.25, 0.07, 0.07)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hqvvq"]
+albedo_color = Color(0.32, 0.266, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_hyxqo"]
+material = SubResource("StandardMaterial3D_hqvvq")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0ob3i"]
+albedo_color = Color(0.32, 0.266, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_rwcmc"]
+material = SubResource("StandardMaterial3D_0ob3i")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vip7q"]
+albedo_color = Color(0.32, 0.266, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_4u6io"]
+material = SubResource("StandardMaterial3D_vip7q")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_twmrk"]
+albedo_color = Color(0.25, 0.09, 0.025, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="BoxMesh_wwa5j"]
+material = SubResource("StandardMaterial3D_twmrk")
+size = Vector3(1.25, 0.07, 0.07)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_on5n8"]
+albedo_color = Color(0.32, 0.29, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_7hden"]
+material = SubResource("StandardMaterial3D_on5n8")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hlqic"]
+albedo_color = Color(0.32, 0.29, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_qk3m7"]
+material = SubResource("StandardMaterial3D_hlqic")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o4va1"]
+albedo_color = Color(0.32, 0.29, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_oias6"]
+material = SubResource("StandardMaterial3D_o4va1")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1hnwa"]
+albedo_color = Color(0.25, 0.09, 0.025, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="BoxMesh_ndp6c"]
+material = SubResource("StandardMaterial3D_1hnwa")
+size = Vector3(1.25, 0.07, 0.07)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lweaf"]
+albedo_color = Color(0.32, 0.31, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_qo3rl"]
+material = SubResource("StandardMaterial3D_lweaf")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dt8sl"]
+albedo_color = Color(0.32, 0.31, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_xnk6q"]
+material = SubResource("StandardMaterial3D_dt8sl")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ixhth"]
+albedo_color = Color(0.32, 0.31, 0.055, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_0bjms"]
+material = SubResource("StandardMaterial3D_ixhth")
+radius = 0.12
+height = 0.42
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_opm38"]
+albedo_color = Color(0.13, 0.42, 0.34, 1)
+roughness = 0.86
+emission_enabled = true
+emission = Color(0.13, 0.42, 0.34, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_j81r8"]
+material = SubResource("StandardMaterial3D_opm38")
+top_radius = 0.2132
+bottom_radius = 0.26
+height = 1.1
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vmsjf"]
+albedo_color = Color(0.78, 0.25, 0.07, 1)
+roughness = 0.86
+emission_enabled = true
+emission = Color(0.78, 0.25, 0.07, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="TorusMesh" id="TorusMesh_py4kn"]
+material = SubResource("StandardMaterial3D_vmsjf")
+inner_radius = 0.28
+outer_radius = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dy6in"]
+albedo_color = Color(0.9, 0.08, 0.52, 1)
+roughness = 0.86
+emission_enabled = true
+emission = Color(0.9, 0.08, 0.52, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="TorusMesh" id="TorusMesh_7agps"]
+material = SubResource("StandardMaterial3D_dy6in")
+inner_radius = 0.42
+outer_radius = 0.56
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_asm5l"]
+albedo_color = Color(0.05, 0.72, 0.66, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="BoxMesh_u5w1m"]
+material = SubResource("StandardMaterial3D_asm5l")
+size = Vector3(0.72, 0.95, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fchgo"]
+albedo_color = Color(0.95, 0.12, 0.5, 1)
+roughness = 0.86
+emission_enabled = true
+emission = Color(0.95, 0.12, 0.5, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="TorusMesh" id="TorusMesh_q88rf"]
+material = SubResource("StandardMaterial3D_fchgo")
+inner_radius = 0.52
+outer_radius = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6p2vv"]
+albedo_color = Color(0.95, 0.37, 0.2, 1)
+roughness = 0.86
+emission_enabled = true
+emission = Color(0.95, 0.37, 0.2, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="TorusMesh" id="TorusMesh_1bv1b"]
+material = SubResource("StandardMaterial3D_6p2vv")
+inner_radius = 0.68
+outer_radius = 0.76
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g0y7j"]
+albedo_color = Color(0.035, 0.085, 0.09, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="BoxMesh_pdbnw"]
+material = SubResource("StandardMaterial3D_g0y7j")
+size = Vector3(0.72, 1.15, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7jln4"]
+albedo_color = Color(0.34, 0.22, 0.14, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="SphereMesh_oaw0u"]
+material = SubResource("StandardMaterial3D_7jln4")
+radius = 0.31
+height = 0.55
+radial_segments = 7
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fix7t"]
+albedo_color = Color(0.045, 0.07, 0.075, 1)
+roughness = 0.86
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_q5op1"]
+material = SubResource("StandardMaterial3D_fix7t")
+top_radius = 0.0984
+bottom_radius = 0.12
+height = 0.86
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w0o8i"]
+albedo_color = Color(0.035, 0.055, 0.06, 1)
+roughness = 0.86
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_w6blx"]
+material = SubResource("StandardMaterial3D_w0o8i")
+top_radius = 0.0861
+bottom_radius = 0.105
+height = 0.82
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p1qef"]
+albedo_color = Color(0.045, 0.095, 0.095, 1)
+roughness = 0.86
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kd81b"]
+material = SubResource("StandardMaterial3D_p1qef")
+top_radius = 0.0697
+bottom_radius = 0.085
+height = 0.82
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c6osc"]
+albedo_color = Color(0.045, 0.07, 0.075, 1)
+roughness = 0.86
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_eptsg"]
+material = SubResource("StandardMaterial3D_c6osc")
+top_radius = 0.0984
+bottom_radius = 0.12
+height = 0.86
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_78nj5"]
+albedo_color = Color(0.035, 0.055, 0.06, 1)
+roughness = 0.86
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unu83"]
+material = SubResource("StandardMaterial3D_78nj5")
+top_radius = 0.0861
+bottom_radius = 0.105
+height = 0.82
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ycgo3"]
+albedo_color = Color(0.045, 0.095, 0.095, 1)
+roughness = 0.86
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rdnl8"]
+material = SubResource("StandardMaterial3D_ycgo3")
+top_radius = 0.0697
+bottom_radius = 0.085
+height = 0.82
+radial_segments = 7
+
+[sub_resource type="ShaderMaterial" id="CampFlameMaterial"]
+shader = ExtResource("3_flame")
+
+[sub_resource type="QuadMesh" id="CampFlameMesh"]
+material = SubResource("CampFlameMaterial")
+size = Vector2(0.75, 1.15)
+
+[node name="MenuCampBackdrop" type="Node3D" unique_id=2094800546]
+script = ExtResource("1_qyntl")
+
+[node name="@WorldEnvironment@2" type="WorldEnvironment" parent="." unique_id=321459165]
+environment = SubResource("Environment_2daqg")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=712013994]
+transform = Transform3D(0.7939516, -0.14566122, 0.5902742, 0, 0.97087616, 0.23958188, -0.60798097, -0.1902164, 0.77082866, 8.7, 4.7, 10.8)
+current = true
+fov = 56.0
+
+[node name="@DirectionalLight3D@4" type="DirectionalLight3D" parent="." unique_id=277231737]
+transform = Transform3D(0.8525245, 0.34465197, -0.39295927, 0, 0.7518057, 0.65938467, 0.52268726, -0.5621416, 0.6409328, 0, 0, 0)
+light_color = Color(0.62, 0.76, 0.79, 1)
+light_energy = 0.85
+shadow_enabled = true
+shadow_opacity = 0.92
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 42.0
+
+[node name="Flame0" type="MeshInstance3D" parent="." unique_id=1108220571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16, 0.62, 0)
+mesh = SubResource("CampFlameMesh")
+
+[node name="Flame1" type="MeshInstance3D" parent="." unique_id=583160490]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("CampFlameMesh")
+
+[node name="Flame2" type="MeshInstance3D" parent="." unique_id=478380084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, 0.88, 0)
+mesh = SubResource("CampFlameMesh")
+
+[node name="FireLight" type="OmniLight3D" parent="." unique_id=221654569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.38, 0.15)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 5.0
+shadow_enabled = false
+omni_range = 9.5
+
+[node name="CampBounce" type="OmniLight3D" parent="."]
+position = Vector3(0, 1.8, 1.5)
+light_color = Color(1, 0.56, 0.24, 1)
+light_energy = 1.8
+omni_range = 6.0
+
+[node name="RoadLaboratory" type="Node3D" parent="." unique_id=792727570]
+transform = Transform3D(0.98722726, 0, 0.15931821, 0, 1, 0, -0.15931821, 0, 0.98722726, -3.25, 0, -0.35)
+
+[node name="PersistentUpgrades" type="Node3D" parent="RoadLaboratory" unique_id=1997360465]
+
+[node name="DryingRack" type="Node3D" parent="RoadLaboratory/PersistentUpgrades" unique_id=1189756025]
+position = Vector3(-1.8, 0, -0.5)
+
+[node name="SporeFilter" type="MeshInstance3D" parent="RoadLaboratory/PersistentUpgrades" unique_id=547109920]
+position = Vector3(-1.5, 1.04, -0.05)
+
+[node name="DistillerCoil" type="MeshInstance3D" parent="RoadLaboratory/PersistentUpgrades" unique_id=1393529192]
+position = Vector3(-0.9, 1.04, -0.1)
+
+[node name="RootResonator" type="MeshInstance3D" parent="RoadLaboratory/PersistentUpgrades" unique_id=126870486]
+position = Vector3(0.25, 1.04, -0.15)
+
+[node name="MirrorSeparator" type="MeshInstance3D" parent="RoadLaboratory/PersistentUpgrades" unique_id=634523000]
+position = Vector3(0.75, 1.04, -0.25)
+
+[node name="ConcordanceCoil" type="Node3D" parent="RoadLaboratory/PersistentUpgrades" unique_id=874545592]
+position = Vector3(1.35, 1.04, -0.25)
+
+[node name="SeatedResearcher" type="Node3D" parent="." unique_id=1104268668]
+transform = Transform3D(0.40848747, 0, -0.91276395, 0, 1, 0, 0.91276395, 0, 0.40848747, 3.05, 0, 0.35)
+
+[node name="GEOBody" parent="SeatedResearcher" instance=ExtResource("geo_actor")]
+
+[node name="StumpSeat" parent="SeatedResearcher" instance=ExtResource("geo_seat")]
+scale = Vector3(1.0, 0.59, 1.0)
+
+
+[node name="CedarClearing" parent="." instance=ExtResource("2_clearing")]
+[node name="Bench" parent="RoadLaboratory" instance=ExtResource("lab_workbench")]
+position = Vector3(0, 0, 0)
+
+[node name="Mortar" parent="RoadLaboratory" instance=ExtResource("lab_mortar")]
+position = Vector3(-0.3, 1.04, 0.35)
+
+[node name="Water" parent="RoadLaboratory" instance=ExtResource("lab_water_jug")]
+position = Vector3(1.9, 1.04, 0.2)
+
+[node name="Basin" parent="RoadLaboratory" instance=ExtResource("lab_basin")]
+position = Vector3(-2, 1.04, 0.35)
+
+[node name="Board" parent="RoadLaboratory" instance=ExtResource("lab_prep_board")]
+position = Vector3(0.35, 1.05, 0.38)
+
+[node name="Equipment" parent="RoadLaboratory/PersistentUpgrades/DryingRack" instance=ExtResource("lab_drying_rack")]
+
+[node name="Equipment" parent="RoadLaboratory/PersistentUpgrades/SporeFilter" instance=ExtResource("lab_spore_filter")]
+
+[node name="Equipment" parent="RoadLaboratory/PersistentUpgrades/DistillerCoil" instance=ExtResource("lab_distiller")]
+
+[node name="Equipment" parent="RoadLaboratory/PersistentUpgrades/RootResonator" instance=ExtResource("lab_root_resonator")]
+
+[node name="Equipment" parent="RoadLaboratory/PersistentUpgrades/MirrorSeparator" instance=ExtResource("lab_mirror_separator")]
+
+[node name="Equipment" parent="RoadLaboratory/PersistentUpgrades/ConcordanceCoil" instance=ExtResource("lab_concordance_coil")]
+
+[node name="SharedCauldron" parent="." instance=ExtResource("lab_cauldron")]
+position = Vector3(0, 0.49, 0)

@@ -1,0 +1,1059 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/workbench.glb" id="1_d3foq"]
+[ext_resource type="PackedScene" path="res://features/ingredients/mooncap_world.tscn" id="2_bvaa7"]
+[ext_resource type="Script" path="res://features/ingredients/harvestable_ingredient.gd" id="3_ayxy7"]
+[ext_resource type="Script" path="res://core/components/interactable_component.gd" id="4_f1vqt"]
+[ext_resource type="Script" path="res://features/cooking/cooking_tool_component.gd" id="5_qy0iu"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/dish_evaporating_dish.glb" id="6_8xtsr"]
+[ext_resource type="Script" path="res://features/cooking/physical_cooking_station_component.gd" id="7_y28fr"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/bucket.glb" id="8_86w23"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/misc_wash_bottle.glb" id="9_0g47w"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/heating_equipment_forceps.glb" id="10_iukda"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/misc_magnifying_glass.glb" id="11_ms81u"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/bottle-large.glb" id="12_c5jc4"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/heating_equipment_stirring_stick.glb" id="13_y5tlh"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/bottle.glb" id="14_uyicr"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/bottle_test_tube_rack.glb" id="15_13tyw"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/barrel-open.glb" id="16_mhvst"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/heating_equipment_ring_stand.glb" id="17_58ky2"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/bottle_glassware_retort_flask_large.glb" id="18_84txb"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/funnel_seperatory_funnel.glb" id="19_o6jmi"]
+[ext_resource type="Script" path="res://features/cooking/cooking_station_visuals.gd" id="20_f1eli"]
+[ext_resource type="Script" path="res://presentation/audio/cooking_station_audio.gd" id="21_ia8y5"]
+[ext_resource type="PackedScene" path="res://features/road_laboratory/portable_progression_visuals.tscn" id="22_r7r2p"]
+[ext_resource type="Script" path="res://world/props/shelter/shelter_progression_visuals.gd" id="23_p2lpp"]
+[ext_resource type="PackedScene" path="res://features/investigation/investigation_board.tscn" id="24_xiy5i"]
+[ext_resource type="Script" path="res://features/investigation/investigation_board.gd" id="25_djauj"]
+[ext_resource type="Script" path="res://features/road_laboratory/portable_laboratory_dressing.gd" id="26_10lr3"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/tent-canvas.glb" id="27_x4oco"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/structure-canvas.glb" id="28_lgsk8"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/bedroll-packed.glb" id="29_8star"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/box-large-open.glb" id="30_di5ia"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/box-open.glb" id="31_v62gw"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/resource-wood.glb" id="32_laq7w"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/resource-stone.glb" id="33_cc0yv"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/tool-hammer.glb" id="34_og1da"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/tool-shovel.glb" id="35_yyq4h"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/hearth.glb" id="36_j3kvh"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/tripod.glb" id="37_awqvc"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/misc_scale.glb" id="38_ul6lu"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/heating_equipment_thermometer.glb" id="39_1i62q"]
+[ext_resource type="PackedScene" path="res://assets/third_party/open_game_art_lab/bottle_glassware_erlenmeyer_flask_large.glb" id="40_672pl"]
+
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/workbench.glb" id="lab_workbench"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/mortar.glb" id="lab_mortar"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/cauldron.glb" id="lab_cauldron"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/basin.glb" id="lab_basin"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/water_jug.glb" id="lab_water_jug"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/kvass_jug.glb" id="lab_kvass_jug"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/spirit_flask.glb" id="lab_spirit_flask"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/bottle_rack.glb" id="lab_bottle_rack"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/ladle.glb" id="lab_ladle"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/distiller.glb" id="lab_distiller"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/serving_bowl.glb" id="lab_serving_bowl"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/crate.glb" id="lab_crate"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/canopy.glb" id="lab_canopy"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/pestle.glb" id="lab_pestle"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/bellows.glb" id="lab_bellows"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/hourglass.glb" id="lab_hourglass"]
+[ext_resource type="PackedScene" path="res://assets/models/laboratory/prep_board.glb" id="lab_prep_board"]
+[ext_resource type="Shader" path="res://features/frontend/camp_flame.gdshader" id="lab_flame"]
+
+[sub_resource type="StandardMaterial3D" id="Material_table"]
+albedo_color = Color(0.22, 0.145, 0.075, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="Mesh_table_top"]
+size = Vector3(2.4, 0.14, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_table_top"]
+size = Vector3(4.9, 0.1, 1.3)
+
+[sub_resource type="BoxMesh" id="Mesh_leg"]
+size = Vector3(0.14, 0.88, 0.14)
+
+[sub_resource type="StandardMaterial3D" id="Material_stone"]
+albedo_color = Color(0.18, 0.205, 0.17, 1)
+roughness = 0.98
+
+[sub_resource type="CylinderMesh" id="Mesh_mortar"]
+top_radius = 0.3
+bottom_radius = 0.22
+height = 0.22
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a78rc"]
+albedo_color = Color(0.22, 0.24, 0.2, 1)
+roughness = 0.96
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_eby3r"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ougme"]
+
+[sub_resource type="CylinderShape3D" id="Shape_mortar"]
+height = 0.24
+radius = 0.22
+
+[sub_resource type="StandardMaterial3D" id="Material_cauldron"]
+albedo_color = Color(0.055, 0.065, 0.056, 1)
+metallic = 0.72
+roughness = 0.48
+
+[sub_resource type="CylinderMesh" id="Mesh_cauldron"]
+top_radius = 0.36
+bottom_radius = 0.29
+height = 0.3
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="Material_liquid"]
+albedo_color = Color(0.25, 0.34, 0.12, 1)
+emission_enabled = true
+emission = Color(0.16, 0.29, 0.07, 1)
+emission_energy_multiplier = 0.8
+
+[sub_resource type="CylinderMesh" id="Mesh_liquid"]
+top_radius = 0.25
+bottom_radius = 0.25
+height = 0.018
+radial_segments = 16
+
+[sub_resource type="CylinderShape3D" id="Shape_cauldron"]
+height = 0.32
+radius = 0.36
+
+[sub_resource type="StandardMaterial3D" id="Material_water_jug"]
+albedo_color = Color(0.12, 0.22, 0.24, 1)
+roughness = 0.62
+
+[sub_resource type="BoxMesh" id="Mesh_prep_board"]
+size = Vector3(0.72, 0.07, 0.52)
+
+[sub_resource type="BoxMesh" id="Mesh_prep_blade"]
+size = Vector3(0.055, 0.055, 0.48)
+
+[sub_resource type="BoxShape3D" id="Shape_prep_board"]
+size = Vector3(0.72, 0.12, 0.52)
+
+[sub_resource type="CylinderMesh" id="Mesh_pestle"]
+top_radius = 0.055
+bottom_radius = 0.075
+height = 0.52
+radial_segments = 8
+
+[sub_resource type="CapsuleShape3D" id="Shape_small_tool"]
+radius = 0.11
+height = 0.48
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1xfas"]
+albedo_color = Color(0.08, 0.085, 0.075, 1)
+metallic = 0.18
+roughness = 0.72
+
+[sub_resource type="TorusMesh" id="TorusMesh_qch2t"]
+inner_radius = 0.1
+outer_radius = 0.135
+rings = 12
+ring_segments = 6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_lxbkh"]
+
+[sub_resource type="StandardMaterial3D" id="Material_bottle"]
+transparency = 1
+albedo_color = Color(0.32, 0.58, 0.38, 0.58)
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3078c"]
+albedo_color = Color(0.24, 0.095, 0.045, 1)
+roughness = 0.92
+
+[sub_resource type="PrismMesh" id="PrismMesh_icfde"]
+size = Vector3(0.48, 0.18, 0.62)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p6san"]
+albedo_color = Color(0.28, 0.16, 0.075, 1)
+roughness = 0.88
+
+[sub_resource type="BoxMesh" id="BoxMesh_m4shp"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0w7d8"]
+albedo_color = Color(0.09, 0.1, 0.095, 1)
+metallic = 0.22
+roughness = 0.64
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ljler"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3w35f"]
+albedo_color = Color(0.3, 0.17, 0.07, 1)
+roughness = 0.84
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dtb8t"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_07q8i"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_y622s"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_w4tcm"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jdfu3"]
+transparency = 1
+albedo_color = Color(0.52, 0.72, 0.68, 0.34)
+roughness = 0.12
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_fdub5"]
+top_radius = 0.13
+bottom_radius = 0.025
+height = 0.19
+radial_segments = 12
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wq187"]
+top_radius = 0.025
+bottom_radius = 0.13
+height = 0.19
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="Material_rug"]
+albedo_color = Color(0.19, 0.055, 0.038, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_rug"]
+size = Vector3(2.2, 0.018, 2.8)
+
+[sub_resource type="StandardMaterial3D" id="Material_ground_mash"]
+albedo_color = Color(0.34, 0.39, 0.13, 1)
+roughness = 0.96
+
+[sub_resource type="CylinderMesh" id="Mesh_ground_mash"]
+top_radius = 0.22
+bottom_radius = 0.22
+height = 0.04
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="Material_steam"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.62, 0.82, 0.46, 0.46)
+
+[sub_resource type="SphereMesh" id="Mesh_steam"]
+radius = 0.075
+height = 0.13
+radial_segments = 7
+rings = 4
+
+[sub_resource type="ShaderMaterial" id="Material_fire"]
+shader = ExtResource("lab_flame")
+
+[sub_resource type="QuadMesh" id="Mesh_fire"]
+size = Vector2(0.6, 0.75)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xf48j"]
+size = Vector3(2.9, 1.55, 1.65)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_x7tos"]
+size = Vector3(0.72, 0.7, 0.72)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_d5qex"]
+size = Vector3(0.58, 0.56, 0.58)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_71sr8"]
+albedo_color = Color(0.18, 0.025, 0.008, 1)
+roughness = 0.9
+emission_enabled = true
+emission = Color(0.95, 0.12, 0.018, 1)
+emission_energy_multiplier = 1.65
+
+[sub_resource type="SphereMesh" id="SphereMesh_bt8cp"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_mwu43"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_urrkw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_otme8"]
+albedo_color = Color(0.22, 0.035, 0.008, 1)
+roughness = 0.82
+emission_enabled = true
+emission = Color(1, 0.24, 0.035, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="SphereMesh" id="SphereMesh_8tefn"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_7ksi1"]
+radius = 3.8
+
+[node name="PortableLaboratory" type="Node3D" unique_id=1155369126]
+
+[node name="Table" type="StaticBody3D" parent="." unique_id=262542990]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93, -2.35)
+collision_mask = 0
+
+[node name="Top" type="MeshInstance3D" parent="Table" unique_id=796193814]
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_table_top")
+
+[node name="Collision" type="CollisionShape3D" parent="Table" unique_id=568859581]
+position = Vector3(0, 0.05, 0)
+shape = SubResource("Shape_table_top")
+
+[node name="LegA" type="MeshInstance3D" parent="Table" unique_id=1763190611]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -0.5, -0.36)
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_leg")
+
+[node name="LegB" type="MeshInstance3D" parent="Table" unique_id=639336667]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -0.5, -0.36)
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_leg")
+
+[node name="LegC" type="MeshInstance3D" parent="Table" unique_id=1481017635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -0.5, 0.36)
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_leg")
+
+[node name="LegD" type="MeshInstance3D" parent="Table" unique_id=1651741174]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -0.5, 0.36)
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_leg")
+
+[node name="AuthoredWorkbench" parent="Table" instance=ExtResource("lab_workbench")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.93, 0)
+
+[node name="Mooncap" type="StaticBody3D" parent="." unique_id=1553741735 instance=ExtResource("2_bvaa7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02, -2.35)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("3_ayxy7")
+definition_id = &"ingredient.mooncap"
+spawn_id = &"sample.shelter.mooncap"
+
+[node name="Mortar" type="StaticBody3D" parent="." unique_id=1964996065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.03, -1.95)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Bowl" type="MeshInstance3D" parent="Mortar" unique_id=972302652]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0)
+visible = false
+material_override = SubResource("Material_stone")
+mesh = SubResource("Mesh_mortar")
+
+[node name="Pestle" type="MeshInstance3D" parent="Mortar" unique_id=1735319979]
+unique_name_in_owner = true
+transform = Transform3D(0.90475166, 0.42593947, 0, -0.42593947, 0.90475166, 0, 0, 0, 1, -0.12, 0.31, 0)
+material_override = SubResource("Material_stone")
+
+[node name="Collision" type="CollisionShape3D" parent="Mortar" unique_id=180125180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="Mortar" unique_id=817607677]
+script = ExtResource("4_f1vqt")
+object_name = "Каменная ступка"
+primary_action = &"grind"
+primary_verb = "Удерживать — растолочь"
+hold_duration = 0.8
+inspection_description = "Грубый камень. Подходит для влажной крупной крошки."
+
+[node name="CookingToolComponent" type="Node" parent="Mortar" unique_id=243976064]
+script = ExtResource("5_qy0iu")
+operation = &"grind"
+ingredient_tags = Array[StringName]([&"fungus", &"perception"])
+duration = 8.0
+required_item_id = &"ingredient.mooncap"
+candidate_ingredient_ids = Array[StringName]([&"ingredient.mooncap", &"ingredient.emberberry", &"ingredient.blood_antler", &"ingredient.glass_lichen", &"ingredient.false_mooncap", &"ingredient.mirror_reed", &"ingredient.deep_root", &"ingredient.concordance_cap", &"ingredient.ashen_bell"])
+
+[node name="StoneMortarBowl" parent="Mortar" instance=ExtResource("lab_mortar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Cauldron" type="StaticBody3D" parent="." unique_id=1209229338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05, 0.43, 0.56)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Cauldron" unique_id=804350086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+visible = false
+material_override = SubResource("Material_cauldron")
+mesh = SubResource("Mesh_cauldron")
+
+[node name="Liquid" type="MeshInstance3D" parent="Cauldron" unique_id=392606494]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.29, 0)
+visible = false
+material_override = SubResource("Material_liquid")
+mesh = SubResource("Mesh_liquid")
+
+[node name="Collision" type="CollisionShape3D" parent="Cauldron" unique_id=1941932062]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0)
+shape = SubResource("Shape_cauldron")
+
+[node name="InteractableComponent" type="Node" parent="Cauldron" unique_id=451763868]
+script = ExtResource("4_f1vqt")
+object_name = "Малый котёл"
+primary_action = &"heat"
+primary_verb = "Переложить крошку в котёл · [СКМ] вылить состав"
+hold_duration = 1.0
+inspection_description = "Жидкость ещё спокойна. Нужный режим заметен по серебристому пару."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Cauldron" unique_id=405132963]
+script = ExtResource("7_y28fr")
+role = "transfer"
+
+[node name="CastIronPot" parent="Cauldron" instance=ExtResource("lab_cauldron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="WashBasin" type="StaticBody3D" parent="." unique_id=40951154]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9, 1.03, -1.95)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Bowl" type="MeshInstance3D" parent="WashBasin" unique_id=1021099320]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0)
+visible = false
+material_override = SubResource("Material_water_jug")
+mesh = SubResource("Mesh_mortar")
+
+[node name="Collision" type="CollisionShape3D" parent="WashBasin" unique_id=1854204717]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="WashBasin" unique_id=1198395110]
+script = ExtResource("4_f1vqt")
+object_name = "Походная промывочная чаша"
+primary_action = &"wash"
+primary_verb = "Промыть образец"
+hold_duration = 0.65
+inspection_description = "Холодная проточная вода смывает почву и часть случайных спор, но долго держать образец нельзя."
+
+[node name="CookingToolComponent" type="Node" parent="WashBasin" unique_id=1778259551]
+script = ExtResource("5_qy0iu")
+operation = &"wash"
+temperature = 16.0
+duration = 5.0
+candidate_ingredient_ids = Array[StringName]([&"ingredient.mirror_reed", &"ingredient.concordance_cap", &"ingredient.mooncap", &"ingredient.glass_lichen", &"ingredient.false_mooncap", &"ingredient.deep_root", &"ingredient.blood_antler", &"ingredient.emberberry", &"ingredient.ashen_bell"])
+animated_node_path = NodePath("Bowl")
+action_rotation_degrees = Vector3(0, 0, 18)
+
+[node name="WashBucket" parent="WashBasin" instance=ExtResource("lab_basin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="RinseBottle" type="Node3D" parent="WashBasin" unique_id=1866952294 instance=ExtResource("9_0g47w")]
+transform = Transform3D(0.0034, 0, 0, 0, 0.0034, 0, 0, 0, 0.0034, 0.18, -0.03, 0.05)
+
+[node name="PrepBoard" type="StaticBody3D" parent="." unique_id=2030504010]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1, 1.055, -1.95)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Board" type="MeshInstance3D" parent="PrepBoard" unique_id=1948830581]
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_prep_board")
+
+[node name="Knife" type="MeshInstance3D" parent="PrepBoard" unique_id=514341559]
+visible = false
+transform = Transform3D(0.96105546, 0, 0.27635565, 0, 1, 0, -0.27635565, 0, 0.96105546, 0.18, 0.12, 0)
+material_override = SubResource("Material_cauldron")
+mesh = SubResource("Mesh_prep_blade")
+
+[node name="Collision" type="CollisionShape3D" parent="PrepBoard" unique_id=255116857]
+shape = SubResource("Shape_prep_board")
+
+[node name="InteractableComponent" type="Node" parent="PrepBoard" unique_id=712918787]
+script = ExtResource("4_f1vqt")
+object_name = "Доска полевого препаратора"
+primary_action = &"slice"
+primary_verb = "Разделить образец по волокнам"
+hold_duration = 0.8
+inspection_description = "Ножом отмечены углы среза. Неверное направление разрушит наблюдаемый ритм ткани."
+
+[node name="CookingToolComponent" type="Node" parent="PrepBoard" unique_id=1141073470]
+script = ExtResource("5_qy0iu")
+operation = &"slice"
+duration = 7.0
+candidate_ingredient_ids = Array[StringName]([&"ingredient.mirror_reed", &"ingredient.concordance_cap", &"ingredient.mooncap", &"ingredient.glass_lichen", &"ingredient.false_mooncap", &"ingredient.deep_root", &"ingredient.blood_antler", &"ingredient.emberberry", &"ingredient.ashen_bell"])
+animated_node_path = NodePath("Knife")
+action_rotation_degrees = Vector3(-32, 0, 0)
+
+[node name="WaterJug" type="StaticBody3D" parent="." unique_id=1740292291]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.35, 1.03, -1.95)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="WaterJug" unique_id=1228808252]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+visible = false
+material_override = SubResource("Material_water_jug")
+mesh = SubResource("Mesh_mortar")
+
+[node name="Collision" type="CollisionShape3D" parent="WaterJug" unique_id=1821707811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="WaterJug" unique_id=1245724202]
+script = ExtResource("4_f1vqt")
+object_name = "Кувшин с водой"
+primary_action = &"add_water"
+primary_verb = "Налить родниковую воду"
+hold_duration = 0.35
+inspection_description = "Чистая ключевая вода. Объём котла рассчитан на один ковш."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="WaterJug" unique_id=1704414501]
+script = ExtResource("7_y28fr")
+
+[node name="WaterCanister" parent="WaterJug" instance=ExtResource("lab_water_jug")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="FireControl" type="StaticBody3D" parent="." unique_id=1278776331]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.76, 0.27, 0.76)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="FireControl" unique_id=322425380]
+transform = Transform3D(-3.6199901e-06, -1, 0, 1, -3.6199901e-06, 0, 0, 0, 1, 0, 0, 0)
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_pestle")
+
+[node name="Collision" type="CollisionShape3D" parent="FireControl" unique_id=233070151]
+transform = Transform3D(-3.6199901e-06, -1, 0, 1, -3.6199901e-06, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="FireControl" unique_id=1279762935]
+script = ExtResource("4_f1vqt")
+object_name = "Заслонка очага"
+primary_action = &"cycle_heat"
+primary_verb = "Зажечь слабый огонь"
+hold_duration = 0.25
+inspection_description = "Три положения: погашено, слабое пламя и сильная тяга."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="FireControl" unique_id=174645883]
+script = ExtResource("7_y28fr")
+role = "cycle_heat"
+
+[node name="DamperWheel" type="MeshInstance3D" parent="FireControl" unique_id=1789700712]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_1xfas")
+mesh = SubResource("TorusMesh_qch2t")
+
+[node name="DamperLever" type="MeshInstance3D" parent="FireControl" unique_id=1508352460]
+transform = Transform3D(-1.9670126e-09, -0.32, 0, 0.045, -1.3987644e-08, 0, 0, 0, 0.045, 0.13, 0, 0)
+material_override = SubResource("StandardMaterial3D_1xfas")
+mesh = SubResource("CylinderMesh_lxbkh")
+
+[node name="Ladle" type="StaticBody3D" parent="." unique_id=965853177]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 1.08, -1.9)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Ladle" unique_id=1177133205]
+transform = Transform3D(0.3623577, -0.9320391, 0, 0.9320391, 0.3623577, 0, 0, 0, 1, 0, 0, 0)
+visible = false
+material_override = SubResource("Material_stone")
+mesh = SubResource("Mesh_pestle")
+
+[node name="Collision" type="CollisionShape3D" parent="Ladle" unique_id=1239812479]
+transform = Transform3D(0.3623577, -0.9320391, 0, 0.9320391, 0.3623577, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Ladle" unique_id=1675126911]
+script = ExtResource("4_f1vqt")
+object_name = "Деревянная мешалка"
+primary_action = &"stir"
+primary_verb = "Помешать состав (0 раз)"
+hold_duration = 0.45
+inspection_description = "По сопротивлению мешалки можно почувствовать неоднородные комки."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Ladle" unique_id=1768405236]
+script = ExtResource("7_y28fr")
+role = "stir"
+
+[node name="WoodenStirrer" parent="Ladle" instance=ExtResource("lab_ladle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="BottleRack" type="StaticBody3D" parent="." unique_id=1635818300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 1.03, -2.7)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="BottleRack" unique_id=287587093]
+visible = false
+material_override = SubResource("Material_bottle")
+mesh = SubResource("Mesh_pestle")
+
+[node name="Collision" type="CollisionShape3D" parent="BottleRack" unique_id=1057095266]
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="BottleRack" unique_id=1744765466]
+script = ExtResource("4_f1vqt")
+object_name = "Чистая склянка"
+primary_action = &"bottle"
+primary_verb = "Разлить готовый состав"
+hold_duration = 0.5
+inspection_description = "Стекло простерилизовано. Ранний розлив испортит настой."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="BottleRack" unique_id=945030162]
+script = ExtResource("7_y28fr")
+role = "bottle"
+
+[node name="GlasswareRack" parent="BottleRack" instance=ExtResource("lab_bottle_rack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="KvassJug" type="StaticBody3D" parent="." unique_id=1020714338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.03, -2.05)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="KvassJug" unique_id=1224905010]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0.11, 0)
+visible = false
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_mortar")
+
+[node name="Collision" type="CollisionShape3D" parent="KvassJug" unique_id=863192819]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0.11, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="KvassJug" unique_id=2004428681]
+script = ExtResource("4_f1vqt")
+object_name = "Фляга кислого кваса"
+primary_action = &"add_kvass"
+primary_verb = "Налить кислый квас"
+hold_duration = 0.35
+inspection_description = "Кислая зерновая основа вытягивает плоть корней и ягод, но портит тонкие грибные настои."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="KvassJug" unique_id=1476095577]
+script = ExtResource("7_y28fr")
+role = "add_kvass"
+
+[node name="KvassCask" parent="KvassJug" instance=ExtResource("lab_kvass_jug")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="SpiritFlask" type="StaticBody3D" parent="." unique_id=163576688]
+process_mode = 4
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.25, 1.03, -2.6)
+visible = false
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="SpiritFlask" unique_id=1251284226]
+transform = Transform3D(0.56, 0, 0, 0, 0.8, 0, 0, 0, 0.56, 0, 0, 0)
+visible = false
+material_override = SubResource("Material_bottle")
+mesh = SubResource("Mesh_pestle")
+
+[node name="BottleVisual" parent="SpiritFlask" instance=ExtResource("lab_spirit_flask")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Collision" type="CollisionShape3D" parent="SpiritFlask" unique_id=1439282]
+transform = Transform3D(0.56, 0, 0, 0, 0.8, 0, 0, 0, 0.56, 0, 0, 0)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="SpiritFlask" unique_id=422555642]
+script = ExtResource("4_f1vqt")
+object_name = "Склянка хлебного спирта"
+primary_action = &"add_spirit"
+primary_verb = "Налить хлебный спирт"
+hold_duration = 0.35
+enabled = false
+inspection_description = "Летучая основа для перегонки редких формул. У открытого огня требует точного режима."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="SpiritFlask" unique_id=333682970]
+script = ExtResource("7_y28fr")
+role = "add_spirit"
+
+[node name="PotCrane" type="StaticBody3D" parent="." unique_id=1937072092]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.44, 0.36, 0.6)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="PotCrane" unique_id=1627563538]
+transform = Transform3D(0.9393727, -0.3428978, 0, 0.3428978, 0.9393727, 0, 0, 0, 1, 0, 0, 0)
+visible = false
+material_override = SubResource("Material_cauldron")
+mesh = SubResource("Mesh_pestle")
+
+[node name="Collision" type="CollisionShape3D" parent="PotCrane" unique_id=608664908]
+transform = Transform3D(0.9393727, -0.3428978, 0, 0.3428978, 0.9393727, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="PotCrane" unique_id=332136515]
+script = ExtResource("4_f1vqt")
+object_name = "Крюк котла"
+primary_action = &"vessel_position"
+primary_verb = "Поднять котёл"
+hold_duration = 0.3
+inspection_description = "Крюк быстро снимает котёл с жара, не сбивая ход состава."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="PotCrane" unique_id=1501231629]
+script = ExtResource("7_y28fr")
+role = "vessel_position"
+
+[node name="Bellows" type="StaticBody3D" parent="." unique_id=1017271614]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.25, 0.72)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Bellows" unique_id=1989552631]
+visible = false
+transform = Transform3D(-3.9819893e-06, -1.5, 0, 1.1, -5.4299853e-06, 0, 0, 0, 1.1, 0, 0, 0)
+material_override = SubResource("Material_table")
+mesh = SubResource("Mesh_pestle")
+
+[node name="Collision" type="CollisionShape3D" parent="Bellows" unique_id=1367319666]
+transform = Transform3D(-3.6199901e-06, -1, 0, 1, -3.6199901e-06, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Bellows" unique_id=1578176014]
+script = ExtResource("4_f1vqt")
+object_name = "Кожаные мехи"
+primary_action = &"bellows"
+primary_verb = "Качнуть мехи (0)"
+hold_duration = 0.28
+inspection_description = "Короткий толчок воздуха ускоряет нагрев. Лишние качки легко срывают состав в бурное кипение."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Bellows" unique_id=613731734]
+script = ExtResource("7_y28fr")
+role = "bellows"
+
+[node name="LeatherBody" type="MeshInstance3D" parent="Bellows" unique_id=1126384696]
+visible = false
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_3078c")
+mesh = SubResource("PrismMesh_icfde")
+
+[node name="TopBoard" type="MeshInstance3D" parent="Bellows" unique_id=248391142]
+visible = false
+transform = Transform3D(0.42, 0, 0, 0, 0.055, 0, 0, 0, 0.58, 0, 0.12, 0)
+material_override = SubResource("StandardMaterial3D_p6san")
+mesh = SubResource("BoxMesh_m4shp")
+
+[node name="Nozzle" type="MeshInstance3D" parent="Bellows" unique_id=333048838]
+visible = false
+transform = Transform3D(-3.934025e-09, -0.42, 0, 0.09, -1.8358783e-08, 0, 0, 0, 0.09, -0.34, 0, 0)
+material_override = SubResource("StandardMaterial3D_0w7d8")
+mesh = SubResource("CylinderMesh_ljler")
+
+[node name="Hourglass" type="StaticBody3D" parent="." unique_id=1161498915]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 1.27, -2.7)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Hourglass" unique_id=183366686]
+visible = false
+transform = Transform3D(0.42, 0, 0, 0, 0.62, 0, 0, 0, 0.42, 0, 0, 0)
+material_override = SubResource("Material_bottle")
+mesh = SubResource("Mesh_pestle")
+
+[node name="Collision" type="CollisionShape3D" parent="Hourglass" unique_id=1848333428]
+transform = Transform3D(0.42, 0, 0, 0, 0.62, 0, 0, 0, 0.42, 0, 0, 0)
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Hourglass" unique_id=96627276]
+script = ExtResource("4_f1vqt")
+object_name = "Песочные часы"
+primary_action = &"hourglass"
+primary_verb = "Перевернуть песочные часы (0)"
+hold_duration = 0.22
+inspection_description = "Один оборот — восемь секунд. Полевые формулы записаны оборотами, а не цифрами термометра."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Hourglass" unique_id=698715422]
+script = ExtResource("7_y28fr")
+role = "hourglass"
+
+[node name="HourglassPlate" type="MeshInstance3D" parent="Hourglass" unique_id=1655092470]
+visible = false
+transform = Transform3D(0.2, 0, 0, 0, 0.045, 0, 0, 0, 0.2, 0, -0.22, 0)
+material_override = SubResource("StandardMaterial3D_3w35f")
+mesh = SubResource("CylinderMesh_dtb8t")
+
+[node name="@MeshInstance3D@10" type="MeshInstance3D" parent="Hourglass" unique_id=301056524]
+visible = false
+transform = Transform3D(0.2, 0, 0, 0, 0.045, 0, 0, 0, 0.2, 0, 0.22, 0)
+material_override = SubResource("StandardMaterial3D_3w35f")
+mesh = SubResource("CylinderMesh_07q8i")
+
+[node name="HourglassPost" type="MeshInstance3D" parent="Hourglass" unique_id=972036267]
+visible = false
+transform = Transform3D(0.035, 0, 0, 0, 0.42, 0, 0, 0, 0.035, -0.13, 0, 0)
+material_override = SubResource("StandardMaterial3D_3w35f")
+mesh = SubResource("CylinderMesh_y622s")
+
+[node name="@MeshInstance3D@11" type="MeshInstance3D" parent="Hourglass" unique_id=1228955813]
+visible = false
+transform = Transform3D(0.035, 0, 0, 0, 0.42, 0, 0, 0, 0.035, 0.13, 0, 0)
+material_override = SubResource("StandardMaterial3D_3w35f")
+mesh = SubResource("CylinderMesh_w4tcm")
+
+[node name="UpperGlass" type="MeshInstance3D" parent="Hourglass" unique_id=1380747715]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.095, 0)
+material_override = SubResource("StandardMaterial3D_jdfu3")
+mesh = SubResource("CylinderMesh_fdub5")
+
+[node name="LowerGlass" type="MeshInstance3D" parent="Hourglass" unique_id=686796328]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.095, 0)
+material_override = SubResource("StandardMaterial3D_jdfu3")
+mesh = SubResource("CylinderMesh_wq187")
+
+[node name="Distiller" type="StaticBody3D" parent="." unique_id=1620114488]
+process_mode = 4
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.15, 1.03, -2.7)
+visible = false
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="Distiller" unique_id=2132346640]
+transform = Transform3D(0.23649177, -1.2811292, 0, 0.71173847, 0.4256852, 0, 0, 0, 0.75, 0, 0, 0)
+visible = false
+material_override = SubResource("Material_cauldron")
+mesh = SubResource("Mesh_pestle")
+
+[node name="Receiver" type="MeshInstance3D" parent="Distiller" unique_id=1012892662]
+transform = Transform3D(0.48, 0, 0, 0, 0.62, 0, 0, 0, 0.48, 0.22, -0.08, 0)
+visible = false
+material_override = SubResource("Material_bottle")
+mesh = SubResource("Mesh_mortar")
+
+[node name="Collision" type="CollisionShape3D" parent="Distiller" unique_id=1014038559]
+shape = SubResource("Shape_small_tool")
+
+[node name="InteractableComponent" type="Node" parent="Distiller" unique_id=573974633]
+script = ExtResource("4_f1vqt")
+object_name = "Полевой змеевик"
+primary_action = &"distill"
+primary_verb = "Перегнать через змеевик"
+hold_duration = 0.9
+enabled = false
+inspection_description = "Медная трубка отделяет летучую память настоя от тяжёлого осадка."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="Distiller" unique_id=175023714]
+script = ExtResource("7_y28fr")
+role = "distill"
+
+[node name="Retort" parent="Distiller" instance=ExtResource("lab_distiller")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="ServingBowl" type="StaticBody3D" parent="." unique_id=901260533]
+process_mode = 4
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.05, 1.03, -2.7)
+visible = false
+collision_layer = 4
+collision_mask = 0
+
+[node name="Body" type="MeshInstance3D" parent="ServingBowl" unique_id=1813260212]
+transform = Transform3D(0.68, 0, 0, 0, 0.5, 0, 0, 0, 0.68, 0, 0, 0)
+visible = false
+material_override = SubResource("Material_stone")
+mesh = SubResource("Mesh_mortar")
+
+[node name="Collision" type="CollisionShape3D" parent="ServingBowl" unique_id=1015897430]
+transform = Transform3D(0.68, 0, 0, 0, 0.5, 0, 0, 0, 0.68, 0, 0, 0)
+shape = SubResource("Shape_mortar")
+
+[node name="InteractableComponent" type="Node" parent="ServingBowl" unique_id=329089870]
+script = ExtResource("4_f1vqt")
+object_name = "Походная миска"
+primary_action = &"serve"
+primary_verb = "Снять походную порцию"
+hold_duration = 0.5
+enabled = false
+inspection_description = "Плотные отвары не разливают в склянки: их снимают с огня и едят тёплыми."
+
+[node name="PhysicalCookingStationComponent" type="Node" parent="ServingBowl" unique_id=522474712]
+script = ExtResource("7_y28fr")
+role = "serve"
+
+[node name="ServingDish" parent="ServingBowl" instance=ExtResource("lab_serving_bowl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Rug" type="MeshInstance3D" parent="." unique_id=1897712168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0.75)
+material_override = SubResource("Material_rug")
+mesh = SubResource("Mesh_rug")
+
+[node name="CookingStationVisuals" type="Node3D" parent="." unique_id=574058558]
+unique_name_in_owner = true
+script = ExtResource("20_f1eli")
+
+[node name="MortarContents" type="MeshInstance3D" parent="CookingStationVisuals" unique_id=1947445639]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.21, -1.95)
+visible = false
+material_override = SubResource("Material_ground_mash")
+mesh = SubResource("Mesh_ground_mash")
+
+[node name="ActiveLiquid" type="MeshInstance3D" parent="CookingStationVisuals" unique_id=1680576803]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05, 0.76, 0.56)
+visible = false
+material_override = SubResource("Material_liquid")
+mesh = SubResource("Mesh_liquid")
+
+[node name="Steam" type="Node3D" parent="CookingStationVisuals" unique_id=711106761]
+unique_name_in_owner = true
+transform = Transform3D(0.106, 0, 0, 0, 0.106, 0, 0, 0, 0.106, 2.05, 0.78, 0.56)
+visible = false
+
+[node name="MoteA" type="MeshInstance3D" parent="CookingStationVisuals/Steam" unique_id=1061171475]
+material_override = SubResource("Material_steam")
+mesh = SubResource("Mesh_steam")
+
+[node name="MoteB" type="MeshInstance3D" parent="CookingStationVisuals/Steam" unique_id=99454949]
+transform = Transform3D(0.72, 0, 0, 0, 0.72, 0, 0, 0, 0.72, 0.05, 0.18, 0)
+material_override = SubResource("Material_steam")
+mesh = SubResource("Mesh_steam")
+
+[node name="MoteC" type="MeshInstance3D" parent="CookingStationVisuals/Steam" unique_id=2020798631]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -0.05, 0.35, 0)
+material_override = SubResource("Material_steam")
+mesh = SubResource("Mesh_steam")
+
+[node name="FireMesh" type="MeshInstance3D" parent="CookingStationVisuals" unique_id=1946188628]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05, 0.45, 0.56)
+cast_shadow = 0
+visible = false
+material_override = SubResource("Material_fire")
+mesh = SubResource("Mesh_fire")
+
+[node name="FireGlow" type="OmniLight3D" parent="CookingStationVisuals" unique_id=1126390616]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05, 0.31, 0.56)
+visible = false
+light_color = Color(1, 0.31, 0.08, 1)
+light_energy = 2.4
+omni_range = 2.6
+
+[node name="CookingStationAudio" type="AudioStreamPlayer3D" parent="." unique_id=297461643]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05, 0.34, 0.56)
+script = ExtResource("21_ia8y5")
+
+[node name="ShelterProgressionVisuals" type="Node3D" parent="." unique_id=236698983 instance=ExtResource("22_r7r2p")]
+unique_name_in_owner = true
+script = ExtResource("23_p2lpp")
+
+[node name="InvestigationBoard" type="StaticBody3D" parent="." unique_id=1254859827 instance=ExtResource("24_xiy5i")]
+unique_name_in_owner = true
+transform = Transform3D(-3.6199901e-06, 0, -1, 0, 1, 0, 1, 0, -3.6199901e-06, 4.74, 1.75, -1.4)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("25_djauj")
+
+[node name="AuthoredLaboratoryDressing" type="Node3D" parent="." unique_id=2042332958]
+script = ExtResource("26_10lr3")
+
+[node name="FieldTent" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=72447949 instance=ExtResource("27_x4oco")]
+transform = Transform3D(5.0908756, 0, 1.8008304, 0, 5.4, 0, -1.8008304, 0, 5.0908756, -3.7, 0.02, -2.75)
+
+[node name="FieldTentCollision" type="StaticBody3D" parent="AuthoredLaboratoryDressing" unique_id=1129740486]
+transform = Transform3D(0.9427547, 0, 0.3334871, 0, 1, 0, -0.3334871, 0, 0.9427547, -3.7, 0.78, -2.75)
+collision_mask = 0
+
+[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="AuthoredLaboratoryDressing/FieldTentCollision" unique_id=2061724786]
+shape = SubResource("BoxShape3D_xf48j")
+
+[node name="WeatherCanvas" parent="AuthoredLaboratoryDressing" instance=ExtResource("lab_canopy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.35)
+
+[node name="PackedBedroll" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=1400203477 instance=ExtResource("29_8star")]
+transform = Transform3D(2.641074, 0, -1.806856, 0, 3.2, 0, 1.806856, 0, 2.641074, -2.7, 0.08, -1.25)
+
+[node name="SampleCrate" parent="AuthoredLaboratoryDressing" instance=ExtResource("lab_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.72, 0.05, -1.4)
+
+[node name="SampleCrateCollision" type="StaticBody3D" parent="AuthoredLaboratoryDressing" unique_id=2060794061]
+transform = Transform3D(0.9393727, 0, -0.3428978, 0, 1, 0, 0.3428978, 0, 0.9393727, 2.72, 0.35, -1.4)
+collision_mask = 0
+
+[node name="@CollisionShape3D@6" type="CollisionShape3D" parent="AuthoredLaboratoryDressing/SampleCrateCollision" unique_id=966497850]
+shape = SubResource("BoxShape3D_x7tos")
+
+[node name="ToolCrate" parent="AuthoredLaboratoryDressing" instance=ExtResource("lab_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9, 0.04, -0.76)
+
+[node name="ToolCrateCollision" type="StaticBody3D" parent="AuthoredLaboratoryDressing" unique_id=1099840571]
+transform = Transform3D(0.90044713, 0, 0.43496552, 0, 1, 0, -0.43496552, 0, 0.90044713, -2.3, 0.28, -0.76)
+collision_mask = 0
+
+[node name="@CollisionShape3D@7" type="CollisionShape3D" parent="AuthoredLaboratoryDressing/ToolCrateCollision" unique_id=2126228896]
+shape = SubResource("BoxShape3D_d5qex")
+
+[node name="FuelStack" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=913897946 instance=ExtResource("32_laq7w")]
+transform = Transform3D(3.0753775, 0, 0.8843381, 0, 3.2, 0, -0.8843381, 0, 3.0753775, 3.05, 0.05, 1.2)
+
+[node name="FieldHammer" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=561066442 instance=ExtResource("34_og1da")]
+transform = Transform3D(0.8743584, 2.735056, 0.8688885, -2.7403812, 1.065404, -0.596008, -0.85194415, -0.619987, 2.8088803, -2.15, 0.44, -0.76)
+
+[node name="FieldShovel" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=421449465 instance=ExtResource("35_yyq4h")]
+transform = Transform3D(4.3557677, 0.792617, 0.8056331, -0.8056331, 4.4272966, 0, -0.792617, -0.14423217, 4.4272966, -3.75, 0.05, -2)
+
+[node name="CampfirePit" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=2139075384 instance=ExtResource("36_j3kvh")]
+position = Vector3(2.05, 0.01, 0.56)
+
+[node name="CookingTripod" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=1755853393 instance=ExtResource("37_awqvc")]
+position = Vector3(2.05, 0.01, 0.56)
+
+[node name="BankedEmber" type="MeshInstance3D" parent="AuthoredLaboratoryDressing" unique_id=611028716]
+transform = Transform3D(0.09, 0, 0, 0, 0.035, 0, 0, 0, 0.07, 1.89, 0.16, 0.5)
+material_override = SubResource("StandardMaterial3D_71sr8")
+mesh = SubResource("SphereMesh_bt8cp")
+
+[node name="@MeshInstance3D@8" type="MeshInstance3D" parent="AuthoredLaboratoryDressing" unique_id=72025376]
+transform = Transform3D(0.09, 0, 0, 0, 0.035, 0, 0, 0, 0.07, 2.07, 0.175, 0.66)
+material_override = SubResource("StandardMaterial3D_71sr8")
+mesh = SubResource("SphereMesh_mwu43")
+
+[node name="@MeshInstance3D@9" type="MeshInstance3D" parent="AuthoredLaboratoryDressing" unique_id=412777508]
+transform = Transform3D(0.09, 0, 0, 0, 0.035, 0, 0, 0, 0.07, 2.22, 0.16, 0.52)
+material_override = SubResource("StandardMaterial3D_71sr8")
+mesh = SubResource("SphereMesh_urrkw")
+
+[node name="BankedEmberGlow" type="OmniLight3D" parent="AuthoredLaboratoryDressing" unique_id=636021244]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05, 0.24, 0.56)
+light_color = Color(1, 0.24, 0.07, 1)
+light_energy = 0.28
+omni_range = 1.35
+
+[node name="Thermometer" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=578518740 instance=ExtResource("39_1i62q")]
+transform = Transform3D(0.0037726727, 0.00045490635, 0, -0.00045490635, 0.0037726727, 0, 0, 0, 0.0037999998, 0.58, 0.62, -0.68)
+
+[node name="OilLampGlass" type="Node3D" parent="AuthoredLaboratoryDressing" unique_id=1481882540 instance=ExtResource("40_672pl")]
+transform = Transform3D(0.0051999995, 0, 0, 0, 0.0051999995, 0, 0, 0, 0.0051999995, -0.12, 1.08, -2.7)
+
+[node name="OilLampFlame" type="MeshInstance3D" parent="AuthoredLaboratoryDressing" unique_id=1942477504]
+transform = Transform3D(0.045, 0, 0, 0, 0.09, 0, 0, 0, 0.045, -0.12, 1.26, -2.7)
+material_override = SubResource("StandardMaterial3D_otme8")
+mesh = SubResource("SphereMesh_8tefn")
+
+[node name="WorkbenchLampLight" type="OmniLight3D" parent="AuthoredLaboratoryDressing" unique_id=112519391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12, 1.32, -2.7)
+light_color = Color(1, 0.46, 0.18, 1)
+light_energy = 0.72
+omni_range = 3.2
+
+[node name="LaboratoryProximity" type="Area3D" parent="." unique_id=675879657]
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+
+[node name="@CollisionShape3D@12" type="CollisionShape3D" parent="LaboratoryProximity" unique_id=1770202599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -1.5)
+shape = SubResource("SphereShape3D_7ksi1")
+[node name="CarvedPestle" parent="Mortar/Pestle" instance=ExtResource("lab_pestle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="AuthoredBellows" parent="Bellows" instance=ExtResource("lab_bellows")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="BrassHourglass" parent="Hourglass" instance=ExtResource("lab_hourglass")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="CedarBoard" parent="PrepBoard" instance=ExtResource("lab_prep_board")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

@@ -1,5 +1,7 @@
 [gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=2 format=3]
 [ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/actors/sable.glb" id="trip_model"]
+
 [resource]
 script = ExtResource("1")
 id = &"creature.siberian_sable"
@@ -20,10 +22,21 @@ natural_basis = "Соболь естественен для алтайской �
 silhouette_notes = "Длинное гибкое тело, низкие лапы, пушистый хвост, светлое горловое пятно."
 body_color = Color(0.14, 0.075, 0.04, 1)
 accent_color = Color(0.72, 0.54, 0.28, 1)
-visual_scale = 0.48
 animation_states = Array[StringName]([&"listen", &"bound", &"rear_up", &"steal", &"stash", &"flee"])
 behavior_traits = Array[String](["Появляется у бурелома", "Перетаскивает один блестящий предмет", "Может привести к тайнику"])
 gameplay_tells = Array[String](["Шорох идёт выше уровня травы", "Цепочка бликов ведёт к украденной вещи"])
 player_interactions = Array[StringName]([&"observe", &"bait", &"follow"])
 world_layer_mutation = "В Пепельной тишине оставляет на золе единственную непрерывную линию к настоящей высоте."
 lore_note = "Это экологический проводник, а не говорящий фамильяр."
+
+visual_scene = ExtResource("trip_model")
+visual_scene_scale = 1.0
+visual_scene_yaw = 0.0
+visual_scale = 1.0
+collision_radius = 0.12
+collision_height = 0.32
+idle_animation = &"Idle"
+walk_animation = &"Walk"
+run_animation = &"Run"
+forage_animation = &"Working"
+notice_animation = &"Idle"

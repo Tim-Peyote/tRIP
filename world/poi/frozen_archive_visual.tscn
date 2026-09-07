@@ -1,0 +1,132 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tajpf"]
+albedo_color = Color(0.19634563, 0.5767653, 0.6135801, 1)
+roughness = 0.88
+
+[sub_resource type="PrismMesh" id="PrismMesh_ot3dj"]
+material = SubResource("StandardMaterial3D_tajpf")
+size = Vector3(0.47577798, 6.152908, 0.9827999)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_24f42"]
+albedo_color = Color(0.19811077, 0.58195037, 0.61909616, 1)
+roughness = 0.88
+
+[sub_resource type="PrismMesh" id="PrismMesh_8vtml"]
+material = SubResource("StandardMaterial3D_24f42")
+size = Vector3(0.9499254, 5.4260244, 0.80036837)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5i7b8"]
+albedo_color = Color(0.13591789, 0.39925882, 0.4247434, 1)
+roughness = 0.88
+
+[sub_resource type="PrismMesh" id="PrismMesh_ny1cv"]
+material = SubResource("StandardMaterial3D_5i7b8")
+size = Vector3(1.0663934, 4.8054485, 0.9683952)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pyip4"]
+albedo_color = Color(0.12292095, 0.3610803, 0.38412797, 1)
+roughness = 0.88
+
+[sub_resource type="PrismMesh" id="PrismMesh_apprt"]
+material = SubResource("StandardMaterial3D_pyip4")
+size = Vector3(1.2153325, 5.543223, 1.3723146)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qjl3f"]
+albedo_color = Color(0.17095593, 0.502183, 0.53423727, 1)
+roughness = 0.88
+
+[sub_resource type="PrismMesh" id="PrismMesh_x1pe7"]
+material = SubResource("StandardMaterial3D_qjl3f")
+size = Vector3(0.8931862, 4.1480207, 0.65957993)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vp21s"]
+albedo_color = Color(0.15552537, 0.4568558, 0.4860168, 1)
+roughness = 0.88
+
+[sub_resource type="PrismMesh" id="PrismMesh_kbmax"]
+material = SubResource("StandardMaterial3D_vp21s")
+size = Vector3(1.3920469, 5.4638844, 1.1901679)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o8arr"]
+albedo_color = Color(0.202706, 0.59544885, 0.63345623, 1)
+roughness = 0.88
+
+[sub_resource type="PrismMesh" id="PrismMesh_ppm32"]
+material = SubResource("StandardMaterial3D_o8arr")
+size = Vector3(0.60245204, 2.961745, 0.9053278)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qdo7i"]
+albedo_color = Color(0.32, 0.94, 1, 1)
+roughness = 0.88
+emission_enabled = true
+emission = Color(0.32, 0.94, 1, 1)
+emission_energy_multiplier = 0.48
+
+[sub_resource type="BoxMesh" id="BoxMesh_2y5jy"]
+material = SubResource("StandardMaterial3D_qdo7i")
+size = Vector3(1.65, 2.8, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4iioh"]
+albedo_color = Color(0.4016, 0.9472, 1, 1)
+roughness = 0.88
+emission_enabled = true
+emission = Color(0.4016, 0.9472, 1, 1)
+emission_energy_multiplier = 0.48
+
+[sub_resource type="BoxMesh" id="BoxMesh_52cjd"]
+material = SubResource("StandardMaterial3D_4iioh")
+size = Vector3(1.65, 2.8, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_61vfc"]
+albedo_color = Color(0.48319998, 0.9544, 1, 1)
+roughness = 0.88
+emission_enabled = true
+emission = Color(0.48319998, 0.9544, 1, 1)
+emission_energy_multiplier = 0.48
+
+[sub_resource type="BoxMesh" id="BoxMesh_tj8mb"]
+material = SubResource("StandardMaterial3D_61vfc")
+size = Vector3(1.65, 2.8, 0.16)
+
+[node name="LandmarkVisual" type="Node3D" unique_id=1126206315]
+
+[node name="@MeshInstance3D@36" type="MeshInstance3D" parent="." unique_id=1567903648]
+transform = Transform3D(0.98974454, 0.03567469, 0.1383224, -0.03602095, 0.999351, 0, -0.13823263, -0.004982504, 0.99038726, 5.182396, 3.4856493, -0.72380066)
+mesh = SubResource("PrismMesh_ot3dj")
+
+[node name="@MeshInstance3D@37" type="MeshInstance3D" parent="." unique_id=1438025553]
+transform = Transform3D(0.7475573, 0.043338515, -0.6627819, -0.057876322, 0.99832374, 0, 0.6616709, 0.038359378, 0.7488125, 2.2438507, 2.1570144, 1.9860535)
+mesh = SubResource("PrismMesh_8vtml")
+
+[node name="@MeshInstance3D@38" type="MeshInstance3D" parent="." unique_id=1165930122]
+transform = Transform3D(-0.21320719, 0.008666734, -0.9769686, 0.040615812, 0.99917483, 0, 0.97616243, -0.039680373, -0.21338326, -0.98613167, 1.9651372, 4.514969)
+mesh = SubResource("PrismMesh_ny1cv")
+
+[node name="@MeshInstance3D@39" type="MeshInstance3D" parent="." unique_id=1975715860]
+transform = Transform3D(-0.79192173, 0.020537836, -0.6102771, 0.025925457, 0.9996639, 0, 0.610072, -0.015821714, -0.792188, -1.8027487, 3.4156964, 1.3887787)
+mesh = SubResource("PrismMesh_apprt")
+
+[node name="@MeshInstance3D@40" type="MeshInstance3D" parent="." unique_id=928416125]
+transform = Transform3D(-0.96889335, 0.07832046, 0.23475865, 0.08057215, 0.9967488, 0, -0.2339954, 0.018915009, -0.9720537, -4.221161, 2.1142576, -1.0194473)
+mesh = SubResource("PrismMesh_x1pe7")
+
+[node name="@MeshInstance3D@41" type="MeshInstance3D" parent="." unique_id=1218741838]
+transform = Transform3D(-0.27839237, -0.011754572, 0.9603955, -0.04218545, 0.9991098, 0, -0.95954055, -0.04051472, -0.27864042, -1.1816225, 4.443131, -4.0727234)
+mesh = SubResource("PrismMesh_kbmax")
+
+[node name="@MeshInstance3D@42" type="MeshInstance3D" parent="." unique_id=1008755910]
+transform = Transform3D(0.6693944, 0.07837433, 0.73876154, -0.11628811, 0.9932155, 0, -0.7337494, -0.08590919, 0.6739669, 1.5451069, 1.5416644, -1.6936493)
+mesh = SubResource("PrismMesh_ppm32")
+
+[node name="FrozenMemorySlab_00" type="MeshInstance3D" parent="." unique_id=313293393]
+transform = Transform3D(0.9909378, 0, 0.13432112, 0, 1, 0, -0.13432112, 0, 0.9909378, -1.3500004, 1.4500003, 0)
+mesh = SubResource("BoxMesh_2y5jy")
+
+[node name="FrozenMemorySlab_01" type="MeshInstance3D" parent="." unique_id=321213184]
+transform = Transform3D(0.9927181, 0, -0.120460905, 0, 1, 0, 0.120460905, 0, 0.9927181, 0, 1.4500003, 0)
+mesh = SubResource("BoxMesh_52cjd")
+
+[node name="FrozenMemorySlab_02" type="MeshInstance3D" parent="." unique_id=1991810077]
+transform = Transform3D(0.9875033, 0, -0.15759838, 0, 1, 0, 0.15759838, 0, 0.9875033, 1.3500004, 1.4500003, 0)
+mesh = SubResource("BoxMesh_tj8mb")

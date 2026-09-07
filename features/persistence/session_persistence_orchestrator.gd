@@ -5,7 +5,7 @@ signal saved(slot_id: int, reason: StringName)
 signal loaded(slot_id: int)
 
 var slot_id: int = 0
-var _level: ShelterLevel
+var _level: SessionController
 var _loop: GameLoopOrchestrator
 var _collected_spawn_ids: Dictionary[StringName, bool] = {}
 var _pending_reason: StringName = &"state_changed"
@@ -20,7 +20,7 @@ func _ready() -> void:
 	add_child(_timer)
 
 
-func setup(level: ShelterLevel, game_loop: GameLoopOrchestrator, value_slot_id: int) -> void:
+func setup(level: SessionController, game_loop: GameLoopOrchestrator, value_slot_id: int) -> void:
 	_level = level
 	_loop = game_loop
 	slot_id = value_slot_id

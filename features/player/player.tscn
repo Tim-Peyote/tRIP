@@ -7,10 +7,10 @@
 [ext_resource type="Script" path="res://features/tools/toolbelt_component.gd" id="5_toolbelt"]
 [ext_resource type="Script" path="res://features/stealth/distraction_thrower_component.gd" id="6_thrower"]
 [ext_resource type="PackedScene" path="res://features/stealth/distraction_projectile.tscn" id="7_projectile"]
-[ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_human/Animated Human.fbx" id="8_avatar"]
+[ext_resource type="PackedScene" path="res://assets/models/actors/geo_researcher.glb" id="8_avatar"]
 [ext_resource type="Script" path="res://features/player/player_avatar_animator.gd" id="9_avatar_driver"]
 [ext_resource type="Script" path="res://features/player/player_foley.gd" id="10_foley"]
-[ext_resource type="PackedScene" path="res://assets/third_party/wrad_arms/arms.glb" id="11_fps_arms"]
+[ext_resource type="PackedScene" path="res://assets/models/actors/geo_first_person.glb" id="11_fps_arms"]
 [ext_resource type="Script" path="res://features/player/first_person_arm_rig.gd" id="12_fps_arm_driver"]
 [ext_resource type="PackedScene" path="res://assets/third_party/oga_low_poly_knife/knife.fbx" id="13_knife"]
 [ext_resource type="PackedScene" path="res://assets/third_party/kenney_survival_kit/bottle.glb" id="14_bottle"]
@@ -181,9 +181,8 @@ scale = Vector3(0.8, 0.8, 0.8)
 
 [node name="RiggedFirstPersonArms" parent="CameraRig/Camera3D/ViewModel" instance=ExtResource("11_fps_arms")]
 unique_name_in_owner = true
-position = Vector3(1.05, -0.56, 0.04)
-rotation = Vector3(0, 0, -2.84)
-scale = Vector3(0.095, 0.095, 0.095)
+position = Vector3(0, -1.03, -0.15)
+rotation = Vector3(0, 3.14159265, 0)
 script = ExtResource("12_fps_arm_driver")
 
 [node name="LeftSleeve" type="MeshInstance3D" parent="CameraRig/Camera3D/ViewModel"]
@@ -360,21 +359,19 @@ cast_shadow = 0
 
 [node name="KnifeViewModel" type="BoneAttachment3D" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D"]
 unique_name_in_owner = true
-bone_name = "socket.r"
-bone_idx = 20
+bone_name = "mixamorig_RightHand"
 
 [node name="AuthoredKnife" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/KnifeViewModel" instance=ExtResource("13_knife")]
-scale = Vector3(0.24, 0.24, 0.24)
+scale = Vector3(2.28, 2.28, 2.28)
 
 [node name="VialViewModel" type="BoneAttachment3D" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D"]
 unique_name_in_owner = true
 visible = false
-bone_name = "socket.r"
-bone_idx = 20
+bone_name = "mixamorig_RightHand"
 
 [node name="AuthoredBottle" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel" instance=ExtResource("14_bottle")]
-position = Vector3(0, -0.3, 0)
-scale = Vector3(8.5, 8.5, 8.5)
+position = Vector3(3.5, 6.5, -2.5)
+scale = Vector3(240, 240, 240)
 
 [node name="bottle" parent="CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms/arms/Skeleton3D/VialViewModel/AuthoredBottle" index="0"]
 material_override = SubResource("Material_authored_vial")

@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 97, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	level.player.global_position = Vector3(20.5, 0.12, 15)
 	level.player.rotation.y = -1.5708
@@ -25,4 +25,3 @@ func _ready() -> void:
 	main.queue_free()
 	await get_tree().process_frame
 	get_tree().quit(error)
-

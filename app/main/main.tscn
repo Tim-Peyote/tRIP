@@ -1,15 +1,304 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://app/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://features/frontend/frontend_orchestrator.gd" id="2_frontend"]
 [ext_resource type="PackedScene" path="res://features/frontend/main_menu.tscn" id="3_menu"]
 [ext_resource type="Script" path="res://presentation/presentation_director.gd" id="4_presentation"]
 [ext_resource type="Script" path="res://presentation/audio/audio_director.gd" id="5_audio"]
+[ext_resource type="Script" path="res://features/frontend/main_menu.gd" id="5_y2fb0"]
 [ext_resource type="PackedScene" path="res://presentation/ui/gameplay_hud.tscn" id="6_hud"]
+[ext_resource type="Script" path="res://presentation/ui/gameplay_hud.gd" id="7_4yd2s"]
 [ext_resource type="Script" path="res://features/effects/effect_orchestrator.gd" id="7_effects"]
 [ext_resource type="Shader" path="res://presentation/shaders/perception_screen.gdshader" id="8_screen_shader"]
 [ext_resource type="Script" path="res://presentation/world_metamorphosis_director.gd" id="9_metamorphosis"]
 [ext_resource type="Shader" path="res://presentation/shaders/altai_sky.gdshader" id="10_altai_sky"]
+[ext_resource type="PackedScene" path="res://features/environment/environment_rig.tscn" id="12_lyxlh"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qba6i"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.065, 0.075, 0.067, 0.34)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.32, 0.28, 0.14)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ono52"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.15, 0.18, 0.145, 0.94)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o863u"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.13, 0.16, 0.135, 0.88)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 0.62)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aii1c"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.77913725, 0.86541176, 0.5237647, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mkv6n"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.075, 0.09, 0.078, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56, 0.62, 0.5, 0.2)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n27hr"]
+content_margin_left = 13.0
+content_margin_top = 6.0
+content_margin_right = 13.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.77913725, 0.86541176, 0.5237647, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_jtv7s"]
+color = Color(0.72, 0.78, 0.63, 0.24)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prpfn"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.12, 0.16, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.38, 0.31, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g23p8"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.18, 0.25, 0.19, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ipr1l"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.16, 0.21, 0.17, 1)
+border_color = Color(1, 1, 1, 0)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bimu3"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hk6k7"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.055, 0.068, 0.058, 0.42)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.65, 0.7, 0.58, 0.14)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_31wpr"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.9)
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_np0im"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9254902, 0.96862745, 0.7764706, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pn56r"]
+content_margin_left = 18.0
+content_margin_top = 9.0
+content_margin_right = 18.0
+content_margin_bottom = 9.0
+bg_color = Color(0.09, 0.105, 0.092, 0.6724)
+border_width_left = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.58, 0.65, 0.5, 0.2)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5kgua"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.055, 0.07, 0.06, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.46, 0.39, 0.3)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oeh5r"]
+content_margin_left = 0.0
+content_margin_top = 6.0
+content_margin_right = 0.0
+content_margin_bottom = 6.0
+bg_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.32)
+
+[sub_resource type="Theme" id="Theme_hk0nq"]
+default_font_size = 15
+Button/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+Button/colors/font_disabled_color = Color(0.55, 0.58, 0.54, 0.48)
+Button/colors/font_focus_color = Color(1, 1, 1, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(0.03137255, 0.047058824, 0.039215688, 1)
+Button/constants/outline_size = 0
+Button/font_sizes/font_size = 16
+Button/styles/disabled = SubResource("StyleBoxFlat_qba6i")
+Button/styles/focus = SubResource("StyleBoxFlat_ono52")
+Button/styles/hover = SubResource("StyleBoxFlat_o863u")
+Button/styles/hover_pressed = SubResource("StyleBoxFlat_aii1c")
+Button/styles/normal = SubResource("StyleBoxFlat_mkv6n")
+Button/styles/pressed = SubResource("StyleBoxFlat_n27hr")
+HSeparator/styles/separator = SubResource("StyleBoxLine_jtv7s")
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_prpfn")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_g23p8")
+HSlider/styles/slider = SubResource("StyleBoxFlat_ipr1l")
+ItemList/colors/font_color = Color(0.8509804, 0.8666667, 0.7921569, 1)
+ItemList/colors/font_selected_color = Color(0.0627451, 0.08235294, 0.0627451, 1)
+ItemList/styles/focus = SubResource("StyleBoxEmpty_bimu3")
+ItemList/styles/panel = SubResource("StyleBoxFlat_hk6k7")
+ItemList/styles/selected = SubResource("StyleBoxFlat_31wpr")
+ItemList/styles/selected_focus = SubResource("StyleBoxFlat_np0im")
+Label/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+Label/colors/font_shadow_color = Color(0, 0, 0, 0.62)
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 2
+OptionButton/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+OptionButton/font_sizes/font_size = 14
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_pn56r")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_5kgua")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_oeh5r")
+RichTextLabel/colors/default_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+RichTextLabel/colors/font_color = Color(0.9098039, 0.91764706, 0.8745098, 1)
+RichTextLabel/colors/font_outline_color = Color(0, 0, 0, 0.7)
+RichTextLabel/constants/outline_size = 1
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_perception"]
 shader = ExtResource("8_screen_shader")
@@ -26,8 +315,8 @@ shader_parameter/night_amount = 0.0
 
 [sub_resource type="Sky" id="Sky_trip"]
 sky_material = SubResource("SkyMaterial_trip")
-radiance_size = 2
 process_mode = 2
+radiance_size = 2
 
 [sub_resource type="Environment" id="Environment_trip"]
 background_mode = 2
@@ -35,107 +324,115 @@ background_color = Color(0.008, 0.025, 0.018, 1)
 sky = SubResource("Sky_trip")
 ambient_light_source = 2
 ambient_light_color = Color(0.12, 0.16, 0.13, 1)
-ambient_light_energy = 0.68
 ambient_light_sky_contribution = 0.5
+ambient_light_energy = 0.68
 tonemap_mode = 3
-tonemap_exposure = 1.0
 tonemap_white = 6.0
-glow_enabled = true
-glow_normalized = true
-glow_intensity = 0.52
-glow_strength = 0.72
-glow_bloom = 0.0
-glow_hdr_threshold = 1.15
-glow_hdr_scale = 1.5
-glow_hdr_luminance_cap = 8.0
 ssao_enabled = true
 ssao_radius = 1.25
 ssao_intensity = 1.0
 ssao_power = 1.18
 ssao_detail = 0.52
-ssil_enabled = false
 ssil_radius = 4.0
 ssil_intensity = 0.92
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.52
+glow_strength = 0.72
+glow_hdr_threshold = 1.15
+glow_hdr_scale = 1.5
+glow_hdr_luminance_cap = 8.0
 fog_enabled = true
 fog_light_color = Color(0.07, 0.13, 0.09, 1)
 fog_light_energy = 0.55
+fog_sun_scatter = 0.18
 fog_density = 0.006
+fog_aerial_perspective = 0.42
+fog_sky_affect = 0.48
 fog_height = 1.6
 fog_height_density = 0.018
-fog_aerial_perspective = 0.42
-fog_sun_scatter = 0.18
-fog_sky_affect = 0.48
 volumetric_fog_enabled = true
 volumetric_fog_density = 0.004
 volumetric_fog_albedo = Color(0.38, 0.5, 0.4, 1)
 volumetric_fog_emission = Color(0.006, 0.018, 0.009, 1)
+volumetric_fog_anisotropy = 0.45
 volumetric_fog_length = 52.0
 volumetric_fog_detail_spread = 1.8
 volumetric_fog_ambient_inject = 0.8
-volumetric_fog_anisotropy = 0.45
 volumetric_fog_sky_affect = 0.54
-volumetric_fog_temporal_reprojection_enabled = true
 volumetric_fog_temporal_reprojection_amount = 0.88
 adjustment_enabled = true
-adjustment_brightness = 1.0
 adjustment_contrast = 1.04
-adjustment_saturation = 1.0
 
-[node name="Main" type="Node"]
+[node name="Main" type="Node" unique_id=1850468386]
 process_mode = 3
 script = ExtResource("1_main")
 
-[node name="FrontendOrchestrator" type="Node" parent="."]
+[node name="FrontendOrchestrator" type="Node" parent="." unique_id=1250559706]
 unique_name_in_owner = true
 script = ExtResource("2_frontend")
 
-[node name="Session" type="Node" parent="."]
+[node name="Session" type="Node" parent="." unique_id=29371619]
 
-[node name="WorldRoot" type="Node3D" parent="Session"]
+[node name="WorldRoot" type="Node3D" parent="Session" unique_id=2037065523]
 unique_name_in_owner = true
 
-[node name="ActorsRoot" type="Node3D" parent="Session"]
+[node name="ActorsRoot" type="Node3D" parent="Session" unique_id=1750480799]
 unique_name_in_owner = true
 
-[node name="GameplayOrchestrators" type="Node" parent="Session"]
+[node name="GameplayOrchestrators" type="Node" parent="Session" unique_id=1525504061]
 
-[node name="EffectOrchestrator" type="Node" parent="Session/GameplayOrchestrators"]
+[node name="EffectOrchestrator" type="Node" parent="Session/GameplayOrchestrators" unique_id=935097046]
 unique_name_in_owner = true
 script = ExtResource("7_effects")
 
-[node name="RuntimeObjects" type="Node3D" parent="Session"]
+[node name="RuntimeObjects" type="Node3D" parent="Session" unique_id=916407825]
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=942869045]
 layer = 10
 
-[node name="MainMenu" parent="UI" instance=ExtResource("3_menu")]
+[node name="MainMenu" type="Control" parent="UI" unique_id=473491935 instance=ExtResource("3_menu")]
 unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_y2fb0")
 
-[node name="GameplayHUD" parent="UI" instance=ExtResource("6_hud")]
+[node name="GameplayHUD" type="Control" parent="UI" unique_id=1655556179 instance=ExtResource("6_hud")]
 unique_name_in_owner = true
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = SubResource("Theme_hk0nq")
+script = ExtResource("7_4yd2s")
 
-[node name="Presentation" type="Node" parent="."]
+[node name="Presentation" type="Node" parent="." unique_id=1693438045]
 
-[node name="PresentationDirector" type="Node" parent="Presentation"]
+[node name="PresentationDirector" type="Node" parent="Presentation" unique_id=974469991]
 unique_name_in_owner = true
 script = ExtResource("4_presentation")
 
-[node name="AudioDirector" type="Node" parent="Presentation"]
+[node name="AudioDirector" type="Node" parent="Presentation" unique_id=1426874141]
 unique_name_in_owner = true
 script = ExtResource("5_audio")
 
-[node name="WorldMetamorphosisDirector" type="Node" parent="Presentation"]
+[node name="WorldMetamorphosisDirector" type="Node" parent="Presentation" unique_id=1439719422]
 unique_name_in_owner = true
 script = ExtResource("9_metamorphosis")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="Presentation"]
-unique_name_in_owner = true
-environment = SubResource("Environment_trip")
-
-[node name="ScreenEffects" type="CanvasLayer" parent="Presentation"]
+[node name="ScreenEffects" type="CanvasLayer" parent="Presentation" unique_id=651235802]
 layer = 5
 
-[node name="PerceptionPass" type="ColorRect" parent="Presentation/ScreenEffects"]
+[node name="PerceptionPass" type="ColorRect" parent="Presentation/ScreenEffects" unique_id=112679721]
 material = SubResource("ShaderMaterial_perception")
 anchors_preset = 15
 anchor_right = 1.0
@@ -144,4 +441,4 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Debug" type="Node" parent="."]
+[node name="Debug" type="Node" parent="." unique_id=373868850]

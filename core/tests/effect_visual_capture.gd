@@ -10,7 +10,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 92, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.player.rotation.y = -0.58
 	var effects: Array[StringName] = [&"effect.spore_sight"]
 	main.effect_orchestrator.apply_effects(effects)

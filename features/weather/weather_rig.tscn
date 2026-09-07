@@ -1,0 +1,93 @@
+[gd_scene format=3]
+
+[ext_resource type="AudioStream" path="res://assets/third_party/open_game_art_audio/rain_long.ogg" id="1_6jffn"]
+[ext_resource type="AudioStream" path="res://assets/third_party/open_game_art_audio/wind_soft.ogg" id="2_cc4l1"]
+[ext_resource type="AudioStream" path="res://assets/third_party/open_game_art_audio/thunderclap.wav" id="3_5822l"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_tbwvv"]
+emission_shape = 3
+emission_box_extents = Vector3(13, 1.5, 13)
+direction = Vector3(0, -1, 0)
+spread = 42.0
+initial_velocity_min = 0.6
+initial_velocity_max = 1.5
+gravity = Vector3(0, -0.8, 0)
+scale_min = 0.68
+scale_max = 1.22
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwd8v"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.88, 0.94, 1, 0.82)
+
+[sub_resource type="SphereMesh" id="SphereMesh_qi0ff"]
+material = SubResource("StandardMaterial3D_hwd8v")
+radius = 0.036
+height = 0.036
+radial_segments = 5
+rings = 2
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_lix7r"]
+emission_shape = 3
+emission_box_extents = Vector3(24, 2.5, 24)
+direction = Vector3(0, -1, 0)
+spread = 42.0
+initial_velocity_min = 0.42
+initial_velocity_max = 1.15
+gravity = Vector3(0, -0.8, 0)
+scale_min = 0.42
+scale_max = 0.82
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w5d0r"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.88, 0.94, 1, 0.48)
+
+[sub_resource type="SphereMesh" id="SphereMesh_threq"]
+material = SubResource("StandardMaterial3D_w5d0r")
+radius = 0.022
+height = 0.022
+radial_segments = 5
+rings = 2
+
+[node name="WeatherRig" type="Node3D" unique_id=1982949662]
+
+[node name="LocalPrecipitation" type="GPUParticles3D" parent="." unique_id=758496996]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 0)
+emitting = false
+amount = 1050
+lifetime = 1.5
+visibility_aabb = AABB(-18, -14, -18, 36, 28, 36)
+process_material = SubResource("ParticleProcessMaterial_tbwvv")
+draw_pass_1 = SubResource("SphereMesh_qi0ff")
+
+[node name="WeatherDepthLayer" type="GPUParticles3D" parent="." unique_id=1902135301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11, 0)
+emitting = false
+amount = 480
+lifetime = 2.25
+visibility_aabb = AABB(-31, -18, -31, 62, 36, 62)
+process_material = SubResource("ParticleProcessMaterial_lix7r")
+draw_pass_1 = SubResource("SphereMesh_threq")
+
+[node name="LightningFlash" type="DirectionalLight3D" parent="." unique_id=2014275990]
+transform = Transform3D(0.95105654, 0.2728458, -0.14507471, 0, 0.4694716, 0.88294756, 0.309017, -0.83973306, 0.44649404, 0, 0, 0)
+light_color = Color(0.68, 0.78, 1, 1)
+light_energy = 0.0
+
+[node name="RecordedRain" type="AudioStreamPlayer" parent="." unique_id=1484478605]
+stream = ExtResource("1_6jffn")
+volume_db = -40.0
+bus = &"Ambience"
+
+[node name="RecordedWind" type="AudioStreamPlayer" parent="." unique_id=86048938]
+stream = ExtResource("2_cc4l1")
+volume_db = -40.0
+bus = &"Ambience"
+
+[node name="SpatialThunder" type="AudioStreamPlayer3D" parent="." unique_id=1873840183]
+top_level = true
+stream = ExtResource("3_5822l")
+unit_size = 12.0
+max_distance = 180.0
+bus = &"Ambience"

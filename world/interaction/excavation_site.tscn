@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/interaction/excavation_site.gd" id="1_cvujd"]
+[ext_resource type="Script" path="res://core/components/interactable_component.gd" id="2_2mxvf"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ctcok"]
+albedo_color = Color(0.21568628, 0.16470589, 0.10980392, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_nkfo7"]
+top_radius = 1.05
+bottom_radius = 0.82
+height = 0.18
+radial_segments = 9
+
+[sub_resource type="BoxMesh" id="BoxMesh_s0ko5"]
+size = Vector3(0.22, 0.14, 0.32)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p6bg4"]
+size = Vector3(0.22, 0.14, 0.32)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mqjeo"]
+size = Vector3(0.22, 0.14, 0.32)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tqjyd"]
+size = Vector3(0.22, 0.14, 0.32)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hlsso"]
+size = Vector3(0.22, 0.14, 0.32)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_pcqvm"]
+height = 0.35
+radius = 1.05
+
+[node name="ExcavationSite" type="StaticBody3D" unique_id=213197551]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_cvujd")
+
+[node name="Soil" type="Node3D" parent="." unique_id=1747963891]
+
+[node name="@MeshInstance3D@250" type="MeshInstance3D" parent="Soil" unique_id=1001563407]
+material_override = SubResource("StandardMaterial3D_ctcok")
+mesh = SubResource("CylinderMesh_nkfo7")
+
+[node name="@MeshInstance3D@251" type="MeshInstance3D" parent="Soil" unique_id=1109604263]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.82, 0.07, 0)
+material_override = SubResource("StandardMaterial3D_ctcok")
+mesh = SubResource("BoxMesh_s0ko5")
+
+[node name="@MeshInstance3D@252" type="MeshInstance3D" parent="Soil" unique_id=230508503]
+transform = Transform3D(0.30901697, 0, -0.95105654, 0, 1, 0, 0.95105654, 0, 0.30901697, 0.25339395, 0.07, 0.6847607)
+material_override = SubResource("StandardMaterial3D_ctcok")
+mesh = SubResource("BoxMesh_p6bg4")
+
+[node name="@MeshInstance3D@253" type="MeshInstance3D" parent="Soil" unique_id=173440090]
+transform = Transform3D(-0.80901706, 0, -0.5877852, 0, 1, 0, 0.5877852, 0, -0.80901706, -0.6633939, 0.07, 0.42320538)
+material_override = SubResource("StandardMaterial3D_ctcok")
+mesh = SubResource("BoxMesh_mqjeo")
+
+[node name="@MeshInstance3D@254" type="MeshInstance3D" parent="Soil" unique_id=1148272740]
+transform = Transform3D(-0.80901694, 0, 0.58778536, 0, 1, 0, -0.58778536, 0, -0.80901694, -0.6633939, 0.07, -0.42320538)
+material_override = SubResource("StandardMaterial3D_ctcok")
+mesh = SubResource("BoxMesh_tqjyd")
+
+[node name="@MeshInstance3D@255" type="MeshInstance3D" parent="Soil" unique_id=1170230266]
+transform = Transform3D(0.30901712, 0, 0.9510565, 0, 1, 0, -0.9510565, 0, 0.30901712, 0.25339395, 0.07, -0.6847607)
+material_override = SubResource("StandardMaterial3D_ctcok")
+mesh = SubResource("BoxMesh_hlsso")
+
+[node name="@CollisionShape3D@256" type="CollisionShape3D" parent="." unique_id=343952258]
+shape = SubResource("CylinderShape3D_pcqvm")
+
+[node name="InteractableComponent" type="Node" parent="." unique_id=2101555252]
+script = ExtResource("2_2mxvf")
+object_name = "Нарушенный грунт"
+primary_verb = "Копать"
+hold_duration = 0.9
+affordance = "operate"

@@ -500,7 +500,11 @@ func _apply_gravity(delta: float) -> void:
 
 
 func _try_jump() -> void:
-	if _jump_buffer_remaining <= 0.0 or _coyote_remaining <= 0.0 or _is_crouched:
+	if _is_crouched:
+		# A rejected crouched jump must not fire later when the player stands.
+		_jump_buffer_remaining = 0.0
+		return
+	if _jump_buffer_remaining <= 0.0 or _coyote_remaining <= 0.0:
 		return
 	if not vitals.spend_stamina(13.0, &"jump"):
 		_jump_buffer_remaining = 0.0

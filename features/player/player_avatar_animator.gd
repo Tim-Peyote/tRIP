@@ -1,7 +1,7 @@
 class_name PlayerAvatarAnimator
 extends Node3D
 
-@export var avatar_scale: float = 0.31
+@export var avatar_scale: float = 1.0
 @export var transition_time: float = 0.16
 @export_range(1.0, 20.0, 0.5) var turn_speed: float = 10.0
 
@@ -9,6 +9,7 @@ var _controller: FirstPersonController
 var _animation_player: AnimationPlayer
 var _current_animation: StringName
 var _jump_locked: bool = false
+var _work_locked: bool = false
 var _third_person_visible: bool = false
 
 const AVATAR_MATERIAL = preload("res://features/player/player_avatar_material.tres")
@@ -19,9 +20,11 @@ const ANIMATIONS := {
 	&"run": &"Human Armature|Run",
 	&"jump": &"Human Armature|Jump",
 	&"work": &"Human Armature|Working",
+	&"crouch_idle": &"Human Armature|CrouchIdle",
+	&"crouch_walk": &"Human Armature|CrouchWalk",
 }
 
-const LOOPING_STATES: Array[StringName] = [&"idle", &"walk", &"run"]
+const LOOPING_STATES: Array[StringName] = [&"idle", &"walk", &"run", &"crouch_idle", &"crouch_walk"]
 
 
 func _ready() -> void:
@@ -30,7 +33,6 @@ func _ready() -> void:
 	_animation_player = find_child("AnimationPlayer", true, false) as AnimationPlayer
 	for node: Node in find_children("*", "MeshInstance3D", true, false):
 		var mesh := node as MeshInstance3D
-		mesh.material_override = AVATAR_MATERIAL
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		mesh.visibility_range_end = 45.0
 	if _animation_player != null:
@@ -55,14 +57,27 @@ func is_third_person_visible() -> bool:
 
 
 func _process(delta: float) -> void:
-	if _controller == null or _animation_player == null or _jump_locked:
+	if _controller == null or _animation_player == null:
 		return
 	_update_movement_facing(delta)
+	if _work_locked:
+		return
+	if _jump_locked:
+		if not _controller.is_grounded():
+			return
+		_jump_locked = false
+		_current_animation = &""
 	if not _controller.is_grounded():
 		_play(&"jump", 1.0)
 		_jump_locked = true
 		return
 	var speed := _controller.get_planar_speed()
+	if _controller.is_crouched():
+		if speed < 0.12:
+			_play(&"crouch_idle", 1.0)
+		else:
+			_play(&"crouch_walk", clampf(speed / _controller.crouch_speed, 0.55, 1.3))
+		return
 	if speed < 0.12:
 		_play(&"idle", 1.0)
 	elif _controller.is_sprinting():
@@ -75,7 +90,7 @@ func _update_movement_facing(delta: float) -> void:
 	var planar_velocity := Vector3(_controller.velocity.x, 0.0, _controller.velocity.z)
 	if planar_velocity.length_squared() < 0.04:
 		return
-	# The Quaternius FBX is authored facing local +Z. Work in controller-local
+	# The exported GEO body faces local +Z. Work in controller-local
 	# space so the visible body follows actual travel instead of remaining glued
 	# to camera yaw (which made strafing/reversing look like moonwalking).
 	var local_direction := (_controller.global_basis.inverse() * planar_velocity).normalized()
@@ -85,6 +100,9 @@ func _update_movement_facing(delta: float) -> void:
 
 func play_work_action() -> void:
 	_jump_locked = false
+	_work_locked = _animation_player != null and _animation_player.has_animation(ANIMATIONS[&"work"])
+	if _animation_player == null:
+		return
 	_play(&"work", 1.0, true)
 
 
@@ -120,6 +138,7 @@ func _configure_animation_loops() -> void:
 func _on_animation_finished(_animation: StringName) -> void:
 	if _current_animation in [&"jump", &"work"]:
 		_jump_locked = false
+		_work_locked = false
 		_current_animation = &""
 	elif _current_animation in LOOPING_STATES:
 		# Defensive fallback for importer/runtime changes: locomotion must never

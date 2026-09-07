@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 517, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	main.world_metamorphosis_director.finish_immediately()
 	main.gameplay_hud.notice_label.visible = false
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain

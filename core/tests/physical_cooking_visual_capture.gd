@@ -9,9 +9,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 95, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.road_laboratory.developer_toggle(false)
-	var portable := level.road_laboratory.get_node("PortableLaboratory") as Node3D
+	var portable := level.road_laboratory.get_laboratory_root() as Node3D
 	var cauldron := portable.get_node("Cauldron") as Node3D
 	var capture_camera := Camera3D.new()
 	level.add_child(capture_camera)

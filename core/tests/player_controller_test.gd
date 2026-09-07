@@ -27,7 +27,9 @@ func _run() -> void:
 	await _physics_frames(10)
 	var first_person_arms := _player.get_node("CameraRig/Camera3D/ViewModel/RiggedFirstPersonArms")
 	var arm_skeleton := first_person_arms.find_child("Skeleton3D", true, false) as Skeleton3D
-	_expect(arm_skeleton != null and arm_skeleton.get_bone_count() >= 40, "Rigged CC0 first-person arms were not installed.")
+	_expect(arm_skeleton != null and arm_skeleton.get_bone_count() == 65 and arm_skeleton.find_bone("mixamorig_RightHand") >= 0, "Mixamo first-person arm skeleton was not installed.")
+	_expect(first_person_arms.scene_file_path == "res://assets/models/actors/geo_first_person.glb", "First-person view still references the old arm asset.")
+	_expect(_player.get_node("AvatarAnimator/RiggedBody").scene_file_path == "res://assets/models/actors/geo_researcher.glb", "Third-person view is not the GEO body.")
 	_expect(InputMap.has_action(&"toggle_view") and _action_has_physical_key(&"toggle_view", KEY_V), "Camera view toggle is not bound to physical V.")
 	_emit_physical_key(KEY_V, true)
 	await get_tree().process_frame
@@ -61,17 +63,17 @@ func _run() -> void:
 	var legacy_grip := _player.get_node("CameraRig/Camera3D/ViewModel/PrototypeKnifeViewModel/GripHand") as MeshInstance3D
 	var knife_attachment := _player.knife_viewmodel as BoneAttachment3D
 	_expect(not legacy_grip.visible, "Legacy primitive grip hand is still visible.")
-	_expect(knife_attachment != null and knife_attachment.bone_name == "socket.r", "Authored knife is not attached to the right-hand rig socket.")
+	_expect(knife_attachment != null and knife_attachment.bone_name == "mixamorig_RightHand", "Authored knife is not attached to the Mixamo right hand.")
 	_expect(knife_attachment.find_child("AuthoredKnife", true, false) != null, "Authored CC0 knife is missing from the viewmodel.")
-	var offhand_index := arm_skeleton.find_bone("shoulder.l")
-	_expect(offhand_index >= 0 and arm_skeleton.get_bone_pose_scale(offhand_index).x < 0.01, "Unused offhand is still hanging in the normal exploration view.")
+	var offhand := first_person_arms.find_child("GEO_Arm_L*", true, false) as MeshInstance3D
+	_expect(offhand != null and not offhand.visible, "Unused GEO offhand is still hanging in the normal exploration view.")
 	var held_probe := _add_rigid_box(Vector3(0.0, 0.35, -1.5))
 	_player.interactor.call("_begin_grab", held_probe)
-	_expect(arm_skeleton.get_bone_pose_scale(offhand_index).x < 0.01, "Physical interaction exposed the unanimated offhand.")
+	_expect(not offhand.is_visible_in_tree(), "Physical interaction exposed the unanimated offhand.")
 	_expect(not first_person_arms.visible, "Generic physical grab exposed an unanchored hand pose.")
 	_expect(not knife_attachment.visible, "Equipped tool remained visible through a physical interaction.")
 	_player.interactor.call("_release_grabbed_body")
-	_expect(first_person_arms.visible and arm_skeleton.get_bone_pose_scale(offhand_index).x < 0.01 and knife_attachment.visible, "Exploration hand pose was not restored after releasing an object.")
+	_expect(first_person_arms.visible and not offhand.visible and knife_attachment.visible, "Exploration hand pose was not restored after releasing an object.")
 	held_probe.queue_free()
 	await get_tree().physics_frame
 
@@ -135,6 +137,13 @@ func _run() -> void:
 	Input.action_release(&"sprint")
 	await _physics_frames(20)
 
+	_player.avatar_animator.play_work_action()
+	await _physics_frames(12)
+	_expect(_player.avatar_animator.get_current_state() == &"work", "Work animation was overwritten immediately by idle locomotion.")
+	var work_duration := avatar_animation_player.get_animation(&"Human Armature|Working").length
+	await _physics_frames(ceili(work_duration * 60.0) + 12)
+	_expect(_player.avatar_animator.get_current_state() == &"idle", "Work animation did not return to idle.")
+
 	# Buffered jump, airborne animation and landing response are one locomotion contract.
 	var takeoff_y := _player.global_position.y
 	for event: InputEvent in InputMap.action_get_events(&"jump"):
@@ -154,17 +163,44 @@ func _run() -> void:
 	_expect(absf(float(_player.get("_landing_velocity"))) > 0.001 or absf(float(_player.get("_landing_offset"))) > 0.001, "Landing produced no camera spring response.")
 
 	# Crouch changes the physical capsule and blocks jumping until standing clearance exists.
+	_player.global_position = Vector3(0.0, 0.05, 0.0)
+	_player.velocity = Vector3.ZERO
+	await _physics_frames(20)
+	_player.set_third_person_enabled(true, false)
+	var body_skeleton := _player.avatar_animator.find_child("Skeleton3D", true, false) as Skeleton3D
+	var head_bone := body_skeleton.find_bone("mixamorig_Head")
+	var standing_head_height := (body_skeleton.global_transform * body_skeleton.get_bone_global_pose(head_bone).origin).y - _player.global_position.y
 	Input.action_press(&"crouch")
-	await _physics_frames(8)
+	await _physics_frames(20)
 	var capsule := _player.collision_shape.shape as CapsuleShape3D
 	_expect(_player.is_crouched() and capsule.height < FirstPersonController.STANDING_BODY_HEIGHT, "Crouch did not resize the physical capsule.")
+	_expect(_player.avatar_animator.get_current_state() == &"crouch_idle", "Third-person body remained in standing idle during crouch.")
+	var crouched_head_height := (body_skeleton.global_transform * body_skeleton.get_bone_global_pose(head_bone).origin).y - _player.global_position.y
+	_expect(crouched_head_height < standing_head_height - 0.25, "Crouch lowered the camera but not the animated skeleton.")
+	Input.action_press(&"move_forward")
+	await _physics_frames(150)
+	_expect(_player.avatar_animator.get_current_state() == &"crouch_walk" and avatar_animation_player.is_playing(), "Crouch movement lost its looping crouch animation.")
+	_expect(_player.get_planar_speed() <= _player.crouch_speed + 0.1, "Crouch used standing movement speed.")
+	_player.set_third_person_enabled(false, false)
+	await _physics_frames(2)
+	_player.set_third_person_enabled(true, false)
+	await _physics_frames(2)
+	_expect(_player.is_crouched() and _player.avatar_animator.get_current_state() == &"crouch_walk", "Camera switching reset crouch stance.")
+	Input.action_release(&"move_forward")
+	await _physics_frames(20)
 	var crouched_y := _player.global_position.y
 	Input.action_press(&"jump")
 	await _physics_frames(4)
 	Input.action_release(&"jump")
 	_expect(_player.global_position.y < crouched_y + 0.08, "Crouched player was allowed to jump.")
+	_add_static_box("CrouchRoof", Vector3(3.0, 0.2, 3.0), _player.global_position + Vector3(0.0, 1.48, 0.0))
 	Input.action_release(&"crouch")
-	await _physics_frames(12)
+	await _physics_frames(20)
+	_expect(_player.is_crouched() and _player.avatar_animator.get_current_state() == &"crouch_idle", "Low ceiling did not preserve the physical and animated crouch.")
+	(get_node("CrouchRoof") as StaticBody3D).queue_free()
+	await _physics_frames(20)
+	_expect(_player.avatar_animator.get_current_state() == &"idle", "Standing up failed to restore idle animation.")
+	_player.set_third_person_enabled(false, false)
 
 	# The capsule must stop at world collision without visible tunnelling.
 	_add_static_box("Wall", Vector3(5.0, 3.0, 0.25), Vector3(0.0, 1.5, -4.0))

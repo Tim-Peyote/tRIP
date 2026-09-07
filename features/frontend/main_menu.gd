@@ -13,14 +13,8 @@ signal quit_requested
 
 
 func _ready() -> void:
-	theme = TripUITheme.build()
-	for button: Button in [%ContinueButton, %NewGameButton, %SettingsButton, %CreditsButton, %QuitButton]:
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.add_theme_stylebox_override("normal", TripUITheme.make_menu_button(&"normal"))
-		button.add_theme_stylebox_override("hover", TripUITheme.make_menu_button(&"hover"))
-		button.add_theme_stylebox_override("focus", TripUITheme.make_menu_button(&"focus"))
-		button.add_theme_stylebox_override("pressed", TripUITheme.make_menu_button(&"pressed"))
-	%SettingsPanel.add_theme_stylebox_override("panel", TripUITheme.make_modal_panel(Color("aebf78")))
+	if theme == null:
+		theme = preload("res://presentation/ui/trip_theme.tres")
 	%ContinueButton.pressed.connect(func() -> void: continue_requested.emit())
 	%NewGameButton.pressed.connect(func() -> void: new_game_requested.emit())
 	%SettingsButton.pressed.connect(_show_settings)

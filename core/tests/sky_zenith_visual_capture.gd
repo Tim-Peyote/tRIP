@@ -11,7 +11,7 @@ func _ready() -> void:
 	main.call("_on_game_requested", 7117, true)
 	for _frame: int in 16:
 		await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.player.camera_rig.rotation.x = deg_to_rad(84.0)
 	level.player.set("_look_pitch", deg_to_rad(84.0))
 	level.player.process_mode = Node.PROCESS_MODE_DISABLED
@@ -25,7 +25,7 @@ func _ready() -> void:
 	get_tree().quit(error)
 
 
-func _capture(level: ShelterLevel, progress: float, path: String) -> Error:
+func _capture(level: SessionController, progress: float, path: String) -> Error:
 	level.expedition_clock.set_progress(progress)
 	for _frame: int in 16:
 		await get_tree().process_frame

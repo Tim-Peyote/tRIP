@@ -16,8 +16,17 @@ func _run() -> void:
 	_expect(SettingsService.get_resolution() == Vector2i(1600, 900), "Window resolution was not persisted.")
 	SettingsService.set_resolution(old_resolution)
 	SettingsService.set_window_mode(old_mode)
-	var backdrop := MenuCampBackdrop.new()
+	var backdrop := (load("res://features/frontend/menu_camp_backdrop.tscn") as PackedScene).instantiate() as MenuCampBackdrop
 	add_child(backdrop)
+	var actor := backdrop.get_node("SeatedResearcher/GEOBody")
+	_expect(actor.scene_file_path == "res://assets/models/actors/geo_researcher.glb", "Menu must use the same GEO body as the player.")
+	var actor_animation := actor.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	_expect(actor_animation != null and actor_animation.current_animation == "Human Armature|Seated", "Menu actor is not playing the seated animation.")
+	_expect(backdrop.has_node("CedarClearing"), "Menu must instance the Blender clearing.")
+	var clearing := backdrop.get_node_or_null("CedarClearing")
+	if clearing != null:
+		_expect(clearing.get_child_count() >= 20, "Imported grove or camp equipment is missing.")
+		_expect(clearing.find_child("Cube", true, false) == null, "Blender default cube leaked into export.")
 	backdrop.apply_progress_data({})
 	_expect(backdrop.get_laboratory_level() == 0, "A fresh save must show the field laboratory at level zero.")
 	_expect(backdrop.get_visible_upgrade_names().is_empty(), "A fresh save must not show persistent upgrades.")

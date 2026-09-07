@@ -27,14 +27,12 @@ func _ready() -> void:
 	collision_layer = 4
 	collision_mask = 0
 	_build_presentation()
-	_interactable = InteractableComponent.new()
-	_interactable.name = "InteractableComponent"
+	_interactable = $InteractableComponent
 	_interactable.object_name = "Нарушенный грунт"
 	_interactable.primary_verb = "Копать"
 	_interactable.hold_duration = 0.9
 	_interactable.affordance = "operate"
 	_interactable.interaction_completed.connect(_on_interaction_completed)
-	add_child(_interactable)
 
 
 func can_receive_interaction(actor: Node) -> bool:
@@ -132,33 +130,12 @@ func _sync_visual(animated: bool) -> void:
 
 
 func _build_presentation() -> void:
-	_soil = Node3D.new()
-	add_child(_soil)
-	var earth := StandardMaterial3D.new()
-	earth.albedo_color = Color("372a1c")
-	earth.roughness = 1.0
-	var disturbed := MeshInstance3D.new()
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = 1.05
-	mesh.bottom_radius = 0.82
-	mesh.height = 0.18
-	mesh.radial_segments = 9
-	disturbed.mesh = mesh
-	disturbed.material_override = earth
-	_soil.add_child(disturbed)
-	for index: int in 5:
-		var stone := MeshInstance3D.new()
-		var stone_mesh := BoxMesh.new()
-		stone_mesh.size = Vector3(0.22, 0.14, 0.32)
-		stone.mesh = stone_mesh
-		stone.material_override = earth
-		var angle := TAU * float(index) / 5.0
-		stone.position = Vector3(cos(angle) * 0.82, 0.07, sin(angle) * 0.72)
-		stone.rotation.y = -angle
-		_soil.add_child(stone)
-	var collision := CollisionShape3D.new()
-	var shape := CylinderShape3D.new()
-	shape.radius = 1.05
-	shape.height = 0.35
-	collision.shape = shape
-	add_child(collision)
+	if not has_node("Soil"):
+		var template := load("res://world/interaction/excavation_site.tscn") as PackedScene
+		var visual := template.instantiate()
+		for child: Node in visual.get_children():
+			child.owner = null
+			visual.remove_child(child)
+			add_child(child)
+		visual.free()
+	_soil = $Soil

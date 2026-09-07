@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 94, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	main.effect_orchestrator.apply_effects([&"effect.spore_sight"], "Настой спорозрения")
 	level.player.global_position = Vector3(0, 0.12, 24.6)

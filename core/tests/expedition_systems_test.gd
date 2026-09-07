@@ -10,7 +10,7 @@ func _ready() -> void:
 func _run() -> void:
 	InputBootstrap.ensure_defaults()
 	ContentDB.rebuild()
-	var level := (load("res://world/levels/shelter/shelter_level.tscn") as PackedScene).instantiate() as ShelterLevel
+	var level := (load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene).instantiate() as LegacyExpeditionFixture
 	add_child(level)
 	await get_tree().process_frame
 	var player := level.get_player()

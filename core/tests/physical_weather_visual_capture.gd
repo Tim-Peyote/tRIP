@@ -11,7 +11,7 @@ func _ready() -> void:
 	main.call("_on_game_requested", 96, true)
 	for _frame: int in 5:
 		await get_tree().physics_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.get_weather().automatic = false
 	level.get_weather().set_weather(WeatherOrchestrator.State.STORM, 0.9, true)
 	var player := level.player

@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="RecipeDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3 uid="uid://jebn4o5o5uwp"]
 
-[ext_resource type="Script" path="res://core/resources/recipe_definition.gd" id="1_recipe"]
-[ext_resource type="Script" path="res://core/resources/recipe_step_definition.gd" id="2_step"]
+[ext_resource type="Script" uid="uid://bw3vclllsgfrb" path="res://core/resources/recipe_definition.gd" id="1_recipe"]
+[ext_resource type="Script" uid="uid://hm2v26t7exny" path="res://core/resources/recipe_step_definition.gd" id="2_step"]
 
 [sub_resource type="Resource" id="Step_grind"]
 script = ExtResource("2_step")
@@ -35,16 +35,12 @@ player_hint = "Держать ниже бурного кипения до сер
 
 [resource]
 script = ExtResource("1_recipe")
-id = &"recipe.spore_sight_brew"
-display_name = "Настой спорозрения"
-description = "Первый состав, открывающий скрытую структуру леса."
-tags = Array[StringName]([&"brew", &"perception", &"tutorial"])
 primary_ingredient_id = &"ingredient.mooncap"
 steps = Array[ExtResource("2_step")]([SubResource("Step_grind"), SubResource("Step_heat")])
 result_item_id = &"item.spore_sight_brew"
 effect_ids = Array[StringName]([&"effect.spore_sight"])
-required_base_id = &"base.water"
-finish_method = 0
-base_yield = 1
-acceptable_error = 0.25
 field_notes = "Измельчить до влажной крошки. Не давать бурно кипеть."
+id = &"recipe.spore_sight_brew"
+display_name = "Настой спорозрения"
+description = "Первый состав, открывающий скрытую структуру леса."
+tags = Array[StringName]([&"brew", &"perception", &"tutorial"])

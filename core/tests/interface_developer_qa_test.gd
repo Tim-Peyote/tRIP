@@ -72,22 +72,16 @@ func _run() -> void:
 	cue_players.erase(limiter_voice)
 	limiter_voice.queue_free()
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
-	var shelter_ambience := level.get_node("ProceduralAmbience") as ProceduralAmbience
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	var player := level.player
 	level.biome_visual_controller.set_quality_preset(&"performance")
 	_expect(not main.world_environment.environment.ssao_enabled and not main.world_environment.environment.volumetric_fog_enabled and get_viewport().mesh_lod_threshold > 1.0, "Performance preset left expensive visual features active.")
 	level.biome_visual_controller.set_quality_preset(&"balanced")
 	_expect(main.world_environment.environment.ssao_enabled and not main.world_environment.environment.ssil_enabled and is_equal_approx(get_viewport().mesh_lod_threshold, 1.0), "Balanced visual preset was not restored.")
-	_expect(not shelter_ambience.is_shelter_active() and terrain.is_biome_ambience_active(), "Legacy shelter forest ambience leaked into the real expedition.")
-	for legacy_chunk: Node3D in [level.forest_clearing, level.forest_trail, level.deep_grove, level.root_well]:
-		_expect(not legacy_chunk.visible and legacy_chunk.process_mode == Node.PROCESS_MODE_DISABLED, "Legacy world chunk remained active in the streamed expedition: %s" % legacy_chunk.name)
-	var hidden_legacy_emitters := level.find_children("*", "SpatialForestEmitter", true, false)
-	_expect(hidden_legacy_emitters.size() >= 6, "Legacy route audio audit did not find every authored spatial emitter.")
-	for node: Node in hidden_legacy_emitters:
-		var emitter := node as SpatialForestEmitter
-		_expect(not emitter.start_active and not emitter.playing, "Hidden legacy route audio started during a new expedition: %s" % emitter.get_path())
+	_expect(level.get_node_or_null("ProceduralAmbience") == null and terrain.is_biome_ambience_active(), "Production scene includes legacy shelter ambience.")
+	for legacy_name: String in ["ForestClearing", "ForestTrail", "DeepGrove", "RootWell", "Architecture"]:
+		_expect(level.get_node_or_null(legacy_name) == null, "Production scene includes legacy branch: " + legacy_name)
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	var biome_key_light := level.biome_visual_controller.get_primary_light()
 	_expect(biome_key_light != null and is_equal_approx(biome_key_light.light_energy, level.biome_visual_controller.forest_profile.primary_light_energy), "Biome visual controller did not bind the level key light.")
@@ -101,7 +95,6 @@ func _run() -> void:
 	_expect(light_color_delta > 0.12, "Night did not apply the biome-specific moonlight color.")
 	_expect(main.world_environment.environment.tonemap_exposure <= level.biome_visual_controller.forest_profile.tonemap_exposure, "Night exposure did not follow the biome profile.")
 	level.expedition_clock.set_progress(0.0)
-	_expect(not level.forest_clearing.listener.visible and level.forest_clearing.listener.process_mode == Node.PROCESS_MODE_DISABLED, "Deprecated prototype Listener is still active in the opening clearing.")
 	_expect(level.get_biome_population().get_active_population_count() == 0, "Fauna spawned inside the protected expedition opening.")
 	level.expedition_clock.running = false
 	player.inventory.add_item(ItemInstance.new(&"ingredient.mooncap"))
@@ -197,7 +190,7 @@ func _run() -> void:
 	var developer := level.world_phase_developer_panel
 	developer.set_panel_visible(true)
 	await get_tree().process_frame
-	var panel := developer.find_child("WorldPhaseDeveloperPanel", true, false) as Control
+	var panel := developer.get("_panel") as Control
 	_expect(panel != null and panel.position.y + panel.size.y <= 720.0, "Developer panel overflows the reference viewport: rect=%s viewport=%s" % [panel.get_rect() if panel != null else Rect2(), get_viewport().get_visible_rect()])
 	_expect(developer.find_children("*", "Button", true, false).size() >= 18, "Developer panel is missing rapid QA actions.")
 	var laboratory := level.get_road_laboratory()

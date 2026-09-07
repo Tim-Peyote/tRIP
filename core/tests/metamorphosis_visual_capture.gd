@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 149, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	level.biome_visual_controller.apply_profile(level.biome_visual_controller.forest_profile, true)
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	var route_z := 118.0

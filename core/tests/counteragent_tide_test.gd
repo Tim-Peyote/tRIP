@@ -13,11 +13,12 @@ func _run() -> void:
 	ContentDB.rebuild()
 	SaveService.delete_slot(TEST_SLOT)
 	var main := (load("res://app/main/main.tscn") as PackedScene).instantiate() as TripMain
+	main.session_scene = load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene
 	add_child(main)
 	await get_tree().process_frame
 	main.call("_on_game_requested", TEST_SLOT, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("LegacyExpeditionFixture", true, false) as LegacyExpeditionFixture
 	var player := level.player
 	var berry := ItemInstance.new(&"ingredient.emberberry", 1.0)
 	berry.quality = 1.0

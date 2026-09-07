@@ -4,14 +4,13 @@ const OUTPUT_PATH := "/tmp/trip_player_avatar_capture.png"
 
 
 func _ready() -> void:
-	var avatar := (load("res://assets/third_party/quaternius_animated_human/Animated Human.fbx") as PackedScene).instantiate()
-	avatar.name = "CC0PlayerAvatar"
-	avatar.scale = Vector3.ONE * 0.31
+	var avatar := (load("res://assets/models/actors/geo_researcher.glb") as PackedScene).instantiate()
+	avatar.name = "GEOPlayerAvatar"
+	avatar.scale = Vector3.ONE
 	add_child(avatar)
-	for node: Node in avatar.find_children("*", "MeshInstance3D", true, false):
-		(node as MeshInstance3D).material_override = load("res://features/player/player_avatar_material.tres") as Material
 	var animation_player := avatar.find_child("AnimationPlayer", true, false) as AnimationPlayer
-	animation_player.play(&"Human Armature|Walk")
+	var crouch_capture := "--crouch" in OS.get_cmdline_user_args()
+	animation_player.play(&"Human Armature|CrouchIdle" if crouch_capture else &"Human Armature|Walk")
 	var floor := MeshInstance3D.new()
 	var floor_mesh := PlaneMesh.new()
 	floor_mesh.size = Vector2(12.0, 12.0)
@@ -47,6 +46,6 @@ func _ready() -> void:
 	environment.environment = environment_resource
 	add_child(environment)
 	await get_tree().create_timer(0.35).timeout
-	var error := get_viewport().get_texture().get_image().save_png(OUTPUT_PATH)
+	var error := get_viewport().get_texture().get_image().save_png("/tmp/trip_crouch_capture.png" if crouch_capture else OUTPUT_PATH)
 	if error == OK: print("Player avatar capture saved: %s" % OUTPUT_PATH)
 	get_tree().quit(error)

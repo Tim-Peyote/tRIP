@@ -1,0 +1,13 @@
+[gd_resource type="SphereMesh" format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwd8v"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.88, 0.94, 1, 0.82)
+
+[resource]
+material = SubResource("StandardMaterial3D_hwd8v")
+radius = 0.036
+height = 0.036
+radial_segments = 5
+rings = 2

@@ -9,11 +9,12 @@ extends Node
 @onready var world_metamorphosis_director: WorldMetamorphosisDirector = %WorldMetamorphosisDirector
 @onready var world_root: Node3D = %WorldRoot
 @onready var effect_orchestrator: EffectOrchestrator = %EffectOrchestrator
-@onready var world_environment: WorldEnvironment = %WorldEnvironment
+var world_environment: WorldEnvironment
 
-const SHELTER_SCENE: PackedScene = preload("res://world/levels/shelter/shelter_level.tscn")
+const SESSION_SCENE: PackedScene = preload("res://world/levels/expedition_session.tscn")
+@export var session_scene: PackedScene = SESSION_SCENE
 
-var _active_level: ShelterLevel
+var _active_level: SessionController
 var _active_player: FirstPersonController
 
 
@@ -101,8 +102,9 @@ func _on_game_requested(slot_id: int, is_new_game: bool) -> void:
 	audio_director.stop_all_ui_audio()
 	get_tree().paused = false
 	main_menu.visible = false
-	_active_level = SHELTER_SCENE.instantiate() as ShelterLevel
+	_active_level = session_scene.instantiate() as SessionController
 	world_root.add_child(_active_level)
+	world_environment = _active_level.get_node("WorldEnvironment") as WorldEnvironment
 	_active_level.setup_visual_environment(world_environment)
 	_active_level.biome_visual_controller.set_quality_preset(StringName(SettingsService.get_value(&"video", &"graphics_quality", "balanced")))
 	_active_player = _active_level.get_player()

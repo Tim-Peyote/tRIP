@@ -9,7 +9,7 @@ func _ready() -> void:
 
 func _run() -> void:
 	ContentDB.rebuild()
-	var level := (load("res://world/levels/shelter/shelter_level.tscn") as PackedScene).instantiate() as ShelterLevel
+	var level := (load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene).instantiate() as LegacyExpeditionFixture
 	add_child(level)
 	await get_tree().process_frame
 	level.expedition_clock.running = false
@@ -17,7 +17,7 @@ func _run() -> void:
 	sample.quality = 1.0
 	sample.processing_state[&"part"] = &"whole"
 	level.player.inventory.add_item(sample)
-	var portable := level.road_laboratory.get_node("PortableLaboratory")
+	var portable := level.road_laboratory.get_laboratory_root()
 	_complete_tool(portable.get_node("WashBasin"), level.player)
 	_complete_tool(portable.get_node("PrepBoard"), level.player)
 	_complete_tool(portable.get_node("Mortar"), level.player)

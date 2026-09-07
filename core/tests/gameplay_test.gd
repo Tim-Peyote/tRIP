@@ -10,12 +10,12 @@ func _ready() -> void:
 func _run() -> void:
 	InputBootstrap.ensure_defaults()
 	ContentDB.rebuild()
-	var packed := load("res://world/levels/shelter/shelter_level.tscn") as PackedScene
+	var packed := load("res://core/tests/fixtures/legacy_expedition_fixture.tscn") as PackedScene
 	_expect(packed != null, "Shelter scene failed to load.")
 	if packed == null:
 		_finish()
 		return
-	var level := packed.instantiate() as ShelterLevel
+	var level := packed.instantiate() as LegacyExpeditionFixture
 	add_child(level)
 	var player := level.get_player()
 	_expect(player != null, "Shelter has no player.")

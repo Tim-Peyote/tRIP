@@ -50,6 +50,7 @@ enum BoundaryFamily {
 @export var vegetation_family: VegetationFamily = VegetationFamily.CEDAR_FIR
 @export var geology_family: GeologyFamily = GeologyFamily.ROUNDED_GRANITE
 @export var poi_family: StringName
+@export var landmark_scene: PackedScene
 @export var composition_family: StringName = &"cedar_windfall"
 @export var mystery_ids: Array[StringName] = []
 @export var mysteries: Array[WorldMysteryDefinition] = []

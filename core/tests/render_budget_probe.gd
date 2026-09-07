@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 117, true)
 	await get_tree().process_frame
-	var level := main.find_child("ShelterLevel", true, false) as ShelterLevel
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
 	var terrain := level.get_node("ExpeditionTerrain") as ExpeditionTerrain
 	var route_z := 132.0
 	var viewpoint := Vector3(float(terrain.call("_route_center_x", route_z)), 0.0, route_z)

@@ -1,6 +1,8 @@
 [gd_resource type="Resource" script_class="CreatureArchetypeDefinition" load_steps=3 format=3]
 [ext_resource type="Script" path="res://core/resources/creature_archetype_definition.gd" id="1"]
 [ext_resource type="PackedScene" path="res://assets/third_party/quaternius_animated_animals/Deer.fbx" id="2_deer"]
+[ext_resource type="PackedScene" path="res://assets/models/actors/musk_deer.glb" id="trip_model"]
+
 [resource]
 script = ExtResource("1")
 id = &"creature.musk_deer"
@@ -21,13 +23,21 @@ natural_basis = "Реальная кабарга Южной Сибири; ред
 silhouette_notes = "Короткое тело, очень длинные задние ноги, покатая спина, у самца заметны тонкие верхние клыки; рогов нет."
 body_color = Color(0.23, 0.18, 0.13, 1)
 accent_color = Color(0.67, 0.63, 0.5, 1)
-visual_scale = 0.78
-visual_scene = ExtResource("2_deer")
-visual_scene_scale = 0.82
-visual_scene_yaw = 180.0
 animation_states = Array[StringName]([&"freeze", &"sniff", &"notice", &"rock_hop", &"flee"])
 behavior_traits = Array[String](["Замирает в тени валуна", "Прыгает вверх по склону", "Не собирается в стадо"])
 gameplay_tells = Array[String](["Два тихих удара копыт", "В Хоре её следы складываются в пунктирную фразу"])
 player_interactions = Array[StringName]([&"observe", &"track"])
 world_layer_mutation = "В Мицелиальном хоре останавливается одновременно со вдохом грибницы и указывает безопасный ритм."
 lore_note = "В записях брата кабарга названа «живым метрономом»: она первой слышит общий вдох."
+
+visual_scene = ExtResource("trip_model")
+visual_scene_scale = 1.0
+visual_scene_yaw = 0.0
+visual_scale = 1.0
+collision_radius = 0.24
+collision_height = 0.85
+idle_animation = &"Idle"
+walk_animation = &"Walk"
+run_animation = &"Run"
+forage_animation = &"Working"
+notice_animation = &"Idle"
