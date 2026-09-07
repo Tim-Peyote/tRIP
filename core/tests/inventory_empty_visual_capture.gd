@@ -9,6 +9,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	main.call("_on_game_requested", 902, true)
 	await get_tree().process_frame
+	var level := main.find_child("ExpeditionSession", true, false) as SessionController
+	level.player.inventory.items.clear()
 	main.gameplay_hud.call("_toggle_inventory")
 	for _frame: int in 5:
 		await get_tree().process_frame

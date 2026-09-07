@@ -1,4 +1,5 @@
 [gd_scene format=3]
+[ext_resource type="Script" path="res://presentation/ui/inventory_art_direction.gd" id="inventory_art"]
 
 [ext_resource type="Theme" path="res://presentation/ui/trip_theme.tres" id="1_scg3s"]
 [ext_resource type="Script" path="res://features/inventory/inventory_specimen_list.gd" id="2_vcsgd"]
@@ -9,12 +10,12 @@ content_margin_left = 24.0
 content_margin_top = 12.0
 content_margin_right = 24.0
 content_margin_bottom = 12.0
-bg_color = Color(0.045, 0.057, 0.049, 0.96)
+bg_color = Color(0.055, 0.055, 0.052, 0.96)
 border_width_left = 1
 border_width_top = 2
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.72, 0.8, 0.59, 0.18)
+border_color = Color(0.71, 0.604, 0.439, 0.18)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
@@ -41,9 +42,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -68,9 +69,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -82,9 +83,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -109,9 +110,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -136,9 +137,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -150,9 +151,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -177,9 +178,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -204,9 +205,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -218,9 +219,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -245,9 +246,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -272,9 +273,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -286,9 +287,9 @@ content_margin_left = 10.0
 content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.7490196, 0.84705883, 0.45882353, 0.1)
+bg_color = Color(0.71, 0.604, 0.439, 0.1)
 border_width_bottom = 2
-border_color = Color(0.7490196, 0.84705883, 0.45882353, 1)
+border_color = Color(0.71, 0.604, 0.439, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -310,6 +311,7 @@ corner_radius_bottom_left = 12
 shadow_color = Color(0, 0, 0, 0.32)
 
 [node name="InventoryPanel" type="PanelContainer" unique_id=966258872]
+script = ExtResource("inventory_art")
 unique_name_in_owner = true
 anchors_preset = 8
 anchor_left = 0.5
@@ -368,9 +370,16 @@ theme_override_font_sizes/font_size = 12
 text = "0 ВИДОВ · 0 ПРЕДМЕТОВ"
 vertical_alignment = 1
 
-[node name="FilterBar" type="HBoxContainer" parent="Margin/Layout" unique_id=906605337]
+[node name="Close" type="Button" parent="Margin/Layout/Header"]
 layout_mode = 2
-theme_override_constants/separation = 16
+custom_minimum_size = Vector2(40, 36)
+text = "×"
+tooltip_text = "Закрыть сумку [I / Esc]"
+
+[node name="FilterBar" type="HFlowContainer" parent="Margin/Layout" unique_id=906605337]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 4
 
 [node name="InventoryFilterAll" type="Button" parent="Margin/Layout/FilterBar" unique_id=1414042585]
 unique_name_in_owner = true
@@ -566,7 +575,7 @@ text = "КАТЕГОРИЯ"
 [node name="InventoryDetailIcon" type="TextureRect" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=234758911]
 unique_name_in_owner = true
 texture_filter = 1
-custom_minimum_size = Vector2(0, 82)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
@@ -577,6 +586,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.76, 0.83, 0.66, 1)
 theme_override_font_sizes/font_size = 21
 text = "Образец"
+autowrap_mode = 2
 
 [node name="DetailRule" type="HSeparator" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=1339312973]
 layout_mode = 2
@@ -617,17 +627,17 @@ show_percentage = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.69, 0.78, 0.52, 1)
 theme_override_font_sizes/font_size = 11
-text = "ОБРАЗЦЫ В СУМКЕ"
+text = "ЭКЗЕМПЛЯР · КАЧЕСТВО / СВЕЖЕСТЬ"
 
 [node name="InventorySpecimenList" type="ItemList" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout/DetailScroll/DetailContent" unique_id=2035438765]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_vertical = 3
 allow_reselect = true
 script = ExtResource("2_vcsgd")
 
-[node name="InventoryActions" type="HBoxContainer" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout" unique_id=471006760]
+[node name="InventoryActions" type="VBoxContainer" parent="Margin/Layout/Body/Detail/DetailMargin/DetailLayout" unique_id=471006760]
 layout_mode = 2
 theme_override_constants/separation = 10
 
@@ -651,4 +661,5 @@ script = ExtResource("3_r7pit")
 layout_mode = 2
 theme_override_colors/font_color = Color(0.61, 0.65, 0.58, 1)
 theme_override_font_sizes/font_size = 13
-text = "[I] закрыть  ·  перетащи образец на действие или используй кнопки  ·  выброшенное можно поднять обратно"
+text = "[I / Esc] Назад     ·     Выбери предмет → действие     ·     Можно перетащить на кнопку действия"
+autowrap_mode = 2

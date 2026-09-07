@@ -11,6 +11,7 @@ signal authored_encounter_completed(clue_id: StringName, title: String, text: St
 signal authored_encounter_spawned(encounter: AuthoredNPCEncounter)
 
 const PHASE_ORDINARY: StringName = &"ordinary"
+const ALTAI_LANDFORM = preload("res://world/terrain/altai_landform.gd")
 const PHASE_MYCELIAL: StringName = &"mycelial"
 const MIN_EXPEDITION_Z: float = 5.8
 const BIOME_MESH_LIBRARY = preload("res://world/terrain/biome_mesh_library.gd")
@@ -48,6 +49,7 @@ var _desired_tiers: Dictionary[Vector2i, int] = {}
 var _noise := FastNoiseLite.new()
 var _detail_noise := FastNoiseLite.new()
 var _terrain_material: ShaderMaterial
+var _altai_river_material: ShaderMaterial
 var _horizon_root: Node3D
 var _atmosphere: GPUParticles3D
 var _generated_mesh_cache: Dictionary[StringName, Mesh] = {}
@@ -491,6 +493,12 @@ func get_environment_context(world_position: Vector3) -> Dictionary:
 	var altitude := clampf((height + 4.0) / maxf(24.0, 34.0 / maxf(highland_bias, 0.2)), 0.0, 1.0)
 	var moisture := clampf(lowland_moisture + moisture_noise * 0.28 - altitude * 0.22, 0.0, 1.0)
 	var exposure := clampf(0.36 + altitude * 0.72 + absf(patch) * 0.24, 0.0, 1.0)
+	var river_distance := route_distance
+	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+		river_distance = absf(point.x - ALTAI_LANDFORM.river_x(point.y, _run_seed))
+		altitude = clampf((height + 4.0) / 110.0, 0.0, 1.0)
+		moisture = clampf(lowland_moisture + moisture_noise * 0.18 - altitude * 0.35 + (1.0 - smoothstep(8.0, 40.0, river_distance)) * 0.22, 0.0, 1.0)
+		exposure = clampf(0.25 + altitude * 0.72, 0.0, 1.0)
 	var zone := LandscapeZone.DENSE_FOREST
 	if point.y < 58.0:
 		zone = LandscapeZone.SHELTER_EDGE
@@ -502,7 +510,7 @@ func get_environment_context(world_position: Vector3) -> Dictionary:
 		zone = LandscapeZone.HIGHLAND
 	elif moisture >= 0.72 and (height < 3.5 or moisture_noise > 0.42):
 		zone = LandscapeZone.BASIN
-	elif route_distance <= (pack.route_width * 1.7 if pack != null else 9.5):
+	elif river_distance <= (pack.route_width * 3.0 if pack != null else 9.5):
 		zone = LandscapeZone.RIVER_VALLEY
 	var zone_names: Array[StringName] = [&"shelter_edge", &"river_valley", &"dense_forest", &"highland", &"alpine", &"basin", &"boundary"]
 	var snow_allowed := zone in [LandscapeZone.HIGHLAND, LandscapeZone.ALPINE, LandscapeZone.BOUNDARY]
@@ -682,6 +690,8 @@ func _natural_height_at(x: float, z: float) -> float:
 	var macro := _noise.get_noise_2d(x, z) * 11.0 * elevation_scale
 	var ridges := absf(_detail_noise.get_noise_2d(x * 0.42 + 90.0, z * 0.42 - 40.0)) * lerpf(2.4, 8.2, ridge_bias)
 	var height := macro + ridges - 1.5
+	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+		height += ALTAI_LANDFORM.relief(point, _run_seed)
 	if pack != null:
 		match pack.ecology_family:
 			BiomeContentPack.EcologyFamily.MYCELIAL_KARST:
@@ -726,6 +736,8 @@ func _natural_height_at(x: float, z: float) -> float:
 		if landmark_center.y >= MIN_EXPEDITION_Z + 2.0:
 			var landmark_height := _noise.get_noise_2d(landmark_center.x, landmark_center.y) * 5.2 * elevation_scale
 			height = _blend_disc(height, point, landmark_center, 9.5, landmark_height)
+	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+		height = ALTAI_LANDFORM.carve_river(height, point, _run_seed)
 	height += _boundary_height_offset(point, pack)
 	height = _blend_disc(height, point, Vector2(0, 15), 11.0, 0.0)
 	height = _blend_corridor(height, point, Vector2(0, 17), Vector2(0, 49), 4.4, 0.0, 0.35)
@@ -789,7 +801,10 @@ func _terrain_color(point: Vector2, height: float, slope: float) -> Color:
 	color = color.lerp(ground_high.darkened(0.18), maxf(authored_trail * 0.55, expedition_route * 0.42))
 	var grove := 1.0 - smoothstep(10.0, 25.0, point.distance_to(Vector2(27, 17)))
 	color = color.lerp(ground_low.lightened(0.12), grove * 0.35)
-	return color.lerp(ground_high.lightened(0.16), smoothstep(0.12, 0.38, slope))
+	color = color.lerp(ground_high.lightened(0.16), smoothstep(0.12, 0.38, slope))
+	# Vertex alpha carries trail coverage; the terrain shader remains opaque.
+	color.a = maxf(authored_trail, expedition_route) * (1.0 - smoothstep(0.12, 0.38, slope))
+	return color
 
 
 func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
@@ -845,7 +860,9 @@ func _build_chunk_decor(body: StaticBody3D, coordinate: Vector2i) -> void:
 	_decor_exclusion_centers.clear()
 	if has_landmark:
 		_add_point_of_interest(body, coordinate, rng)
-	if pack != null and pack.water_frequency > 0.0 and rng.randf() < pack.water_frequency:
+	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+		_add_altai_river(body, coordinate)
+	elif pack != null and pack.water_frequency > 0.0 and rng.randf() < pack.water_frequency:
 		_add_water_feature(body, coordinate, rng, pack)
 	if pack != null and pack.cave_frequency > 0.0 and rng.randf() < pack.cave_frequency:
 		_add_cave_feature(body, coordinate, rng, pack)
@@ -1269,6 +1286,9 @@ func _add_rock_multimesh(body: Node3D, coordinate: Vector2i, rng: RandomNumberGe
 	if family == BiomeContentPack.GeologyFamily.ROUNDED_GRANITE:
 		mesh = _authored_nature_library.call("get_runtime_mesh", "granite_round.glb") as Mesh
 		secondary_mesh = _authored_nature_library.call("get_runtime_mesh", "granite_split.glb") as Mesh
+		var granite_material := load("res://presentation/materials/taiga_granite.tres") as Material
+		_set_mesh_material(mesh, granite_material)
+		_set_mesh_material(secondary_mesh, granite_material)
 		primary_height = 0.0
 		secondary_height = 0.0
 	var primary_multimesh := _new_multimesh(mesh, count)
@@ -1656,6 +1676,9 @@ func _accept_ecology_point(point: Vector2, layer: int, pack: BiomeContentPack) -
 
 
 func _is_reserved(point: Vector2) -> bool:
+	var river_pack := _get_content_pack()
+	if river_pack != null and river_pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA and absf(point.x - ALTAI_LANDFORM.river_x(point.y, _run_seed)) < ALTAI_LANDFORM.river_half_width(point.y, _run_seed) + 3.0:
+		return true
 	if _laboratory_pad_enabled and point.distance_to(_laboratory_pad_center) < 8.0:
 		return true
 	for exclusion_center: Vector2 in _decor_exclusion_centers:
@@ -1886,7 +1909,84 @@ func _rebuild_presentation_layers() -> void:
 	_build_biome_atmosphere(pack)
 
 
+func _add_altai_river(body: Node3D, coordinate: Vector2i) -> void:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var count := 0
+	# Fixed world-space sampling keeps neighbouring chunk water edges identical.
+	for step in int(chunk_size):
+		var banks: Array[Vector3] = []
+		for z in [float(coordinate.y) * chunk_size + step, float(coordinate.y) * chunk_size + step + 1.0]:
+			var center: float = ALTAI_LANDFORM.river_x(z, _run_seed)
+			var width: float = ALTAI_LANDFORM.river_half_width(z, _run_seed)
+			var left := maxf(center - width, coordinate.x * chunk_size)
+			var right := minf(center + width, (coordinate.x + 1) * chunk_size)
+			if right < left:
+				left = clampf(center, coordinate.x * chunk_size, (coordinate.x + 1) * chunk_size)
+				right = left
+			banks.append(Vector3(left, ALTAI_LANDFORM.water_height(z), z))
+			banks.append(Vector3(right, ALTAI_LANDFORM.water_height(z), z))
+		if banks[0].x == banks[1].x and banks[2].x == banks[3].x:
+			continue
+		for index in [0, 2, 1, 1, 2, 3]:
+			surface.set_normal(Vector3.UP)
+			surface.add_vertex(banks[index])
+		count += 1
+	if count == 0:
+		return
+	var river := MeshInstance3D.new()
+	river.name = "WatershedRiver"
+	river.mesh = surface.commit()
+	if _altai_river_material == null:
+		_altai_river_material = _water_material(Color(0.075, 0.28, 0.29))
+	river.material_override = _altai_river_material
+	river.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	body.add_child(river)
+
+
+func _altai_horizon_vertex(angle: float, ring: int, pack: BiomeContentPack) -> Vector3:
+	var radius := 0.98 + float(ring) * 0.055
+	var point := _horizon_boundary_point(angle, radius, pack)
+	var phase := float(posmod(_run_seed, 997)) * 0.006
+	var crest := 125.0 + 90.0 * pow(0.5 + 0.5 * sin(angle * 5.0 + phase), 3.0)
+	crest += 28.0 * sin(angle * 13.0 + phase) + 12.0 * sin(angle * 29.0)
+	var profile := sin(float(ring) / 16.0 * PI)
+	# Sink both skirts below the lowest valley; a positive base exposes a sky gap.
+	point.y = -45.0 + maxf(profile, 0.0) * (crest + 65.0)
+	point.y += sin(angle * 37.0 + ring * 0.8) * 5.0 * profile
+	return point
+
+
+func _build_altai_massif_horizon(pack: BiomeContentPack) -> void:
+	# A lit, volumetric mountain belt, not the old vertical sawtooth curtain.
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for ring in 16:
+		for segment in 192:
+			var a := TAU * segment / 192.0
+			var b := TAU * (segment + 1) / 192.0
+			var corners := [_altai_horizon_vertex(a, ring, pack), _altai_horizon_vertex(b, ring, pack), _altai_horizon_vertex(a, ring + 1, pack), _altai_horizon_vertex(b, ring + 1, pack)]
+			for index in [0, 2, 1, 1, 2, 3]:
+				var vertex: Vector3 = corners[index]
+				var snow := smoothstep(155.0, 215.0, vertex.y)
+				surface.set_color(Color(0.24, 0.27, 0.28).lerp(Color(0.73, 0.77, 0.78), snow))
+				surface.add_vertex(vertex)
+	surface.generate_normals()
+	var massif := MeshInstance3D.new()
+	massif.name = "AltaiMassif"
+	massif.mesh = surface.commit()
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.roughness = 0.94
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	massif.material_override = material
+	_horizon_root.add_child(massif)
+
+
 func _build_layered_ridge_horizon(rng: RandomNumberGenerator, pack: BiomeContentPack) -> void:
+	if pack != null and pack.ecology_family == BiomeContentPack.EcologyFamily.ALTAI_TAIGA:
+		_build_altai_massif_horizon(pack)
+		return
 	var low := pack.ground_low if pack != null else Color(0.055, 0.15, 0.065)
 	var high := pack.ground_high if pack != null else Color(0.28, 0.27, 0.12)
 	var ecology := pack.ecology_family if pack != null else BiomeContentPack.EcologyFamily.ALTAI_TAIGA
@@ -2251,6 +2351,12 @@ render_mode cull_disabled;
 uniform float metamorphosis : hint_range(0.0, 1.0) = 0.0;
 uniform float weather_wetness : hint_range(0.0, 1.0) = 0.0;
 uniform float weather_snow : hint_range(0.0, 1.0) = 0.0;
+uniform sampler2D forest_floor : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D moss_surface : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D gravel_surface : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D granite_surface : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform float natural_surface_strength = 1.0;
+varying vec3 surface_normal_world;
 uniform vec3 phase_low : source_color = vec3(0.025, 0.16, 0.32);
 uniform vec3 phase_high : source_color = vec3(0.82, 0.025, 0.7);
 uniform vec3 surface_low : source_color = vec3(0.105, 0.255, 0.135);
@@ -2283,6 +2389,7 @@ global uniform float trip_cloud_storm;
 global uniform float trip_night;
 void vertex() {
 	terrain_position = VERTEX;
+	surface_normal_world = normalize(MODEL_NORMAL_MATRIX * NORMAL);
 	terrain_slope = 1.0 - abs(NORMAL.y);
 	terrain_macro = value_noise(VERTEX.xz * 0.075);
 	terrain_detail = value_noise(VERTEX.xz * 0.46 + vec2(17.2, -8.4));
@@ -2340,6 +2447,27 @@ void fragment() {
 	float cloud_shadow = terrain_cloud_shadow;
 	ground *= mix(1.0, mix(0.82, 0.7, trip_cloud_storm), cloud_shadow);
 	float wet_mask = weather_wetness * mix(0.62, 1.0, cells) * (1.0 - slope_mask * 0.72);
+	vec3 weights = pow(abs(normalize(surface_normal_world)), vec3(4.0));
+	weights /= max(weights.x + weights.y + weights.z, 0.001);
+	vec3 stone = texture(granite_surface, terrain_position.zy * 0.6).rgb * weights.x
+		+ texture(granite_surface, terrain_position.xz * 0.6).rgb * weights.y
+		+ texture(granite_surface, terrain_position.xy * 0.6).rgb * weights.z;
+	// Two differently oriented samples break the obvious repeating square pattern.
+	vec2 floor_uv = terrain_position.xz * 0.5;
+	vec2 rotated_uv = mat2(vec2(0.8, -0.6), vec2(0.6, 0.8)) * floor_uv * 0.73 + vec2(7.3, 19.1);
+	float patch_blend = smoothstep(0.25, 0.75, value_noise(terrain_position.xz * 0.19));
+	vec3 litter = mix(texture(forest_floor, floor_uv).rgb, texture(forest_floor, rotated_uv).rgb, patch_blend) * 1.6;
+	vec3 moss = texture(moss_surface, terrain_position.xz * 0.85).rgb;
+	float moss_mask = smoothstep(0.42, 0.74, macro_cells + basin_mask * 0.18) * (1.0 - slope_mask);
+	litter = mix(litter, moss, moss_mask * 0.85);
+	float trail = COLOR.a * (1.0 - slope_mask);
+	vec3 gravel = texture(gravel_surface, terrain_position.xz * 1.15).rgb;
+	vec3 packed_earth = mix(vec3(0.14, 0.105, 0.073), gravel, 0.38 + cells * 0.25);
+	litter = mix(litter, gravel, smoothstep(0.08, 0.26, terrain_slope) * (1.0 - slope_mask) * 0.4);
+	litter = mix(litter, packed_earth, trail * 0.82);
+	vec3 textured = mix(litter, stone, slope_mask);
+	textured *= mix(0.88, 1.06, macro_cells);
+	ground = mix(ground, textured, natural_surface_strength * (1.0 - metamorphosis * 0.65));
 	float snow_mask = weather_snow * smoothstep(0.34, 0.82, macro_cells + (1.0 - slope_mask) * 0.46);
 	// Procedural micro-normal detail lets sunlight travel over soil and rock
 	// instead of reading as a uniformly coloured low-poly sheet. Snow softens it.
@@ -2356,6 +2484,10 @@ void fragment() {
 """
 	var material := ShaderMaterial.new()
 	material.shader = shader
+	material.set_shader_parameter(&"forest_floor", load("res://assets/textures/taiga_realistic/forest_floor_albedo.png"))
+	material.set_shader_parameter(&"moss_surface", load("res://assets/textures/taiga_realistic/moss_albedo.png"))
+	material.set_shader_parameter(&"gravel_surface", load("res://assets/textures/taiga_realistic/gravel_albedo.png"))
+	material.set_shader_parameter(&"granite_surface", load("res://assets/textures/taiga_realistic/granite_albedo.png"))
 	material.set_shader_parameter(&"metamorphosis", _phase_amount)
 	material.set_shader_parameter(&"weather_wetness", 0.0)
 	material.set_shader_parameter(&"weather_snow", 0.0)
@@ -2365,6 +2497,7 @@ void fragment() {
 func _sync_terrain_surface_palette(definition: WorldPhaseDefinition) -> void:
 	if _terrain_material == null or definition == null:
 		return
+	_terrain_material.set_shader_parameter(&"natural_surface_strength", 1.0 if definition.id == &"phase.ordinary" else 0.0)
 	var pack := definition.content_pack
 	if pack == null:
 		return

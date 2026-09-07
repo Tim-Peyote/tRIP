@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ToolDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ToolDefinition" load_steps=3 format=3]
+[ext_resource type="Texture2D" path="res://assets/ui/tool_icons/field_knife.png" id="icon"]
 
 [ext_resource type="Script" path="res://core/resources/tool_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 id = &"tool.field_knife"
+inventory_icon = ExtResource("icon")
 display_name = "Полевой нож"
 description = "Короткий острый нож для чистого среза образцов."
 tags = Array[StringName]([&"tool", &"field", &"cutting"])
@@ -13,4 +15,3 @@ volume = 0.18
 max_stack = 1
 capabilities = Array[StringName]([&"cut", &"separate_cap", &"separate_stem"])
 base_precision = 0.96
-

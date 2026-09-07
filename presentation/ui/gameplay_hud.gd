@@ -782,14 +782,18 @@ func _update_inventory_panel() -> void:
 		}, button.icon, definition.display_name if definition != null else String(definition_id))
 		button.pressed.connect(_select_inventory_stack.bind(definition_id))
 		button.focus_entered.connect(_select_inventory_stack.bind(definition_id, false))
-		button.mouse_entered.connect(_select_inventory_stack.bind(definition_id, false))
 		var name_label := card.get_node("Name") as Label
 		name_label.text = definition.display_name if definition != null else String(definition_id)
 		name_label.add_theme_font_size_override("font_size", 14)
 		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_label.max_lines_visible = 2
+		name_label.custom_minimum_size.y = 36
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var meta_label := card.get_node("Metadata") as Label
-		meta_label.text = "×%.0f   ·   %d%%" % [float(stack["quantity"]), roundi(float(stack["best_quality"]) * 100.0)]
+		meta_label.text = "×%.0f" % float(stack["quantity"])
+		if definition is ToolDefinition and _player.toolbelt.is_equipped and _player.toolbelt.active_tool_id == definition_id:
+			meta_label.text = "В РУКАХ"
 		meta_label.add_theme_font_size_override("font_size", 12)
 		meta_label.add_theme_color_override("font_color", accent)
 		meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -829,13 +833,10 @@ func _make_inventory_empty_state() -> Control:
 
 func _update_inventory_responsive_layout() -> void:
 	var viewport_size := get_viewport_rect().size
-	var window_size := Vector2(DisplayServer.window_get_size())
-	var physical_scale := maxf(1.0, minf(window_size.x / maxf(viewport_size.x, 1.0), window_size.y / maxf(viewport_size.y, 1.0)))
-	# canvas_items keeps a 1280×720 logical UI at every resolution. Cap the
-	# satchel in physical pixels as well, otherwise 1440p/4K turns it into an
-	# enormous wall of black despite sensible logical anchors.
-	var target_width := minf(viewport_size.x - 40.0, minf(window_size.x - 48.0, 1840.0) / physical_scale)
-	var target_height := minf(viewport_size.y - 32.0, minf(window_size.y - 48.0, 1080.0) / physical_scale)
+	# Work in logical canvas pixels; OS/Retina pixel scaling must not shrink
+	# the content below its container minimum sizes.
+	var target_width := minf(viewport_size.x - 64.0, 1120.0)
+	var target_height := minf(viewport_size.y - 64.0, 640.0)
 	var half_width := maxf(300.0, target_width * 0.5)
 	var half_height := maxf(220.0, target_height * 0.5)
 	inventory_panel.anchor_left = 0.5
@@ -847,37 +848,45 @@ func _update_inventory_responsive_layout() -> void:
 	inventory_panel.offset_top = -half_height
 	inventory_panel.offset_bottom = half_height
 	var available_width := half_width * 2.0
+	var compact := available_width < 880.0 or viewport_size.y < 650.0
+	# Prioritize specimen choice over a duplicate illustration for mixed stacks.
+	inventory_detail_icon.visible = not compact and inventory_specimen_list.item_count <= 1
+	inventory_detail_title.add_theme_font_size_override("font_size", 18 if compact else 21)
+	inventory_detail_body.add_theme_font_size_override("font_size", 13 if compact else 14)
+	$InventoryPanel/Margin/Layout/Hint.text = "[I / Esc] Назад · Перетащи на действие" if compact else "[I / Esc] Назад     ·     Выбери предмет → действие     ·     Можно перетащить на кнопку действия"
 	var list_scroll := $InventoryPanel/Margin/Layout/Body/ListScroll as ScrollContainer
 	var body := $InventoryPanel/Margin/Layout/Body as HBoxContainer
-	inventory_sort.visible = available_width >= 880.0 and _inventory_has_visible_entries
+	inventory_sort.visible = _inventory_has_visible_entries
+	inventory_item_count.visible = available_width >= 800.0
 	if not _inventory_has_visible_entries:
 		inventory_list.columns = 1
 		list_scroll.custom_minimum_size.x = 0.0
 		body.add_theme_constant_override("separation", 0)
 		inventory_detail_panel.visible = false
-	elif available_width >= 1160.0:
-		inventory_list.columns = 5
-		list_scroll.custom_minimum_size.x = 690.0
-		inventory_detail_panel.custom_minimum_size.x = 320.0
-		body.add_theme_constant_override("separation", 22)
+	elif available_width >= 1000.0:
+		inventory_list.columns = 4
+		list_scroll.custom_minimum_size.x = 522.0
+		inventory_detail_panel.custom_minimum_size.x = 390.0
+		body.add_theme_constant_override("separation", 32)
 		inventory_detail_panel.visible = true
 	elif available_width >= 880.0:
 		inventory_list.columns = 3
-		list_scroll.custom_minimum_size.x = 450.0
+		list_scroll.custom_minimum_size.x = 388.0
 		inventory_detail_panel.custom_minimum_size.x = 286.0
 		body.add_theme_constant_override("separation", 18)
 		inventory_detail_panel.visible = true
 	elif available_width >= 720.0:
 		inventory_list.columns = 2
-		list_scroll.custom_minimum_size.x = 306.0
+		list_scroll.custom_minimum_size.x = 254.0
 		inventory_detail_panel.custom_minimum_size.x = 250.0
 		body.add_theme_constant_override("separation", 14)
 		inventory_detail_panel.visible = true
 	else:
-		inventory_list.columns = 3
-		list_scroll.custom_minimum_size.x = 0.0
-		body.add_theme_constant_override("separation", 0)
-		inventory_detail_panel.visible = false
+		inventory_list.columns = 1
+		list_scroll.custom_minimum_size.x = 120.0
+		inventory_detail_panel.custom_minimum_size.x = 240.0
+		body.add_theme_constant_override("separation", 12)
+		inventory_detail_panel.visible = true
 
 
 func _update_hud_responsive_layout() -> void:
@@ -940,8 +949,9 @@ func _clear_inventory_list() -> void:
 func _select_inventory_stack(definition_id: StringName, play_audio: bool = true) -> void:
 	if play_audio:
 		audio_cue_requested.emit(&"select")
+	if _selected_inventory_id != definition_id:
+		_selected_inventory_instance_id = &""
 	_selected_inventory_id = definition_id
-	_selected_inventory_instance_id = &""
 	var definition := ContentDB.get_definition(definition_id)
 	if definition == null:
 		inventory_detail_title.text = String(definition_id)
@@ -967,19 +977,29 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 		freshness_total += specimen.freshness
 	var average_freshness := freshness_total / maxf(1.0, float(specimens.size()))
 	var metabolism := _consumable_profile_text(definition as ConsumableDefinition) if definition is ConsumableDefinition else ""
-	inventory_detail_body.text = "%s%s\n\nВ СУМКЕ ×%.0f   ·   %.2f КГ   ·   %.2f Л" % [
+	inventory_detail_body.text = "%s%s\n\n×%.0f в сумке · %.2f кг · %.2f л за ед." % [
 		definition.description, metabolism, _player.inventory.count(definition_id), unit_mass, unit_volume,
 	]
 	inventory_quality_bar.value = best_quality
 	inventory_freshness_bar.value = average_freshness
+	var organic := definition is IngredientDefinition or definition is ConsumableDefinition
+	inventory_quality_bar.visible = false
+	inventory_freshness_bar.visible = false
+	inventory_quality_bar.get_parent().get_node("QualityTitle").visible = false
+	inventory_freshness_bar.get_parent().get_node("FreshnessTitle").visible = false
+	if organic:
+		inventory_detail_body.text += "\nКачество до %d%% · Свежесть ~%d%%" % [roundi(best_quality * 100.0), roundi(average_freshness * 100.0)]
+	inventory_specimen_list.visible = specimens.size() > 1
+	inventory_specimen_list.get_parent().get_node("SpecimenTitle").visible = specimens.size() > 1
 	inventory_specimen_list.clear()
 	(inventory_specimen_list as InventorySpecimenList).configure_drag_preview(_inventory_icon(definition), definition.display_name)
 	for index in specimens.size():
 		var specimen := specimens[index]
 		var part := String(specimen.processing_state.get(&"part", "целый образец"))
-		inventory_specimen_list.add_item("#%02d  %s  ·  качество %d%%  ·  свежесть %d%%" % [
-			index + 1, part, roundi(specimen.quality * 100.0), roundi(specimen.freshness * 100.0),
+		inventory_specimen_list.add_item("%02d · К %d%% · С %d%%" % [
+			index + 1, roundi(specimen.quality * 100.0), roundi(specimen.freshness * 100.0),
 		])
+		inventory_specimen_list.set_item_tooltip(index, "%s · Качество %d%% · Свежесть %d%%" % [part, roundi(specimen.quality * 100.0), roundi(specimen.freshness * 100.0)])
 		inventory_specimen_list.set_item_metadata(index, {
 			"kind": &"inventory_item",
 			"definition_id": definition_id,
@@ -987,8 +1007,13 @@ func _select_inventory_stack(definition_id: StringName, play_audio: bool = true)
 			"consumable": definition is ConsumableDefinition,
 		})
 	if not specimens.is_empty():
-		inventory_specimen_list.select(0)
-		_selected_inventory_instance_id = specimens[0].instance_id
+		var selected_index := 0
+		for index in specimens.size():
+			if specimens[index].instance_id == _selected_inventory_instance_id:
+				selected_index = index
+		inventory_specimen_list.select(selected_index)
+		_selected_inventory_instance_id = specimens[selected_index].instance_id
+		_sync_inventory_drag_instance()
 	inventory_use_button.disabled = not definition is ConsumableDefinition
 	inventory_use_button.text = "Принять" if definition is ConsumableDefinition else "Не употребляется"
 	if definition is IngredientDefinition and _cooking != null:
@@ -1089,10 +1114,16 @@ func _on_inventory_specimen_selected(index: int) -> void:
 	var payload: Variant = inventory_specimen_list.get_item_metadata(index)
 	if payload is Dictionary:
 		_selected_inventory_instance_id = StringName(payload.get("instance_id", &""))
-	inventory_detail_title.text = "%s · %s" % [
-		ContentDB.get_definition(_selected_inventory_id).display_name,
-		selected_text.get_slice("  ·  ", 0),
-	]
+	_sync_inventory_drag_instance()
+	inventory_specimen_list.tooltip_text = selected_text
+
+
+func _sync_inventory_drag_instance() -> void:
+	# Dragging the selected stack must use the same specimen as its actions.
+	for card in inventory_list.get_children():
+		var button := card.get_node_or_null("Button") as InventoryDragButton
+		if button != null and button.drag_payload.get("definition_id") == _selected_inventory_id:
+			button.drag_payload["instance_id"] = _selected_inventory_instance_id
 
 
 func _inventory_icon(definition: ContentDefinition) -> Texture2D:
@@ -1170,7 +1201,7 @@ func _inventory_category_color(definition: ContentDefinition) -> Color:
 	if definition is ConsumableDefinition:
 		return Color("e89555")
 	if definition is IngredientDefinition:
-		return Color("b7d36f")
+		return TripUITheme.MOSS
 	return Color("82b9c7")
 
 

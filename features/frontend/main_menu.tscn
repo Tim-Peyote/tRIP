@@ -689,6 +689,7 @@ mouse_filter = 2
 stretch = true
 
 [node name="CampViewport" type="SubViewport" parent="CampViewportContainer" unique_id=462324747]
+msaa_3d = 2
 own_world_3d = true
 handle_input_locally = false
 size = Vector2i(1280, 720)
@@ -730,7 +731,7 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="SafeArea/Layout" unique_id=1375371851]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.88, 0.68, 1)
+theme_override_colors/font_color = Color(0.894, 0.867, 0.812, 1)
 theme_override_colors/font_shadow_color = Color(0.02, 0.025, 0.02, 0.9)
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 5
@@ -739,7 +740,7 @@ text = "TRip"
 
 [node name="Subtitle" type="Label" parent="SafeArea/Layout" unique_id=655154318]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.68, 0.73, 0.65, 1)
+theme_override_colors/font_color = Color(0.639, 0.616, 0.576, 1)
 theme_override_font_sizes/font_size = 17
 text = "ЛЕС ПОМНИТ, ЧТО ТЫ ПРИНИМАЛ"
 

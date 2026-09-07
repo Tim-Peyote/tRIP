@@ -24,7 +24,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 func _make_preview() -> Control:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(190.0, 58.0)
-	panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_slot(&"selected", Color("b9d86f")))
+	panel.add_theme_stylebox_override("panel", TripUITheme.make_inventory_slot(&"selected", TripUITheme.MOSS))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	panel.add_child(row)
@@ -36,6 +36,7 @@ func _make_preview() -> Control:
 	row.add_child(icon_view)
 	var label := Label.new()
 	label.text = preview_title
+	label.add_theme_color_override("font_color", TripUITheme.BONE)
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL

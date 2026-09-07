@@ -1,0 +1,12 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3]
+[ext_resource type="Texture2D" path="res://assets/textures/taiga_realistic/fir_bark_albedo.png" id="1"]
+[resource]
+resource_name = "Fir grey resinous bark"
+albedo_texture = ExtResource("1")
+albedo_color = Color(0.8, 0.82, 0.8, 1)
+roughness = 0.91
+metallic_specular = 0.2
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(1.2, 0.65, 1.2)
+texture_filter = 5

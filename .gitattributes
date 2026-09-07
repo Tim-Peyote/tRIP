@@ -5,4 +5,7 @@
 *.ogg binary
 *.wav binary
 *.glb binary
-
+art_sources/menu_camp/natural_clearing.blend filter=lfs diff=lfs merge=lfs -text
+art_sources/taiga/conifers_detailed.blend filter=lfs diff=lfs merge=lfs -text
+art_sources/taiga/conifers_detailed.blend1 filter=lfs diff=lfs merge=lfs -text
+art_sources/taiga/granite_detailed.blend filter=lfs diff=lfs merge=lfs -text

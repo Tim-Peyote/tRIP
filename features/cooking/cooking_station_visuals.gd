@@ -28,6 +28,7 @@ var _bellows_rest: Transform3D
 
 
 func _ready() -> void:
+	preload("res://presentation/materials/laboratory_surface_library.gd").apply_to(get_parent())
 	refresh_rest_transforms()
 
 

@@ -13,6 +13,12 @@ signal quit_requested
 
 
 func _ready() -> void:
+	for button: Button in [%ContinueButton, %NewGameButton, %SettingsButton, %CreditsButton, %QuitButton]:
+		for state: StringName in [&"normal", &"hover", &"focus", &"pressed", &"disabled"]:
+			button.add_theme_stylebox_override(state, TripUITheme.make_inventory_tab(state))
+		button.add_theme_color_override("font_color", TripUITheme.BONE)
+		button.add_theme_color_override("font_pressed_color", TripUITheme.BONE)
+		button.add_theme_color_override("font_focus_color", TripUITheme.PAPER)
 	if theme == null:
 		theme = preload("res://presentation/ui/trip_theme.tres")
 	%ContinueButton.pressed.connect(func() -> void: continue_requested.emit())

@@ -27,6 +27,16 @@ func _run() -> void:
 	if clearing != null:
 		_expect(clearing.get_child_count() >= 20, "Imported grove or camp equipment is missing.")
 		_expect(clearing.find_child("Cube", true, false) == null, "Blender default cube leaked into export.")
+		var textured_surfaces := 0
+		for node in clearing.find_children("*", "MeshInstance3D", true, false):
+			var part := node as MeshInstance3D
+			for surface in part.mesh.get_surface_count():
+				var material := part.get_surface_override_material(surface)
+				if material is StandardMaterial3D and material.albedo_texture != null:
+					textured_surfaces += 1
+				elif material is ShaderMaterial and material.get_shader_parameter("rock_texture") != null:
+					textured_surfaces += 1
+		_expect(textured_surfaces >= 23, "Menu lost shared bark, ground or granite texture materials.")
 	backdrop.apply_progress_data({})
 	_expect(backdrop.get_laboratory_level() == 0, "A fresh save must show the field laboratory at level zero.")
 	_expect(backdrop.get_visible_upgrade_names().is_empty(), "A fresh save must not show persistent upgrades.")

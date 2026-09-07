@@ -15,6 +15,8 @@ var _fire_energy: float
 
 
 func _ready() -> void:
+	_apply_natural_surfaces()
+	preload("res://presentation/materials/laboratory_surface_library.gd").apply_to(self)
 	_camera = $Camera
 	_fire_light = $FireLight
 	_upgrade_root = $RoadLaboratory/PersistentUpgrades
@@ -30,6 +32,28 @@ func _ready() -> void:
 	_fire_energy = _fire_light.light_energy
 	refresh_from_save()
 	set_process(true)
+
+
+func _apply_natural_surfaces() -> void:
+	# Shared materials keep the front end consistent with the ordinary-world taiga.
+	var bark := preload("res://presentation/materials/taiga_bark.tres")
+	var granite := preload("res://presentation/materials/taiga_granite.tres")
+	var soil := preload("res://presentation/materials/taiga_soil.tres")
+	for node in $CedarClearing.find_children("*", "MeshInstance3D", true, false):
+		var part := node as MeshInstance3D
+		for surface in part.mesh.get_surface_count():
+			var original := part.mesh.surface_get_material(surface)
+			if original == null:
+				continue
+			var label := original.resource_name.to_lower()
+			if "bark" in label:
+				part.set_surface_override_material(surface, preload("res://presentation/materials/taiga_fir_bark.tres") if "fir" in part.name.to_lower() else bark)
+			elif "granite" in label:
+				part.set_surface_override_material(surface, granite)
+			elif "humus" in label or "clay" in label:
+				part.set_surface_override_material(surface, soil)
+			elif "needles" in label or "fern" in label:
+				part.set_surface_override_material(surface, AuthoredNatureAssetLibrary._natural_material(original, ""))
 
 
 func refresh_from_save() -> void:

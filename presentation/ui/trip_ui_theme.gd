@@ -1,14 +1,15 @@
 class_name TripUITheme
 extends RefCounted
 
-const INK := Color("101713")
-const INK_DEEP := Color("080c0a")
-const BONE := Color("e8eadf")
-const MUTED := Color("a7ad9f")
-const MOSS := Color("bfd875")
-const EMBER := Color("ef8754")
-const SLATE := Color("18201c")
-const PAPER := Color("d9ddca")
+const INK := Color("171716")
+const INK_DEEP := Color("0b0c0d")
+const BONE := Color("e4ddcf")
+const MUTED := Color("a39d93")
+# Legacy token name retained for callers; selection is now aged bronze, not lime.
+const MOSS := Color("b59a70")
+const EMBER := Color("c77b52")
+const SLATE := Color("222321")
+const PAPER := Color("d6cbb6")
 
 
 static func build() -> Theme:
@@ -63,17 +64,17 @@ static func make_glass_panel(accent: Color = MOSS, opacity: float = 0.9) -> Styl
 
 
 static func make_key_chip() -> StyleBoxFlat:
-	return _box(Color(0.75, 0.86, 0.46, 0.98), Color(0.92, 0.97, 0.74, 0.9), 1, 8, 8)
+	return _box(MOSS, BONE, 1, 3, 8)
 
 
 static func make_inventory_panel() -> StyleBoxFlat:
-	var style := _box(Color(0.045, 0.057, 0.049, 0.96), Color(0.72, 0.8, 0.59, 0.18), 1, 16, 24)
+	var style := _box(Color(0.055, 0.055, 0.052, 0.97), Color(0.71, 0.60, 0.44, 0.24), 1, 4, 24)
 	style.border_width_top = 2
 	style.border_width_left = 1
 	style.border_width_right = 1
 	style.border_width_bottom = 1
 	style.shadow_color = Color(0, 0, 0, 0.62)
-	style.shadow_size = 24
+	style.shadow_size = 8
 	style.shadow_offset = Vector2(0, 10)
 	return style
 
@@ -84,7 +85,7 @@ static func make_inventory_tab(state: StringName, accent: Color = MOSS) -> Style
 	var bottom := 0
 	match state:
 		&"hover":
-			fill = Color(0.15, 0.18, 0.15, 0.48)
+			fill = Color(0.19, 0.17, 0.14, 0.48)
 		&"selected", &"pressed", &"focus":
 			fill = Color(accent.r, accent.g, accent.b, 0.1)
 			border = accent
@@ -97,8 +98,8 @@ static func make_inventory_tab(state: StringName, accent: Color = MOSS) -> Style
 
 
 static func make_inventory_detail_panel(accent: Color = MOSS) -> StyleBoxFlat:
-	var style := _box(Color(0.075, 0.091, 0.078, 0.72), Color(accent.r, accent.g, accent.b, 0.16), 1, 12, 16)
-	style.border_width_left = 2
+	var style := _box(Color.TRANSPARENT, Color(accent.r, accent.g, accent.b, 0.22), 1, 0, 8)
+	style.border_width_left = 1
 	style.border_width_top = 0
 	style.border_width_right = 0
 	style.border_width_bottom = 0
@@ -159,13 +160,13 @@ static func make_menu_button(state: StringName) -> StyleBoxFlat:
 static func make_inventory_slot(state: StringName, accent: Color = MOSS) -> StyleBoxFlat:
 	match state:
 		&"hover":
-			return _box(Color(0.14, 0.165, 0.14, 0.86), Color(accent.r, accent.g, accent.b, 0.72), 1, 10, 7)
+			return _box(Color(0.14, 0.13, 0.11, 0.86), Color(accent.r, accent.g, accent.b, 0.72), 1, 3, 9)
 		&"selected":
-			return _box(Color(0.17, 0.2, 0.16, 0.9), accent.lightened(0.1), 2, 10, 7)
+			return _box(Color(0.19, 0.17, 0.13, 0.9), accent.lightened(0.1), 1, 3, 9)
 		&"pressed":
-			return _box(Color(accent.r * 0.38, accent.g * 0.38, accent.b * 0.38, 0.9), accent, 2, 10, 7)
+			return _box(Color(0.19, 0.17, 0.13, 0.9), accent, 1, 3, 9)
 		_:
-			return _box(Color(0.085, 0.1, 0.087, 0.6), Color(0.55, 0.61, 0.5, 0.2), 1, 10, 7)
+			return _box(Color(0.065, 0.063, 0.059, 0.3), Color.TRANSPARENT, 0, 0, 9)
 
 
 static func _line(color: Color, thickness: int) -> StyleBoxLine:

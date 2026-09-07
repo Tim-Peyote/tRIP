@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ToolDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ToolDefinition" load_steps=3 format=3]
+[ext_resource type="Texture2D" path="res://assets/ui/tool_icons/spore_vial.png" id="icon"]
 
 [ext_resource type="Script" path="res://core/resources/tool_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 id = &"tool.spore_vial"
+inventory_icon = ExtResource("icon")
 display_name = "Споровая пробирка"
 description = "Герметичная пробирка с узким горлом для чистого сбора спор."
 tags = Array[StringName]([&"tool", &"field", &"sampling"])

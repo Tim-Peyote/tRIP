@@ -23,6 +23,6 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	label.custom_minimum_size = Vector2(250.0, 44.0)
 	label.text = "%s · %s" % [preview_title, get_item_text(index)]
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_color_override("font_color", Color("dce7c8"))
+	label.add_theme_color_override("font_color", TripUITheme.BONE)
 	set_drag_preview(label)
 	return (payload as Dictionary).duplicate(true)
